@@ -1,0 +1,39 @@
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+services/quant/.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Books (large files)
+knowledge/books/*.pdf
+knowledge/books/*.epub
+
+# Logs
+*.log
+npm-debug.log*
+
+# Next.js
+.next/
+.vercel/
