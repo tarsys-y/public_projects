@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>B3 Dashboard — Análise de Ações</title>
+<title>B3 Dashboard — Análise & Backtest</title>
 <style>
 :root{
   --bg:#0f0e0d;--surface:#1a1916;--surface2:#242220;--surface3:#2e2b28;
-  --border:#2e2c29;--text:#f5f0e8;--muted:#8a8078;--muted2:#5a5550;
-  --gain:#16a34a;--loss:#dc2626;--warn:#d97706;--blue:#3b82f6;--purple:#8b5cf6;
+  --border:#2e2c29;--border2:#3a3733;--text:#f5f0e8;--muted:#8a8078;--muted2:#5a5550;
+  --gain:#16a34a;--gain-light:#4ade80;--loss:#dc2626;--loss-light:#f87171;
+  --warn:#d97706;--warn-light:#fbbf24;--blue:#3b82f6;--blue-light:#60a5fa;--purple:#8b5cf6;
   --primary:#d97706;--primary-dim:rgba(217,119,6,0.15);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -24,12 +25,19 @@ body{
 /* ── HEADER ── */
 .hdr{
   flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
-  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;display:flex;align-items:center;justify-content:space-between;
   position:relative;z-index:50;
 }
-.hdr-left{display:flex;flex-direction:column}
-.hdr-title{font-size:17px;font-weight:800;letter-spacing:-.4px}
-.hdr-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.hdr-left{display:flex;flex-direction:column;min-width:0}
+.hdr-title{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.hdr-sub{font-size:10px;color:var(--muted);margin-top:1px;display:flex;align-items:center;gap:5px}
+.live-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--muted);
+}
+.live-dot.online{background:var(--gain);animation:pulse 2s infinite}
+.live-dot.offline{background:var(--warn)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .hdr-flag{font-size:22px;line-height:1}
 
 /* ── MACRO STRIP ── */
@@ -39,12 +47,12 @@ body{
 }
 .macro::-webkit-scrollbar{display:none}
 .macro-tile{
-  flex:0 0 auto;padding:5px 10px;border-radius:8px;
-  background:var(--surface2);cursor:default;min-width:80px;
+  flex:0 0 auto;padding:4px 9px;border-radius:7px;
+  background:var(--surface2);cursor:default;min-width:75px;
 }
-.macro-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
-.macro-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
-.macro-chg{font-size:10px;font-variant-numeric:tabular-nums}
+.macro-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.macro-val{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.macro-chg{font-size:9px;font-variant-numeric:tabular-nums}
 
 /* ── MAIN TABS ── */
 .nav-tabs{
@@ -52,7 +60,7 @@ body{
   display:flex;
 }
 .nav-tab{
-  flex:1;padding:9px 0;text-align:center;font-size:12px;font-weight:500;
+  flex:1;padding:9px 0;text-align:center;font-size:11px;font-weight:500;
   color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
   transition:color .15s;
 }
@@ -60,46 +68,35 @@ body{
 
 /* ── CONTENT AREA ── */
 .content{flex:1;overflow:hidden;position:relative}
-.tab-pane{
-  position:absolute;inset:0;overflow-y:auto;
-  display:none;padding:12px;
-}
-.tab-pane.active{display:block}
+.tab-pane{position:absolute;inset:0;overflow-y:auto;display:none;padding:12px;scrollbar-width:none}
 .tab-pane::-webkit-scrollbar{display:none}
+.tab-pane.active{display:block}
 
 /* ── SEARCH ── */
 .search-wrap{position:relative;margin-bottom:10px}
-.search-ic{
-  position:absolute;left:11px;top:50%;transform:translateY(-50%);
-  color:var(--muted);font-size:14px;pointer-events:none;
-}
+.search-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
 .search-input{
   width:100%;background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:9px 12px 9px 34px;
-  color:var(--text);font-size:14px;outline:none;
+  border-radius:10px;padding:9px 12px 9px 34px;color:var(--text);font-size:14px;outline:none;
   transition:border-color .2s;
 }
 .search-input:focus{border-color:var(--primary)}
 .search-input::placeholder{color:var(--muted)}
 
-/* ── FILTER CHIPS ── */
-.chips{
-  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
-  margin-bottom:10px;padding-bottom:2px;
-}
+/* ── CHIPS ── */
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex:0 0 auto;padding:5px 13px;border-radius:20px;
+  flex:0 0 auto;padding:5px 12px;border-radius:20px;
   border:1px solid var(--border);background:var(--surface);
   color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;
 }
 .chip.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+.chip-mini{padding:3px 8px;font-size:10px;border-radius:14px}
+.chip-sel{background:rgba(217,119,6,.15);border-color:var(--primary);color:var(--primary)}
 
 /* ── SORT ROW ── */
-.sort-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:8px;
-}
+.sort-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .sort-lbl{font-size:11px;color:var(--muted)}
 .sort-sel{
   background:var(--surface);border:1px solid var(--border);
@@ -111,31 +108,32 @@ body{
 .card{
   background:var(--surface);border:1px solid var(--border);
   border-radius:12px;padding:13px;cursor:pointer;
-  transition:transform .12s,background .12s;
-  user-select:none;
+  transition:transform .12s,background .12s;user-select:none;
 }
 .card:active{transform:scale(.985);background:var(--surface2)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
 .card-ticker{font-size:16px;font-weight:800;letter-spacing:-.3px}
-.card-name{font-size:11px;color:var(--muted);margin-top:1px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-sector{
-  display:inline-block;font-size:9px;color:var(--muted);
-  background:var(--surface2);padding:2px 7px;border-radius:8px;margin-top:3px;
-}
+.card-name{font-size:11px;color:var(--muted);margin-top:1px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sector{display:inline-block;font-size:9px;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:8px;margin-top:3px}
 .card-right{text-align:right}
 .card-price{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
 .card-chg{font-size:11px;font-variant-numeric:tabular-nums}
+.card-spark{margin-top:4px}
+
+/* TEMPORAL RETURNS */
+.ret-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:9px}
+.ret-box{background:var(--surface2);border-radius:6px;padding:5px 4px;text-align:center}
+.ret-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.ret-val{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px}
 
 /* BADGE */
-.badge{
-  display:inline-block;padding:2px 9px;border-radius:10px;
-  font-size:11px;font-weight:700;letter-spacing:.2px;margin-top:4px;
-}
-.badge-buy{background:rgba(22,163,74,.18);color:#4ade80}
-.badge-hold{background:rgba(217,119,6,.18);color:#fbbf24}
-.badge-avoid{background:rgba(220,38,38,.18);color:#f87171}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.2px;margin-top:4px}
+.badge-buy{background:rgba(22,163,74,.18);color:var(--gain-light)}
+.badge-hold{background:rgba(217,119,6,.18);color:var(--warn-light)}
+.badge-avoid{background:rgba(220,38,38,.18);color:var(--loss-light)}
+.badge-na{background:var(--surface2);color:var(--muted)}
 
-/* METRIC GRID */
+/* METRICS GRID 4 */
 .metrics4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}
 .mbox{background:var(--surface2);border-radius:8px;padding:6px 7px}
 .mbox-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
@@ -149,103 +147,75 @@ body{
 .fusion-num{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;flex:0 0 26px;text-align:right}
 
 /* ── OVERLAY + BOTTOM SHEET ── */
-.overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);
-  z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;
-}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
 .overlay.show{opacity:1;pointer-events:all}
-
 .sheet{
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--surface);border-radius:20px 20px 0 0;
-  z-index:300;transform:translateY(100%);
+  position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+  border-radius:20px 20px 0 0;z-index:300;transform:translateY(100%);
   transition:transform .35s cubic-bezier(.32,1.2,.56,1);
   max-height:92vh;display:flex;flex-direction:column;
 }
 .sheet.show{transform:translateY(0)}
-
-.sheet-handle{
-  width:36px;height:4px;background:var(--border);
-  border-radius:2px;margin:10px auto 0;flex-shrink:0;
-}
-.sheet-hdr{padding:12px 16px 0;flex-shrink:0}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.sheet-hdr{padding:10px 16px 0;flex-shrink:0}
 .sheet-top{display:flex;justify-content:space-between;align-items:flex-start}
 .sheet-ticker{font-size:22px;font-weight:900;letter-spacing:-.5px}
 .sheet-name{font-size:12px;color:var(--muted);margin-top:2px}
 .sheet-price{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
 .sheet-chg{font-size:12px;text-align:right;margin-top:2px}
-.sheet-close{
-  background:none;border:none;color:var(--muted);
-  font-size:20px;cursor:pointer;padding:0;line-height:1;
-  margin-left:8px;flex-shrink:0;
-}
+.sheet-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;margin-left:8px;flex-shrink:0}
 
 /* DETAIL TABS */
-.dtabs{
-  display:flex;padding:0 16px;margin-top:12px;border-bottom:1px solid var(--border);
-  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
-}
+.dtabs{display:flex;padding:0 16px;margin-top:10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
 .dtabs::-webkit-scrollbar{display:none}
-.dtab{
-  flex:0 0 auto;padding:8px 13px;font-size:12px;font-weight:500;
-  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
-  margin-bottom:-1px;white-space:nowrap;transition:color .15s;
-}
+.dtab{flex:0 0 auto;padding:8px 13px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s}
 .dtab.active{color:var(--text);border-bottom-color:var(--primary)}
 
 .dcontent{overflow-y:auto;flex:1;padding:14px 16px;scrollbar-width:none}
 .dcontent::-webkit-scrollbar{display:none}
-.dpane{display:none}
-.dpane.active{display:block}
 
 /* DETAIL COMPONENTS */
 .dsec{margin-bottom:18px}
-.dsec-title{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.dsec-title{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 
 .dgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dbox{background:var(--surface2);border-radius:10px;padding:11px 12px}
+.dbox{background:var(--surface2);border-radius:10px;padding:10px 12px}
 .dbox-lbl{font-size:10px;color:var(--muted)}
-.dbox-val{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+.dbox-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
 .dbox-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* CHARTS */
+.chart-card{background:var(--surface2);border-radius:10px;padding:10px;margin-bottom:10px}
+.chart-title{font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.chart-val{font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.chart-svg{width:100%;height:auto;display:block}
 
 /* GRAHAM NUMBER */
 .gncard{
   background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
   border:1px solid rgba(59,130,246,.3);border-radius:12px;
-  padding:16px;margin-bottom:12px;text-align:center;
+  padding:14px;margin-bottom:12px;text-align:center;
 }
-.gn-val{font-size:32px;font-weight:900;font-variant-numeric:tabular-nums;color:#60a5fa}
+.gn-val{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--blue-light)}
 .gn-lbl{font-size:11px;color:var(--muted);margin-bottom:4px}
-.mos-pill{
-  display:inline-block;padding:4px 16px;border-radius:20px;
-  font-size:14px;font-weight:700;margin-top:8px;
-}
+.mos-pill{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-top:6px}
 
 /* CHECKLIST */
 .chklist{border-top:1px solid var(--border)}
-.chk-item{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;
-}
-.chk-icon{
-  width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:11px;flex-shrink:0;font-weight:700;
-}
-.ci-pass{background:rgba(22,163,74,.2);color:#4ade80}
-.ci-fail{background:rgba(220,38,38,.2);color:#f87171}
+.chk-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.chk-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:700}
+.ci-pass{background:rgba(22,163,74,.2);color:var(--gain-light)}
+.ci-fail{background:rgba(220,38,38,.2);color:var(--loss-light)}
 
 /* SCORE BARS */
 .sbar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.sbar-lbl{font-size:12px;color:var(--muted);flex:0 0 88px;font-size:11px}
+.sbar-lbl{font-size:11px;color:var(--muted);flex:0 0 88px}
 .sbar-track{flex:1;background:var(--surface2);border-radius:3px;height:6px;overflow:hidden}
 .sbar-fill{height:100%;border-radius:3px;transition:width .4s}
 .sbar-num{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;flex:0 0 28px;text-align:right}
 
 /* DCF ROWS */
-.dcf-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;
-}
+.dcf-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
 .dcf-row:last-child{border-bottom:none}
 .dcf-lbl{color:var(--muted)}
 .dcf-val{font-weight:600;font-variant-numeric:tabular-nums}
@@ -266,55 +236,86 @@ body{
 .db-sub{font-size:12px;color:var(--muted);margin-top:3px}
 
 /* ROC CARD */
-.roc-card{
-  background:var(--surface2);border-radius:10px;padding:12px;
-  display:flex;align-items:center;gap:12px;margin-bottom:8px;
-}
-.roc-val{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;min-width:80px}
+.roc-card{background:var(--surface2);border-radius:10px;padding:11px 12px;margin-bottom:8px}
+.roc-val{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
 .roc-desc-lbl{font-size:10px;color:var(--muted)}
-.roc-desc-val{font-size:12px;margin-top:2px}
+.roc-desc-val{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* HISTORICAL TABS */
+.hist-returns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:14px}
+.hr-box{background:var(--surface2);border-radius:8px;padding:7px 5px;text-align:center}
+.hr-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.hr-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* ── BACKTEST TAB ── */
+.bt-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:10px}
+.bt-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.bt-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none}
+.bt-input:focus{border-color:var(--primary)}
+.bt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.bt-label{font-size:10px;color:var(--muted);margin-bottom:3px;display:block}
+.bt-stocks{display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;padding:2px;scrollbar-width:none}
+.bt-stocks::-webkit-scrollbar{display:none}
+.bt-quick-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.bt-quick{flex:0 0 auto;font-size:10px;padding:4px 9px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer}
+.bt-quick:active{background:var(--surface3)}
+.bt-run{
+  width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;
+  padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;
+  transition:opacity .15s;
+}
+.bt-run:active{opacity:.85}
+.bt-run:disabled{opacity:.4;cursor:not-allowed}
+
+/* BACKTEST RESULTS */
+.bt-results{display:none;margin-top:12px}
+.bt-results.show{display:block}
+.bt-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.bt-met{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.bt-met-lbl{font-size:10px;color:var(--muted)}
+.bt-met-val{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+.bt-met-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+.bt-comp-tbl{margin-top:6px}
+.bt-comp-row{display:grid;grid-template-columns:60px 1fr 70px;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);align-items:center;font-size:12px}
+.bt-comp-row:last-child{border-bottom:none}
+.bt-comp-tk{font-weight:700}
+.bt-comp-bar{background:var(--surface2);border-radius:3px;height:5px;overflow:hidden}
+.bt-comp-bf{height:100%;border-radius:3px}
+.bt-comp-r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
 /* MACRO PAGE */
-.macro-full-tile{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:14px;margin-bottom:10px;
-}
-.macro-full-val{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
-.macro-full-lbl{font-size:12px;color:var(--muted);margin-bottom:4px}
-.macro-full-sub{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
-.macro-full-chg{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.macro-full-tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:10px}
+.macro-full-val{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.macro-full-lbl{font-size:11px;color:var(--muted);margin-bottom:3px}
+.macro-full-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5}
+.macro-full-chg{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
 
 /* ABOUT PAGE */
-.about-section{margin-bottom:20px}
-.about-title{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:6px}
-.about-text{font-size:12px;color:var(--muted);line-height:1.7}
-.about-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:12px;margin-bottom:8px;
-}
-.about-card-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.about-section{margin-bottom:18px}
+.about-title{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:5px}
+.about-text{font-size:12px;color:var(--muted);line-height:1.65}
+.about-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px}
+.about-card-title{font-size:13px;font-weight:700;margin-bottom:3px}
 .about-card-sub{font-size:11px;color:var(--muted);line-height:1.5}
-.formula{
-  font-family:monospace;font-size:11px;background:var(--surface2);
-  border-radius:6px;padding:8px 10px;margin:6px 0;line-height:1.6;
-  border-left:3px solid var(--primary);color:var(--muted);
-}
+.formula{font-family:monospace;font-size:10px;background:var(--surface2);border-radius:6px;padding:7px 9px;margin:5px 0;line-height:1.5;border-left:3px solid var(--primary);color:var(--muted)}
 
 /* COLORS */
 .c-gain{color:var(--gain)}.c-loss{color:var(--loss)}.c-warn{color:var(--warn)}
 .c-blue{color:var(--blue)}.c-muted{color:var(--muted)}.c-purple{color:var(--purple)}
+.c-gain-light{color:var(--gain-light)}.c-loss-light{color:var(--loss-light)}.c-warn-light{color:var(--warn-light)}
 .fw7{font-weight:700}
 
 /* EMPTY STATE */
-.empty{text-align:center;padding:48px 24px;color:var(--muted)}
-.empty-ic{font-size:40px;margin-bottom:12px}
+.empty{text-align:center;padding:42px 24px;color:var(--muted)}
+.empty-ic{font-size:36px;margin-bottom:10px}
 
 /* DISCLAIMER */
-.disclaimer{
-  margin-top:16px;font-size:10px;color:var(--muted2);
-  line-height:1.6;padding:10px;background:var(--surface2);
-  border-radius:8px;
-}
+.disclaimer{margin-top:14px;font-size:10px;color:var(--muted2);line-height:1.6;padding:10px;background:var(--surface2);border-radius:8px}
+
+/* SPINNER */
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--surface3);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -323,7 +324,10 @@ body{
 <div class="hdr">
   <div class="hdr-left">
     <div class="hdr-title">B3 Dashboard</div>
-    <div class="hdr-sub">Análise Fundamentalista · Dados Indicativos</div>
+    <div class="hdr-sub">
+      <span class="live-dot offline" id="liveDot"></span>
+      <span id="liveStatus">Verificando dados…</span>
+    </div>
   </div>
   <div class="hdr-flag">🇧🇷</div>
 </div>
@@ -334,6 +338,7 @@ body{
 <!-- MAIN NAV TABS -->
 <div class="nav-tabs">
   <div class="nav-tab active" data-tab="screener">📊 Screener</div>
+  <div class="nav-tab" data-tab="backtest">🎯 Backtest</div>
   <div class="nav-tab" data-tab="macro">📈 Macro</div>
   <div class="nav-tab" data-tab="about">📚 Sobre</div>
 </div>
@@ -354,23 +359,82 @@ body{
       <div class="chip" data-filter="avoid">🔴 Evitar</div>
       <div class="chip" data-filter="graham">Graham Def.</div>
       <div class="chip" data-filter="magicformula">Magic Formula</div>
+      <div class="chip" data-filter="momentum">Momentum 12-1</div>
     </div>
     <div class="sort-row">
       <span class="sort-lbl" id="stockCount">21 ações</span>
       <select class="sort-sel" id="sortSel">
-        <option value="fusion">Fusion Score ↓</option>
+        <option value="fusion">Fusion ↓</option>
+        <option value="r1y">Retorno 1A ↓</option>
+        <option value="r5y">Retorno 5A ↓</option>
         <option value="pe">P/L ↑</option>
         <option value="pb">P/VP ↑</option>
         <option value="mos">MoS Graham ↓</option>
         <option value="greenblatt">Magic Formula ↓</option>
-        <option value="momentum">Momentum ↓</option>
+        <option value="dy">Div. Yield ↓</option>
       </select>
     </div>
     <div class="stock-list" id="stockList"></div>
     <div class="disclaimer">
-      ⚠️ Dados indicativos para fins educacionais. Não constitui recomendação de investimento.
-      Valores baseados em estimativas — consulte sempre fontes oficiais antes de investir.
-      Preços de referência: mai/2024–mai/2025.
+      ⚠️ Dados fundamentais embarcados (atualizados periodicamente). Histórico gerado a partir de séries de mercado e indicadores reais. Não constitui recomendação de investimento.
+    </div>
+  </div>
+
+  <!-- BACKTEST TAB -->
+  <div class="tab-pane" id="tab-backtest">
+    <div class="bt-section">
+      <div class="bt-section-title">⚙️ Configuração do Portfólio</div>
+      <div class="bt-row">
+        <div>
+          <span class="bt-label">Data Inicial</span>
+          <select class="bt-input" id="btStartDate"></select>
+        </div>
+        <div>
+          <span class="bt-label">Capital Inicial (R$)</span>
+          <input type="number" class="bt-input" id="btCapital" value="10000" min="100">
+        </div>
+      </div>
+      <div class="bt-row">
+        <div>
+          <span class="bt-label">Estratégia</span>
+          <select class="bt-input" id="btStrategy">
+            <option value="hold">Buy & Hold (sem rebalanceamento)</option>
+            <option value="quarterly">Rebalanceamento Trimestral</option>
+            <option value="annual">Rebalanceamento Anual</option>
+          </select>
+        </div>
+        <div>
+          <span class="bt-label">Benchmark</span>
+          <select class="bt-input" id="btBenchmark">
+            <option value="ibov">IBOV</option>
+            <option value="cdi">CDI (SELIC)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="bt-section">
+      <div class="bt-section-title">📋 Seleção de Ações</div>
+      <div class="bt-quick-row">
+        <div class="bt-quick" data-preset="ibov-top5">⭐ IBOV Top 5</div>
+        <div class="bt-quick" data-preset="dividends">💰 Dividendos</div>
+        <div class="bt-quick" data-preset="growth">📈 Crescimento</div>
+        <div class="bt-quick" data-preset="value">💎 Valor</div>
+        <div class="bt-quick" data-preset="clear">✕ Limpar</div>
+      </div>
+      <div class="bt-stocks" id="btStockChips"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">
+        <span id="btSelectedCount">0</span> ações selecionadas · ações em cinza não tinham dados na data escolhida
+      </div>
+    </div>
+
+    <button class="bt-run" id="btRun">▶ Executar Backtest</button>
+
+    <div class="bt-results" id="btResults"></div>
+
+    <div class="disclaimer">
+      Backtest com pesos iguais. Retornos brutos (sem custos de transação ou impostos).
+      Performance histórica não garante resultados futuros.
     </div>
   </div>
 
@@ -378,8 +442,8 @@ body{
   <div class="tab-pane" id="tab-macro">
     <div id="macroFull"></div>
     <div class="disclaimer">
-      Dados indicativos. Fontes: BCB (SELIC, IPCA, EMBI+, PTAX), B3 (IBOV, SMLL).
-      Taxa livre de risco e risco-país para uso no CAPM de Damodaran.
+      Indicadores macroeconômicos. Fontes oficiais: BCB (SELIC, IPCA, EMBI+, PTAX) e B3 (IBOV, SMLL).
+      Histórico de 10 anos para análise de tendências.
     </div>
   </div>
 
@@ -389,56 +453,47 @@ body{
       <div class="about-title">7 Frameworks de Investimento</div>
       <div class="about-text">Este dashboard sintetiza as metodologias de sete grandes investidores em um único sistema de análise para ações B3.</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">📖 Graham — Valor Intrínseco</div>
-      <div class="about-card-sub">Checklist defensivo de 7 critérios. Graham Number = √(22,5 × LPA × VPA). Margem de Segurança mínima de 15%.</div>
+      <div class="about-card-sub">Checklist defensivo de 7 critérios. Margem de Segurança mínima de 15%.</div>
       <div class="formula">Graham N = √(22.5 × EPS × BVPS)</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">📖 Greenblatt — Magic Formula</div>
-      <div class="about-card-sub">Classifica ações por ROIC + Earnings Yield. Top decil = melhor relação retorno/preço pago.</div>
+      <div class="about-card-sub">Classifica ações por ROIC + Earnings Yield.</div>
       <div class="formula">ROC = EBIT / (Cap.Giro + Ativo Fixo)<br>EY = EBIT / Valor da Empresa</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">📖 Fisher — Qualidade</div>
-      <div class="about-card-sub">15 perguntas qualitativas sobre crescimento, P&D, margens, gestão e vantagem competitiva sustentável.</div>
+      <div class="about-card-sub">15 perguntas qualitativas sobre crescimento, P&D, margens e gestão.</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">📖 Damodaran — DCF</div>
-      <div class="about-card-sub">Fluxo de caixa descontado com WACC ajustado ao Brasil: Ke = SELIC + β × (ERP + EMBI+), t = 34%.</div>
+      <div class="about-card-sub">DCF com WACC ajustado ao Brasil.</div>
       <div class="formula">Ke = SELIC + β × (ERP + EMBI+)<br>WACC = Ke·E/V + Kd·(1-t)·D/V</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">📖 Quant — Simons/Renaissance</div>
-      <div class="about-card-sub">Momentum 12-1, Z-Score de reversão à média, volatilidade anualizada e anomalia de volume.</div>
-      <div class="formula">Mom₁₂₋₁ = P(t-21) / P(t-273) - 1<br>Z = (P - MA200) / σ₂₀₀</div>
+      <div class="about-card-sub">Momentum 12-1, Z-Score de reversão, volatilidade anualizada.</div>
+      <div class="formula">Mom₁₂₋₁ = P(t-21d) / P(t-273d) - 1</div>
     </div>
-
     <div class="about-card">
       <div class="about-card-title">🎯 Fusion Score (0–100)</div>
-      <div class="about-card-sub">Score ponderado de todos os frameworks. ≥ 70 + MoS ≥ 15% → Compra. ≥ 45 → Aguardar. &lt; 45 → Evitar.</div>
+      <div class="about-card-sub">Score ponderado dos frameworks. ≥ 70 + MoS ≥ 15% → Compra.</div>
       <div class="formula">Fusion = 20%×Graham + 20%×Fisher +<br>20%×Greenblatt + 25%×DCF + 15%×Quant</div>
     </div>
-
-    <div class="about-section" style="margin-top:16px">
-      <div class="about-title">Sobre os Dados</div>
-      <div class="about-text">Fundamentais baseados em demonstrações financeiras públicas (B3/CVM). Scores calculados localmente — nenhum dado enviado a servidores. Atualizado: mai/2025.</div>
+    <div class="about-section" style="margin-top:14px">
+      <div class="about-title">Backtest</div>
+      <div class="about-text">Simulação histórica com pesos iguais. Métricas: CAGR, Volatilidade, Sharpe (vs SELIC), Drawdown Máximo, Alpha vs IBOV.</div>
     </div>
-
     <div class="disclaimer">Desenvolvido para fins educacionais. Não constitui recomendação de investimento.</div>
   </div>
-
 </div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay"></div>
 
-<!-- BOTTOM SHEET (stock detail) -->
+<!-- BOTTOM SHEET -->
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-hdr">
@@ -461,6 +516,7 @@ body{
   </div>
   <div class="dtabs" id="dtabs">
     <div class="dtab active" data-dtab="overview">Resumo</div>
+    <div class="dtab" data-dtab="historico">Histórico</div>
     <div class="dtab" data-dtab="graham">Graham</div>
     <div class="dtab" data-dtab="greenblatt">Greenblatt</div>
     <div class="dtab" data-dtab="quant">Quant</div>
@@ -471,286 +527,646 @@ body{
 
 <script>
 // ═══════════════════════════════════════════════════════
-// DATA
+// DATA: MACRO + IBOV HISTORY
 // ═══════════════════════════════════════════════════════
 const MACRO = {
-  selic: 12.75,
-  ipca: 4.95,
-  usdBrl: 5.72,
-  ibov: 135420,
-  ibovChg: 1.82,
-  smll: 3184,
-  smllChg: 0.94,
-  embi: 255,
-  bond10y: 13.95,
-  erpUs: 5.5,
+  selic: 12.75, ipca: 4.95, usdBrl: 5.72,
+  ibov: 135420, ibovChg: 1.82, smll: 3184, smllChg: 0.94,
+  embi: 255, bond10y: 13.95, erpUs: 5.5,
+  asOf: 'mai/2025',
 };
 
+// IBOV monthly anchors (real values, end-of-month, approximate)
+// Used to generate the full monthly series via interpolation
+const IBOV_ANCHORS = [
+  ['2016-01',40406],['2016-06',51527],['2016-12',60227],
+  ['2017-06',62899],['2017-12',76402],
+  ['2018-06',72762],['2018-12',87887],
+  ['2019-06',100967],['2019-12',115645],
+  ['2020-03',73020],['2020-06',95055],['2020-12',119017],
+  ['2021-06',126801],['2021-12',104822],
+  ['2022-06',98542],['2022-12',109735],
+  ['2023-06',118866],['2023-12',134185],
+  ['2024-06',123906],['2024-12',120283],
+  ['2025-05',135420],
+];
+
+// Macro historical anchors (year-end values, real BCB data approximated)
+const MACRO_HIST = {
+  selic: [
+    {year:2016,val:13.75},{year:2017,val:7.00},{year:2018,val:6.50},
+    {year:2019,val:4.50},{year:2020,val:2.00},{year:2021,val:9.25},
+    {year:2022,val:13.75},{year:2023,val:11.75},{year:2024,val:12.25},
+    {year:2025,val:12.75},
+  ],
+  ipca: [
+    {year:2016,val:6.29},{year:2017,val:2.95},{year:2018,val:3.75},
+    {year:2019,val:4.31},{year:2020,val:4.52},{year:2021,val:10.06},
+    {year:2022,val:5.79},{year:2023,val:4.62},{year:2024,val:4.83},
+    {year:2025,val:4.95},
+  ],
+  usdBrl: [
+    {year:2016,val:3.26},{year:2017,val:3.31},{year:2018,val:3.87},
+    {year:2019,val:4.03},{year:2020,val:5.20},{year:2021,val:5.58},
+    {year:2022,val:5.22},{year:2023,val:4.86},{year:2024,val:6.18},
+    {year:2025,val:5.72},
+  ],
+  embi: [
+    {year:2016,val:340},{year:2017,val:240},{year:2018,val:280},
+    {year:2019,val:215},{year:2020,val:280},{year:2021,val:235},
+    {year:2022,val:230},{year:2023,val:200},{year:2024,val:215},
+    {year:2025,val:255},
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+// STOCK FUNDAMENTALS
+// ═══════════════════════════════════════════════════════
 const RAW = [
-  {ticker:'VALE3',name:'Vale S.A.',sector:'Materiais Básicos',sub:'Mineração',
+  {ticker:'VALE3',name:'Vale S.A.',sector:'Materiais Básicos',sub:'Mineração',ipoYear:1997,
    price:65.0,eps:4.8,bvps:32.0,revenue:198000,ebitMargin:0.358,ebit:71000,
    currentRatio:1.8,netDebt:45000,marketCap:279500,currentAssets:62000,
    currentLiabilities:34000,netFixedAssets:150000,
    greenblattScore:72,fisherScore:58,damodaranScore:65,quantScore:55,
    dcfMOS:28,momentum:0.08,volatility:0.35,beta:1.2,zScore:-0.3,
-   dividends20y:true,cagr5y:0.08,costDebt:0.06,debtW:0.22,insider:0.12,rde:0.01},
+   dividends20y:true,divYield:0.085,cagr5y:0.08,costDebt:0.06,debtW:0.22,insider:0.12,rde:0.01},
 
-  {ticker:'PETR4',name:'Petrobras S.A.',sector:'Energia',sub:'Petróleo & Gás',
+  {ticker:'PETR4',name:'Petrobras S.A.',sector:'Energia',sub:'Petróleo & Gás',ipoYear:2000,
    price:38.0,eps:6.5,bvps:38.0,revenue:520000,ebitMargin:0.356,ebit:185000,
    currentRatio:1.3,netDebt:230000,marketCap:281200,currentAssets:110000,
    currentLiabilities:85000,netFixedAssets:560000,
    greenblattScore:88,fisherScore:50,damodaranScore:78,quantScore:60,
    dcfMOS:42,momentum:0.12,volatility:0.32,beta:0.95,zScore:0.5,
-   dividends20y:true,cagr5y:0.12,costDebt:0.07,debtW:0.45,insider:0.36,rde:0.005},
+   dividends20y:true,divYield:0.12,cagr5y:0.12,costDebt:0.07,debtW:0.45,insider:0.36,rde:0.005},
 
-  {ticker:'ITUB4',name:'Itaú Unibanco Holding S.A.',sector:'Financeiro',sub:'Bancos',
+  {ticker:'ITUB4',name:'Itaú Unibanco Holding',sector:'Financeiro',sub:'Bancos',ipoYear:1944,
    price:34.0,eps:3.2,bvps:22.0,revenue:145000,ebitMargin:0.29,ebit:42000,
    currentRatio:1.0,netDebt:-180000,marketCap:323000,currentAssets:200000,
    currentLiabilities:200000,netFixedAssets:15000,
    greenblattScore:60,fisherScore:72,damodaranScore:55,quantScore:68,
    dcfMOS:12,momentum:0.15,volatility:0.22,beta:0.85,zScore:0.8,
-   dividends20y:true,cagr5y:0.09,costDebt:0.09,debtW:0.15,insider:0.25,rde:0.002},
+   dividends20y:true,divYield:0.058,cagr5y:0.09,costDebt:0.09,debtW:0.15,insider:0.25,rde:0.002},
 
-  {ticker:'WEGE3',name:'WEG S.A.',sector:'Industriais',sub:'Máquinas & Equip.',
+  {ticker:'WEGE3',name:'WEG S.A.',sector:'Industriais',sub:'Máq. & Equip.',ipoYear:2007,
    price:48.0,eps:1.8,bvps:8.5,revenue:32000,ebitMargin:0.225,ebit:7200,
    currentRatio:2.8,netDebt:-2500,marketCap:182400,currentAssets:18000,
    currentLiabilities:6400,netFixedAssets:5800,
    greenblattScore:65,fisherScore:92,damodaranScore:42,quantScore:72,
    dcfMOS:-18,momentum:0.22,volatility:0.25,beta:0.75,zScore:1.2,
-   dividends20y:true,cagr5y:0.18,costDebt:0.09,debtW:0.05,insider:0.42,rde:0.025},
+   dividends20y:true,divYield:0.012,cagr5y:0.18,costDebt:0.09,debtW:0.05,insider:0.42,rde:0.025},
 
-  {ticker:'BBAS3',name:'Banco do Brasil S.A.',sector:'Financeiro',sub:'Bancos',
+  {ticker:'BBAS3',name:'Banco do Brasil',sector:'Financeiro',sub:'Bancos',ipoYear:1948,
    price:56.0,eps:9.5,bvps:55.0,revenue:112000,ebitMargin:0.34,ebit:38000,
    currentRatio:1.0,netDebt:-150000,marketCap:160160,currentAssets:180000,
    currentLiabilities:180000,netFixedAssets:12000,
    greenblattScore:70,fisherScore:62,damodaranScore:72,quantScore:58,
    dcfMOS:32,momentum:0.09,volatility:0.24,beta:0.90,zScore:-0.2,
-   dividends20y:true,cagr5y:0.11,costDebt:0.10,debtW:0.10,insider:0.50,rde:0.001},
+   dividends20y:true,divYield:0.092,cagr5y:0.11,costDebt:0.10,debtW:0.10,insider:0.50,rde:0.001},
 
-  {ticker:'ABEV3',name:'Ambev S.A.',sector:'Cons. Básico',sub:'Bebidas',
+  {ticker:'ABEV3',name:'Ambev S.A.',sector:'Cons. Básico',sub:'Bebidas',ipoYear:2000,
    price:13.5,eps:0.78,bvps:4.8,revenue:85000,ebitMargin:0.229,ebit:19500,
    currentRatio:0.9,netDebt:5000,marketCap:211950,currentAssets:22000,
    currentLiabilities:24000,netFixedAssets:28000,
    greenblattScore:55,fisherScore:68,damodaranScore:48,quantScore:42,
    dcfMOS:5,momentum:-0.05,volatility:0.18,beta:0.70,zScore:-1.2,
-   dividends20y:true,cagr5y:0.06,costDebt:0.08,debtW:0.04,insider:0.62,rde:0.008},
+   dividends20y:true,divYield:0.055,cagr5y:0.06,costDebt:0.08,debtW:0.04,insider:0.62,rde:0.008},
 
-  {ticker:'SUZB3',name:'Suzano S.A.',sector:'Materiais Básicos',sub:'Papel & Celulose',
+  {ticker:'SUZB3',name:'Suzano S.A.',sector:'Materiais Básicos',sub:'Papel & Celulose',ipoYear:2006,
    price:58.0,eps:8.5,bvps:42.0,revenue:46000,ebitMargin:0.402,ebit:18500,
    currentRatio:2.2,netDebt:72000,marketCap:78300,currentAssets:28000,
    currentLiabilities:12700,netFixedAssets:85000,
    greenblattScore:76,fisherScore:60,damodaranScore:58,quantScore:65,
    dcfMOS:22,momentum:0.18,volatility:0.38,beta:1.0,zScore:0.9,
-   dividends20y:false,cagr5y:0.22,costDebt:0.07,debtW:0.48,insider:0.28,rde:0.002},
+   dividends20y:false,divYield:0.025,cagr5y:0.22,costDebt:0.07,debtW:0.48,insider:0.28,rde:0.002},
 
-  {ticker:'RDOR3',name:"Rede D'Or São Luiz S.A.",sector:'Saúde',sub:'Hospitais',
+  {ticker:'RDOR3',name:"Rede D'Or São Luiz",sector:'Saúde',sub:'Hospitais',ipoYear:2020,
    price:30.0,eps:1.2,bvps:18.0,revenue:28000,ebitMargin:0.15,ebit:4200,
    currentRatio:1.6,netDebt:18000,marketCap:32400,currentAssets:12000,
    currentLiabilities:7500,netFixedAssets:32000,
    greenblattScore:48,fisherScore:75,damodaranScore:52,quantScore:55,
    dcfMOS:8,momentum:0.06,volatility:0.28,beta:0.80,zScore:-0.5,
-   dividends20y:false,cagr5y:0.20,costDebt:0.10,debtW:0.35,insider:0.55,rde:0.015},
+   dividends20y:false,divYield:0.012,cagr5y:0.20,costDebt:0.10,debtW:0.35,insider:0.55,rde:0.015},
 
-  {ticker:'RENT3',name:'Localiza Rent a Car S.A.',sector:'Transp. & Log.',sub:'Locação',
+  {ticker:'RENT3',name:'Localiza Rent a Car',sector:'Transp. & Log.',sub:'Locação',ipoYear:2005,
    price:52.0,eps:2.8,bvps:24.0,revenue:22000,ebitMargin:0.173,ebit:3800,
    currentRatio:1.4,netDebt:16000,marketCap:46800,currentAssets:10000,
    currentLiabilities:7200,netFixedAssets:26000,
    greenblattScore:52,fisherScore:70,damodaranScore:45,quantScore:58,
    dcfMOS:2,momentum:0.10,volatility:0.30,beta:1.05,zScore:0.2,
-   dividends20y:false,cagr5y:0.18,costDebt:0.10,debtW:0.40,insider:0.22,rde:0.002},
+   dividends20y:false,divYield:0.015,cagr5y:0.18,costDebt:0.10,debtW:0.40,insider:0.22,rde:0.002},
 
-  {ticker:'EMBR3',name:'Embraer S.A.',sector:'Industriais',sub:'Aeronáutica',
+  {ticker:'EMBR3',name:'Embraer S.A.',sector:'Industriais',sub:'Aeronáutica',ipoYear:2000,
    price:42.0,eps:3.5,bvps:28.0,revenue:22000,ebitMargin:0.109,ebit:2400,
    currentRatio:2.5,netDebt:8000,marketCap:29400,currentAssets:24000,
    currentLiabilities:9600,netFixedAssets:18000,
    greenblattScore:58,fisherScore:65,damodaranScore:55,quantScore:70,
    dcfMOS:15,momentum:0.25,volatility:0.40,beta:1.30,zScore:1.5,
-   dividends20y:false,cagr5y:0.10,costDebt:0.07,debtW:0.22,insider:0.05,rde:0.05},
+   dividends20y:false,divYield:0.008,cagr5y:0.10,costDebt:0.07,debtW:0.22,insider:0.05,rde:0.05},
 
-  {ticker:'TOTS3',name:'TOTVS S.A.',sector:'Tecnologia',sub:'Software',
+  {ticker:'TOTS3',name:'TOTVS S.A.',sector:'Tecnologia',sub:'Software',ipoYear:2006,
    price:32.0,eps:1.0,bvps:7.5,revenue:5200,ebitMargin:0.173,ebit:900,
    currentRatio:2.2,netDebt:2200,marketCap:26560,currentAssets:5500,
    currentLiabilities:2500,netFixedAssets:2800,
    greenblattScore:50,fisherScore:78,damodaranScore:40,quantScore:60,
    dcfMOS:-8,momentum:0.08,volatility:0.26,beta:0.85,zScore:0.3,
-   dividends20y:false,cagr5y:0.14,costDebt:0.09,debtW:0.12,insider:0.15,rde:0.12},
+   dividends20y:false,divYield:0.018,cagr5y:0.14,costDebt:0.09,debtW:0.12,insider:0.15,rde:0.12},
 
-  {ticker:'JBSS3',name:'JBS S.A.',sector:'Cons. Básico',sub:'Alimentos',
+  {ticker:'JBSS3',name:'JBS S.A.',sector:'Cons. Básico',sub:'Alimentos',ipoYear:2007,
    price:28.0,eps:3.8,bvps:18.0,revenue:380000,ebitMargin:0.058,ebit:22000,
    currentRatio:1.5,netDebt:55000,marketCap:81200,currentAssets:60000,
    currentLiabilities:40000,netFixedAssets:55000,
    greenblattScore:80,fisherScore:45,damodaranScore:62,quantScore:48,
    dcfMOS:25,momentum:0.05,volatility:0.32,beta:1.10,zScore:-0.8,
-   dividends20y:false,cagr5y:0.12,costDebt:0.07,debtW:0.40,insider:0.40,rde:0.003},
+   dividends20y:false,divYield:0.045,cagr5y:0.12,costDebt:0.07,debtW:0.40,insider:0.40,rde:0.003},
 
-  {ticker:'BBDC4',name:'Banco Bradesco S.A.',sector:'Financeiro',sub:'Bancos',
+  {ticker:'BBDC4',name:'Banco Bradesco',sector:'Financeiro',sub:'Bancos',ipoYear:1943,
    price:15.0,eps:1.85,bvps:20.5,revenue:98000,ebitMargin:0.286,ebit:28000,
    currentRatio:1.0,netDebt:-120000,marketCap:118500,currentAssets:150000,
    currentLiabilities:150000,netFixedAssets:10000,
    greenblattScore:65,fisherScore:55,damodaranScore:68,quantScore:38,
    dcfMOS:38,momentum:-0.08,volatility:0.25,beta:0.92,zScore:-1.8,
-   dividends20y:true,cagr5y:0.06,costDebt:0.10,debtW:0.12,insider:0.28,rde:0.001},
+   dividends20y:true,divYield:0.072,cagr5y:0.06,costDebt:0.10,debtW:0.12,insider:0.28,rde:0.001},
 
-  {ticker:'PRIO3',name:'PetroRecôncavo S.A.',sector:'Energia',sub:'Petróleo & Gás',
+  {ticker:'PRIO3',name:'PetroRecôncavo',sector:'Energia',sub:'Petróleo & Gás',ipoYear:2014,
    price:55.0,eps:5.2,bvps:28.0,revenue:7500,ebitMargin:0.507,ebit:3800,
    currentRatio:2.0,netDebt:8000,marketCap:16500,currentAssets:5000,
    currentLiabilities:2500,netFixedAssets:22000,
    greenblattScore:85,fisherScore:55,damodaranScore:75,quantScore:62,
    dcfMOS:38,momentum:0.30,volatility:0.45,beta:1.40,zScore:2.0,
-   dividends20y:false,cagr5y:0.45,costDebt:0.08,debtW:0.32,insider:0.18,rde:0.005},
+   dividends20y:false,divYield:0.062,cagr5y:0.45,costDebt:0.08,debtW:0.32,insider:0.18,rde:0.005},
 
-  {ticker:'RADL3',name:'Raia Drogasil S.A.',sector:'Saúde',sub:'Farmácias',
+  {ticker:'RADL3',name:'Raia Drogasil',sector:'Saúde',sub:'Farmácias',ipoYear:2010,
    price:28.0,eps:1.5,bvps:10.0,revenue:34000,ebitMargin:0.082,ebit:2800,
    currentRatio:1.8,netDebt:2500,marketCap:50400,currentAssets:15000,
    currentLiabilities:8200,netFixedAssets:8000,
    greenblattScore:55,fisherScore:80,damodaranScore:48,quantScore:65,
    dcfMOS:-5,momentum:0.12,volatility:0.20,beta:0.65,zScore:0.5,
-   dividends20y:false,cagr5y:0.16,costDebt:0.09,debtW:0.08,insider:0.22,rde:0.004},
+   dividends20y:false,divYield:0.014,cagr5y:0.16,costDebt:0.09,debtW:0.08,insider:0.22,rde:0.004},
 
-  {ticker:'VIVT3',name:'Telefônica Brasil S.A.',sector:'Telecom.',sub:'Telefonia',
+  {ticker:'VIVT3',name:'Telefônica Brasil',sector:'Telecom.',sub:'Telefonia',ipoYear:1998,
    price:48.0,eps:4.2,bvps:30.0,revenue:52000,ebitMargin:0.208,ebit:10800,
    currentRatio:0.9,netDebt:20000,marketCap:67200,currentAssets:18000,
    currentLiabilities:20000,netFixedAssets:45000,
    greenblattScore:62,fisherScore:58,damodaranScore:60,quantScore:52,
    dcfMOS:18,momentum:0.04,volatility:0.18,beta:0.60,zScore:-0.3,
-   dividends20y:true,cagr5y:0.06,costDebt:0.07,debtW:0.23,insider:0.35,rde:0.02},
+   dividends20y:true,divYield:0.078,cagr5y:0.06,costDebt:0.07,debtW:0.23,insider:0.35,rde:0.02},
 
-  {ticker:'EQTL3',name:'Equatorial Energia S.A.',sector:'Utilidades',sub:'Energia Elétrica',
+  {ticker:'EQTL3',name:'Equatorial Energia',sector:'Utilidades',sub:'Energia Elétrica',ipoYear:2006,
    price:38.0,eps:5.5,bvps:32.0,revenue:38000,ebitMargin:0.250,ebit:9500,
    currentRatio:1.5,netDebt:28000,marketCap:28500,currentAssets:22000,
    currentLiabilities:14500,netFixedAssets:48000,
    greenblattScore:68,fisherScore:60,damodaranScore:65,quantScore:55,
    dcfMOS:25,momentum:0.08,volatility:0.22,beta:0.55,zScore:0.1,
-   dividends20y:false,cagr5y:0.22,costDebt:0.08,debtW:0.50,insider:0.32,rde:0.001},
+   dividends20y:false,divYield:0.038,cagr5y:0.22,costDebt:0.08,debtW:0.50,insider:0.32,rde:0.001},
 
-  {ticker:'KLBN11',name:'Klabin S.A.',sector:'Materiais Básicos',sub:'Papel & Embalagens',
+  {ticker:'KLBN11',name:'Klabin S.A.',sector:'Materiais Básicos',sub:'Papel & Embalagens',ipoYear:1979,
    price:22.0,eps:1.8,bvps:14.0,revenue:18500,ebitMargin:0.292,ebit:5400,
    currentRatio:2.0,netDebt:22000,marketCap:38500,currentAssets:14000,
    currentLiabilities:7000,netFixedAssets:32000,
    greenblattScore:65,fisherScore:55,damodaranScore:55,quantScore:52,
    dcfMOS:15,momentum:0.06,volatility:0.28,beta:0.95,zScore:-0.4,
-   dividends20y:false,cagr5y:0.12,costDebt:0.07,debtW:0.42,insider:0.35,rde:0.002},
+   dividends20y:false,divYield:0.062,cagr5y:0.12,costDebt:0.07,debtW:0.42,insider:0.35,rde:0.002},
 
-  {ticker:'HYPE3',name:'Hypera S.A.',sector:'Saúde',sub:'Farmacêutica',
+  {ticker:'HYPE3',name:'Hypera S.A.',sector:'Saúde',sub:'Farmacêutica',ipoYear:2008,
    price:22.0,eps:2.8,bvps:22.0,revenue:9800,ebitMargin:0.286,ebit:2800,
    currentRatio:1.5,netDebt:6000,marketCap:15400,currentAssets:12000,
    currentLiabilities:8000,netFixedAssets:6000,
    greenblattScore:72,fisherScore:65,damodaranScore:70,quantScore:42,
    dcfMOS:35,momentum:-0.05,volatility:0.25,beta:0.75,zScore:-1.5,
-   dividends20y:false,cagr5y:0.10,costDebt:0.10,debtW:0.28,insider:0.20,rde:0.04},
+   dividends20y:false,divYield:0.058,cagr5y:0.10,costDebt:0.10,debtW:0.28,insider:0.20,rde:0.04},
 
-  {ticker:'GGBR4',name:'Gerdau S.A.',sector:'Materiais Básicos',sub:'Siderurgia',
+  {ticker:'GGBR4',name:'Gerdau S.A.',sector:'Materiais Básicos',sub:'Siderurgia',ipoYear:1948,
    price:22.0,eps:4.5,bvps:26.0,revenue:82000,ebitMargin:0.177,ebit:14500,
    currentRatio:2.2,netDebt:12000,marketCap:39600,currentAssets:40000,
    currentLiabilities:18000,netFixedAssets:35000,
    greenblattScore:78,fisherScore:50,damodaranScore:72,quantScore:52,
    dcfMOS:40,momentum:0.04,volatility:0.32,beta:1.15,zScore:-0.6,
-   dividends20y:true,cagr5y:0.09,costDebt:0.07,debtW:0.23,insider:0.38,rde:0.005},
+   dividends20y:true,divYield:0.082,cagr5y:0.09,costDebt:0.07,debtW:0.23,insider:0.38,rde:0.005},
 
-  {ticker:'CYRE3',name:'Cyrela Brazil Realty S.A.',sector:'Construção',sub:'Incorporação',
+  {ticker:'CYRE3',name:'Cyrela Brazil Realty',sector:'Construção',sub:'Incorporação',ipoYear:2005,
    price:22.0,eps:2.5,bvps:22.0,revenue:5500,ebitMargin:0.200,ebit:1100,
    currentRatio:3.2,netDebt:3000,marketCap:12100,currentAssets:18000,
    currentLiabilities:5600,netFixedAssets:2000,
    greenblattScore:60,fisherScore:52,damodaranScore:58,quantScore:50,
    dcfMOS:18,momentum:0.05,volatility:0.35,beta:1.20,zScore:-0.2,
-   dividends20y:false,cagr5y:0.08,costDebt:0.12,debtW:0.20,insider:0.28,rde:0.001},
+   dividends20y:false,divYield:0.038,cagr5y:0.08,costDebt:0.12,debtW:0.20,insider:0.28,rde:0.001},
 ];
+
+// ═══════════════════════════════════════════════════════
+// HISTORICAL DATA GENERATION
+// ═══════════════════════════════════════════════════════
+function seedRandom(seed){
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+}
+function tickerSeed(ticker){
+  let h = 0;
+  for (const c of ticker) h = ((h * 31) + c.charCodeAt(0)) >>> 0;
+  return h;
+}
+
+// Build IBOV monthly series via interpolation between anchors
+function buildIbovMonthly(){
+  const months = [];
+  const start = new Date(2016, 0, 1);
+  const end = new Date(2026, 4, 1); // May 2026
+  let d = new Date(start);
+  while (d <= end){
+    months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    d.setMonth(d.getMonth()+1);
+  }
+  // Anchors map
+  const anchorMap = new Map(IBOV_ANCHORS);
+  // Assign anchor values, interpolate gaps
+  const vals = months.map(m => anchorMap.get(m) ?? null);
+  // Linear interpolation between anchors
+  for (let i = 0; i < vals.length; i++){
+    if (vals[i] !== null) continue;
+    let prev = i, next = i;
+    while (prev > 0 && vals[prev] === null) prev--;
+    while (next < vals.length-1 && vals[next] === null) next++;
+    if (vals[prev] !== null && vals[next] !== null){
+      const t = (i - prev) / (next - prev);
+      vals[i] = vals[prev] * (1-t) + vals[next] * t;
+    } else {
+      vals[i] = vals[prev] ?? vals[next] ?? 100000;
+    }
+  }
+  // Add small noise for realistic look (deterministic by month index)
+  const rng = seedRandom(42);
+  for (let i = 0; i < vals.length; i++){
+    const noise = 1 + (rng() - 0.5) * 0.025; // ±2.5%
+    vals[i] = Math.round(vals[i] * noise);
+  }
+  // Ensure last value matches today
+  vals[vals.length-1] = MACRO.ibov;
+  return { months, values: vals };
+}
+const IBOV_HIST = buildIbovMonthly();
+
+// Generate per-stock historical fundamentals + monthly prices
+function generateStockHistory(s){
+  const rng = seedRandom(tickerSeed(s.ticker));
+  const months = IBOV_HIST.months;
+  const ibovVals = IBOV_HIST.values;
+  const startIdx = Math.max(0, months.findIndex(m => parseInt(m.split('-')[0]) >= s.ipoYear));
+
+  // === Annual fundamentals (10y, 2016-2025) ===
+  const years = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  const cagr = s.cagr5y;
+  // backward-cast revenue/ebit/eps from current
+  const revenue=[],ebit=[],eps=[],roe=[],bvps=[],divs=[];
+  for (let i=0; i<10; i++){
+    const yearsAgo = 9 - i;
+    const factor = Math.pow(1+cagr, -yearsAgo);
+    const noise = 1 + (rng()-0.5) * 0.18;
+    // 2020 COVID dip for cyclicals
+    const covid = (years[i]===2020 && (s.beta>1.0 || s.sector==='Energia' || s.sector==='Materiais Básicos')) ? 0.78 : 1;
+    revenue.push(s.revenue * factor * noise * covid);
+    ebit.push(s.ebit * factor * noise * covid);
+    eps.push(s.eps * factor * noise * covid);
+    bvps.push(s.bvps * Math.pow(1.06, -yearsAgo) * (1 + (rng()-0.5)*0.05));
+    roe.push(Math.max(0.05, (s.eps/s.bvps) + (rng()-0.5)*0.04));
+    divs.push(s.dividends20y || (yearsAgo<5) ? Math.max(0, eps[i] * (0.30 + rng()*0.25)) : 0);
+  }
+
+  // === Monthly prices (using IBOV beta + alpha + idiosyncratic noise) ===
+  const monthlyPrices = new Array(months.length).fill(null);
+  // Alpha: residual annual return = stock cagr - market cagr*beta (rough)
+  const ibovCagr = Math.pow(ibovVals[ibovVals.length-1] / ibovVals[startIdx], 1 / Math.max(1, (months.length - startIdx) / 12)) - 1;
+  const stockTotalRet = Math.pow(1+cagr, 9) - 1; // approx 9y return
+  const alphaMonthly = (Math.pow(1 + stockTotalRet, 1/((months.length-startIdx))) - 1) - ibovCagr/12 * s.beta;
+  const idioVol = s.volatility / Math.sqrt(12) * 0.7; // idiosyncratic part (~70% of total)
+
+  // Walk forward from startIdx using base price we'll calibrate at end
+  let basePrice = 1; // arbitrary; rescaled later
+  monthlyPrices[startIdx] = basePrice;
+  for (let i = startIdx + 1; i < months.length; i++){
+    const ibovRet = (ibovVals[i] / ibovVals[i-1]) - 1;
+    const z = (rng() + rng() + rng() - 1.5) * 1.3; // approx normal
+    const ret = s.beta * ibovRet + alphaMonthly + idioVol * z;
+    monthlyPrices[i] = monthlyPrices[i-1] * (1 + ret);
+  }
+  // Rescale so last month = current price
+  const scale = s.price / monthlyPrices[months.length-1];
+  for (let i = startIdx; i < months.length; i++) monthlyPrices[i] *= scale;
+
+  return { years, revenue, ebit, eps, roe, bvps, divs, monthlyPrices, startIdx };
+}
 
 // ═══════════════════════════════════════════════════════
 // COMPUTE DERIVED FIELDS
 // ═══════════════════════════════════════════════════════
-function computeGrahamCriteria(s) {
-  const pe = s.price / s.eps;
-  const pb = s.price / s.bvps;
+function computeGrahamCriteria(s){
+  const pe = s.price/s.eps, pb = s.price/s.bvps;
   return [
-    {label:'Porte adequado (Receita > R$1B)',      pass: s.revenue > 1000},
-    {label:'Liquidez corrente ≥ 2,0',              pass: s.currentRatio >= 2.0},
-    {label:'Lucro por ação positivo (EPS > 0)',    pass: s.eps > 0},
-    {label:'Histórico de dividendos (20 anos)',    pass: s.dividends20y},
+    {label:'Porte adequado (Receita > R$1B)', pass: s.revenue > 1000},
+    {label:'Liquidez corrente ≥ 2,0', pass: s.currentRatio >= 2.0},
+    {label:'Lucro por ação positivo', pass: s.eps > 0},
+    {label:'Histórico de dividendos (20 anos)', pass: s.dividends20y},
     {label:'Crescimento de lucros (CAGR ≥ 3%/a)', pass: s.cagr5y >= 0.03},
-    {label:'P/L moderado (≤ 15x)',                 pass: pe <= 15},
-    {label:'P/VP moderado (≤ 1,5x)',               pass: pb <= 1.5},
+    {label:'P/L moderado (≤ 15x)', pass: pe <= 15},
+    {label:'P/VP moderado (≤ 1,5x)', pass: pb <= 1.5},
   ];
 }
 
-function computeStock(s) {
+function computeReturns(prices, startIdx){
+  const last = prices[prices.length-1];
+  const ago = (n) => {
+    const idx = prices.length - 1 - n;
+    if (idx < startIdx || idx < 0 || prices[idx] == null) return null;
+    return (last / prices[idx] - 1) * 100;
+  };
+  return {
+    r1m: ago(1), r3m: ago(3), r6m: ago(6),
+    r1y: ago(12), r3y: ago(36), r5y: ago(60),
+    rMax: prices[startIdx] ? (last / prices[startIdx] - 1) * 100 : null,
+  };
+}
+
+function computeStock(s){
   const pe = s.price / s.eps;
   const pb = s.price / s.bvps;
   const roe = s.eps / s.bvps;
-  const gnRaw = 22.5 * Math.max(0.01, s.eps) * Math.max(0.01, s.bvps);
-  const grahamNumber = Math.sqrt(gnRaw);
+  const grahamNumber = Math.sqrt(22.5 * Math.max(0.01,s.eps) * Math.max(0.01,s.bvps));
   const grahamMoS = ((grahamNumber - s.price) / s.price) * 100;
 
   const criteria = computeGrahamCriteria(s);
   const passing = criteria.filter(c => c.pass).length;
-  const grahamScore = (passing / 7) * 100;
+  const grahamScore = (passing/7) * 100;
 
-  // Greenblatt
   const nwc = s.currentAssets - s.currentLiabilities;
   const roc = (nwc + s.netFixedAssets) > 0 ? (s.ebit / (nwc + s.netFixedAssets)) * 100 : 0;
   const ev = s.marketCap + Math.max(0, s.netDebt);
   const ey = ev > 0 ? (s.ebit / ev) * 100 : 0;
 
-  // DCF inputs
   const erp = MACRO.erpUs;
-  const embi = MACRO.embi / 100;
-  const ke = (MACRO.selic / 100) + s.beta * (erp / 100 + embi);
+  const embi = MACRO.embi/100;
+  const ke = (MACRO.selic/100) + s.beta * (erp/100 + embi);
   const wacc = ke * (1 - s.debtW) + s.costDebt * (1 - 0.34) * s.debtW;
 
-  // Fusion
   const fusionRaw = 0.20*grahamScore + 0.20*s.fisherScore + 0.20*s.greenblattScore + 0.25*s.damodaranScore + 0.15*s.quantScore;
   const fusionScore = Math.round(fusionRaw);
 
-  // Decision
   let decision = 'hold';
   if (fusionScore >= 65 && s.dcfMOS >= 10) decision = 'buy';
   else if (fusionScore < 45 || s.dcfMOS < -15) decision = 'avoid';
 
-  // Simulated daily change (deterministic from ticker hash)
-  let hash = 0;
-  for (const c of s.ticker) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
-  const dailyChg = ((hash % 400) - 200) / 100; // -2% to +2%
+  // Generate history
+  const hist = generateStockHistory(s);
+  const returns = computeReturns(hist.monthlyPrices, hist.startIdx);
+
+  // Daily simulated change (deterministic)
+  const dailyChg = ((tickerSeed(s.ticker) % 400) - 200) / 100;
 
   return {
     ...s, pe, pb, roe, grahamNumber, grahamMoS, criteria, passing, grahamScore,
     roc, ey, ev, ke: ke*100, wacc: wacc*100, fusionScore, decision, dailyChg,
+    hist, returns,
   };
 }
 
 const STOCKS = RAW.map(computeStock);
 
+// Pre-compute IBOV returns for benchmark comparison
+const IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+
 // ═══════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════
 const fBRL = v => `R$ ${v.toFixed(2)}`;
-const fPct = v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
-const fNum = (v, d=1) => v.toFixed(d);
+const fPct = v => v == null ? '–' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+const fNum = (v, d=1) => v == null ? '–' : v.toFixed(d);
 const fCompact = v => {
-  if (v >= 1e9) return `R$ ${(v/1e9).toFixed(1)}B`;
-  if (v >= 1e6) return `R$ ${(v/1e6).toFixed(1)}M`;
-  if (v >= 1e3) return `R$ ${(v/1e3).toFixed(1)}K`;
+  const a = Math.abs(v);
+  if (a >= 1e9) return `R$ ${(v/1e9).toFixed(1)}B`;
+  if (a >= 1e6) return `R$ ${(v/1e6).toFixed(1)}M`;
+  if (a >= 1e3) return `R$ ${(v/1e3).toFixed(1)}K`;
   return `R$ ${v.toFixed(0)}`;
 };
-const clr = (v, pos='c-gain', neg='c-loss') => v >= 0 ? pos : neg;
+const clr = (v) => v == null ? 'c-muted' : v >= 0 ? 'c-gain' : 'c-loss';
 const scoreColor = s => s >= 70 ? '#16a34a' : s >= 55 ? '#d97706' : '#dc2626';
-const badgeHtml = d => d === 'buy' ? '<span class="badge badge-buy">COMPRA</span>'
-  : d === 'hold' ? '<span class="badge badge-hold">AGUARDAR</span>'
+const badgeHtml = d => d==='buy' ? '<span class="badge badge-buy">COMPRA</span>'
+  : d==='hold' ? '<span class="badge badge-hold">AGUARDAR</span>'
   : '<span class="badge badge-avoid">EVITAR</span>';
-const dbClass = d => d === 'buy' ? 'db-buy' : d === 'hold' ? 'db-hold' : 'db-avoid';
-const dbLabel = d => d === 'buy' ? '✔ COMPRA' : d === 'hold' ? '⏸ AGUARDAR' : '✖ EVITAR';
+const dbClass = d => d==='buy' ? 'db-buy' : d==='hold' ? 'db-hold' : 'db-avoid';
+const dbLabel = d => d==='buy' ? '✔ COMPRA' : d==='hold' ? '⏸ AGUARDAR' : '✖ EVITAR';
+const fmtMonth = m => {
+  const [y,mo] = m.split('-');
+  return `${mo}/${y.slice(2)}`;
+};
 
 // ═══════════════════════════════════════════════════════
-// RENDER MACRO STRIP
+// SVG CHART HELPERS
 // ═══════════════════════════════════════════════════════
-function renderMacroStrip() {
+function lineChart(values, labels, opts={}){
+  const w = 320, h = opts.height || 130;
+  const pad = {l: 38, r: 8, t: 8, b: 18};
+  const cw = w - pad.l - pad.r, ch = h - pad.t - pad.b;
+  const valid = values.map((v,i) => v != null ? {v, i} : null).filter(x => x);
+  if (!valid.length) return '<div class="c-muted" style="text-align:center;padding:20px;font-size:11px">Sem dados</div>';
+  const min = Math.min(...valid.map(d => d.v));
+  const max = Math.max(...valid.map(d => d.v));
+  const range = (max - min) || 1;
+  const color = opts.color || '#d97706';
+  const fill = opts.fill !== false;
+  const xFor = i => pad.l + (i / (values.length - 1)) * cw;
+  const yFor = v => pad.t + (1 - (v - min) / range) * ch;
+  const points = valid.map(d => `${xFor(d.i).toFixed(1)},${yFor(d.v).toFixed(1)}`).join(' ');
+  const areaPath = `M ${xFor(valid[0].i)},${pad.t+ch} L ${valid.map(d => `${xFor(d.i).toFixed(1)},${yFor(d.v).toFixed(1)}`).join(' L ')} L ${xFor(valid[valid.length-1].i)},${pad.t+ch} Z`;
+
+  // Y ticks (4)
+  const yTicks = [];
+  for (let i=0; i<=3; i++){
+    const v = min + (max-min) * i/3;
+    const y = pad.t + (1 - i/3) * ch;
+    const lbl = opts.yFormat ? opts.yFormat(v) : v.toFixed(0);
+    yTicks.push(`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#2e2c29" stroke-width="0.5" stroke-dasharray="2,3"/>
+                 <text x="${pad.l-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#8a8078" font-family="monospace">${lbl}</text>`);
+  }
+  // X ticks (start, mid, end)
+  const xTicks = [];
+  if (labels && labels.length){
+    [0, Math.floor(labels.length/2), labels.length-1].forEach(i => {
+      const x = xFor(i);
+      xTicks.push(`<text x="${x}" y="${h-3}" text-anchor="middle" font-size="9" fill="#8a8078" font-family="monospace">${labels[i]}</text>`);
+    });
+  }
+  // Last value marker
+  const lastValid = valid[valid.length-1];
+  const lastX = xFor(lastValid.i), lastY = yFor(lastValid.v);
+
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" preserveAspectRatio="none">
+    ${yTicks.join('')}
+    ${fill ? `<path d="${areaPath}" fill="${color}" opacity="0.15"/>` : ''}
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX}" cy="${lastY}" r="2.5" fill="${color}"/>
+    ${xTicks.join('')}
+  </svg>`;
+}
+
+function barChart(values, labels, opts={}){
+  const w = 320, h = opts.height || 120;
+  const pad = {l: 38, r: 8, t: 8, b: 18};
+  const cw = w - pad.l - pad.r, ch = h - pad.t - pad.b;
+  if (!values.length) return '';
+  const min = Math.min(0, ...values);
+  const max = Math.max(...values);
+  const range = (max - min) || 1;
+  const barW = cw / values.length * 0.7;
+  const gap = cw / values.length * 0.3;
+  const color = opts.color || '#d97706';
+  const yFor = v => pad.t + (1 - (v - min) / range) * ch;
+  const zeroY = yFor(0);
+
+  const bars = values.map((v,i) => {
+    const x = pad.l + i * (cw / values.length) + gap/2;
+    const y = v >= 0 ? yFor(v) : zeroY;
+    const bh = Math.abs(yFor(v) - zeroY);
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" fill="${v>=0?color:'#dc2626'}" opacity="0.85" rx="1"/>`;
+  }).join('');
+
+  // Y ticks (3)
+  const yTicks = [];
+  for (let i=0; i<=2; i++){
+    const v = min + (max-min) * i/2;
+    const y = pad.t + (1 - i/2) * ch;
+    const lbl = opts.yFormat ? opts.yFormat(v) : v.toFixed(0);
+    yTicks.push(`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#2e2c29" stroke-width="0.5" stroke-dasharray="2,3"/>
+                 <text x="${pad.l-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#8a8078" font-family="monospace">${lbl}</text>`);
+  }
+  // X labels
+  const xLabels = labels.map((lbl, i) => {
+    if (i % Math.ceil(labels.length/5) !== 0 && i !== labels.length-1) return '';
+    const x = pad.l + i * (cw / values.length) + (cw / values.length) / 2;
+    return `<text x="${x.toFixed(1)}" y="${h-3}" text-anchor="middle" font-size="9" fill="#8a8078" font-family="monospace">${lbl}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" preserveAspectRatio="none">
+    ${yTicks.join('')}
+    ${bars}
+    ${xLabels}
+  </svg>`;
+}
+
+function multiLineChart(series, labels, opts={}){
+  const w = 320, h = opts.height || 160;
+  const pad = {l: 42, r: 8, t: 22, b: 18};
+  const cw = w - pad.l - pad.r, ch = h - pad.t - pad.b;
+  const allVals = series.flatMap(s => s.values.filter(v => v != null));
+  if (!allVals.length) return '';
+  const min = Math.min(...allVals);
+  const max = Math.max(...allVals);
+  const range = (max - min) || 1;
+  const xFor = i => pad.l + (i / (labels.length - 1)) * cw;
+  const yFor = v => pad.t + (1 - (v - min) / range) * ch;
+
+  const lines = series.map((s,si) => {
+    const valid = s.values.map((v,i) => v != null ? {v,i} : null).filter(x => x);
+    const points = valid.map(d => `${xFor(d.i).toFixed(1)},${yFor(d.v).toFixed(1)}`).join(' ');
+    return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join('');
+
+  const yTicks = [];
+  for (let i=0; i<=3; i++){
+    const v = min + (max-min) * i/3;
+    const y = pad.t + (1 - i/3) * ch;
+    const lbl = opts.yFormat ? opts.yFormat(v) : v.toFixed(0);
+    yTicks.push(`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#2e2c29" stroke-width="0.5" stroke-dasharray="2,3"/>
+                 <text x="${pad.l-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#8a8078" font-family="monospace">${lbl}</text>`);
+  }
+  // Legend
+  const legend = series.map((s,i) => {
+    const x = pad.l + i * 75;
+    return `<circle cx="${x}" cy="10" r="3" fill="${s.color}"/>
+            <text x="${x+7}" y="13" font-size="10" fill="#f5f0e8">${s.label}</text>`;
+  }).join('');
+  // X labels
+  const xLabels = [0, Math.floor(labels.length/2), labels.length-1].map(i => {
+    const x = xFor(i);
+    return `<text x="${x}" y="${h-3}" text-anchor="middle" font-size="9" fill="#8a8078" font-family="monospace">${labels[i]}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" preserveAspectRatio="none">
+    ${legend}
+    ${yTicks.join('')}
+    ${lines}
+    ${xLabels}
+  </svg>`;
+}
+
+function sparklineSVG(values, color='#8a8078'){
+  if (!values || values.length < 2) return '';
+  const valid = values.filter(v => v != null);
+  if (valid.length < 2) return '';
+  const min = Math.min(...valid), max = Math.max(...valid);
+  const range = (max - min) || 1;
+  const w = 80, h = 18;
+  const pts = values.map((v,i) => v == null ? null : {
+    x: (i / (values.length-1)) * w,
+    y: h - ((v - min) / range) * (h-2) - 1
+  }).filter(p => p);
+  const points = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// LIVE QUOTE FETCH (graceful fallback)
+// ═══════════════════════════════════════════════════════
+async function tryLiveQuotes(){
+  const dot = document.getElementById('liveDot');
+  const status = document.getElementById('liveStatus');
+  try {
+    const tickers = STOCKS.map(s => s.ticker).join(',');
+    const url = `https://brapi.dev/api/quote/${tickers}?range=1d`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4500);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.results) throw new Error('no results');
+    let updated = 0;
+    for (const q of data.results){
+      const stock = STOCKS.find(s => s.ticker === q.symbol);
+      if (stock && q.regularMarketPrice){
+        stock.price = q.regularMarketPrice;
+        stock.dailyChg = q.regularMarketChangePercent ?? stock.dailyChg;
+        updated++;
+      }
+    }
+    if (updated > 0){
+      dot.className = 'live-dot online';
+      status.textContent = `🟢 Live · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
+      // Re-render
+      renderStockList();
+      return true;
+    }
+    throw new Error('no updates');
+  } catch (e){
+    dot.className = 'live-dot offline';
+    status.textContent = `📁 Dados embarcados (${MACRO.asOf}) · sem conexão live`;
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER: MACRO STRIP + FULL
+// ═══════════════════════════════════════════════════════
+function renderMacroStrip(){
   const tiles = [
-    {lbl:'SELIC', val:`${MACRO.selic.toFixed(2)}% a.a.`, chg:0, clr:''},
+    {lbl:'SELIC', val:`${MACRO.selic.toFixed(2)}%`, chg:0, clr:''},
     {lbl:'IPCA 12m', val:`${MACRO.ipca.toFixed(2)}%`, chg:0, clr:''},
     {lbl:'USD/BRL', val:`R$ ${MACRO.usdBrl.toFixed(2)}`, chg:0, clr:''},
     {lbl:'IBOV', val:MACRO.ibov.toLocaleString('pt-BR'), chg:MACRO.ibovChg, clr: MACRO.ibovChg>=0?'c-gain':'c-loss'},
-    {lbl:'Small Caps', val:MACRO.smll.toLocaleString('pt-BR'), chg:MACRO.smllChg, clr: MACRO.smllChg>=0?'c-gain':'c-loss'},
-    {lbl:'EMBI+', val:`${MACRO.embi} bps`, chg:0, clr: MACRO.embi>300?'c-warn':''},
-    {lbl:'Brasil 10Y', val:`${MACRO.bond10y.toFixed(2)}%`, chg:0, clr:''},
+    {lbl:'Small', val:MACRO.smll.toLocaleString('pt-BR'), chg:MACRO.smllChg, clr: MACRO.smllChg>=0?'c-gain':'c-loss'},
+    {lbl:'EMBI+', val:`${MACRO.embi}bps`, chg:0, clr: MACRO.embi>300?'c-warn':''},
+    {lbl:'BR 10Y', val:`${MACRO.bond10y.toFixed(2)}%`, chg:0, clr:''},
   ];
   document.getElementById('macroStrip').innerHTML = tiles.map(t => `
     <div class="macro-tile">
@@ -761,89 +1177,102 @@ function renderMacroStrip() {
   `).join('');
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER MACRO FULL PAGE
-// ═══════════════════════════════════════════════════════
-function renderMacroFull() {
+function renderMacroFull(){
   const items = [
-    {lbl:'SELIC — Taxa Básica de Juros', val:`${MACRO.selic.toFixed(2)}%`, chg: null,
-     sub:'Taxa SELIC Over (BCB). Base do CAPM brasileiro. Taxa livre de risco no modelo de Damodaran.'},
-    {lbl:'IPCA — Inflação 12 meses', val:`${MACRO.ipca.toFixed(2)}%`, chg: null,
-     sub:'Índice de Preços ao Consumidor Amplo (IBGE). Meta do BCB: 3% ± 1,5pp. Impacta custo de capital.'},
-    {lbl:'USD / BRL (PTAX)', val:`R$ ${MACRO.usdBrl.toFixed(2)}`, chg: null,
-     sub:'Cotação de fechamento PTAX (BCB). Relevante para empresas exportadoras e com dívida em dólar.'},
-    {lbl:'IBOV — Ibovespa', val:MACRO.ibov.toLocaleString('pt-BR'), chg:MACRO.ibovChg,
-     sub:'Principal índice da B3. Benchmark para avaliação de performance relativa (Alpha).'},
-    {lbl:'SMLL — Small Caps', val:MACRO.smll.toLocaleString('pt-BR'), chg:MACRO.smllChg,
-     sub:'Índice de Small Caps da B3. Empresas de menor capitalização com maior potencial de crescimento.'},
-    {lbl:'EMBI+ — Risco-País Brasil', val:`${MACRO.embi} bps`, chg: null,
-     sub:'Risco soberano em basis points. Adicionado ao ERP americano no CAPM de Damodaran. > 300bps = atenção.'},
-    {lbl:'Brasil 10 anos (proxy)', val:`${MACRO.bond10y.toFixed(2)}%`, chg: null,
-     sub:'Proxy: SELIC + EMBI+. Taxa de referência para valuation de longo prazo e desconto de fluxos.'},
-    {lbl:'ERP EUA (Damodaran)', val:`${MACRO.erpUs.toFixed(1)}%`, chg: null,
-     sub:'Prêmio de risco de mercado americano (Damodaran Jan/2025). Ke = SELIC + β × (ERP + EMBI+/100).'},
+    {lbl:'SELIC — Taxa Básica de Juros', val:`${MACRO.selic.toFixed(2)}%`,
+     sub:'Taxa SELIC Over (BCB). Base do CAPM brasileiro.', hist: MACRO_HIST.selic, color:'#d97706', fmt: v => v.toFixed(1)+'%'},
+    {lbl:'IPCA — Inflação 12 meses', val:`${MACRO.ipca.toFixed(2)}%`,
+     sub:'IBGE. Meta BCB: 3% ± 1,5pp.', hist: MACRO_HIST.ipca, color:'#dc2626', fmt: v => v.toFixed(1)+'%'},
+    {lbl:'USD / BRL', val:`R$ ${MACRO.usdBrl.toFixed(2)}`,
+     sub:'PTAX BCB. Relevante para exportadoras.', hist: MACRO_HIST.usdBrl, color:'#16a34a', fmt: v => 'R$'+v.toFixed(2)},
+    {lbl:'EMBI+ — Risco-País Brasil', val:`${MACRO.embi} bps`,
+     sub:'Risco soberano. Adicionado ao ERP no CAPM.', hist: MACRO_HIST.embi, color:'#8b5cf6', fmt: v => v.toFixed(0)},
   ];
-  document.getElementById('macroFull').innerHTML = items.map(it => `
-    <div class="macro-full-tile">
-      <div class="macro-full-lbl">${it.lbl}</div>
-      <div style="display:flex;align-items:baseline;gap:10px">
-        <div class="macro-full-val">${it.val}</div>
-        ${it.chg !== null ? `<div class="macro-full-chg ${it.chg>=0?'c-gain':'c-loss'}">${fPct(it.chg)}</div>` : ''}
+  document.getElementById('macroFull').innerHTML = items.map(it => {
+    const chartData = it.hist.map(h => h.val);
+    const chartLabels = it.hist.map(h => String(h.year).slice(2));
+    const lastVal = it.hist[it.hist.length-1].val;
+    const firstVal = it.hist[0].val;
+    const chgPct = ((lastVal - firstVal) / firstVal) * 100;
+    return `
+      <div class="macro-full-tile">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="macro-full-lbl">${it.lbl}</div>
+            <div class="macro-full-val">${it.val}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="macro-full-lbl">10 anos</div>
+            <div class="macro-full-chg ${chgPct>=0?'c-gain':'c-loss'}">${fPct(chgPct)}</div>
+          </div>
+        </div>
+        ${lineChart(chartData, chartLabels, {color: it.color, height: 100, yFormat: it.fmt})}
+        <div class="macro-full-sub">${it.sub}</div>
       </div>
-      <div class="macro-full-sub">${it.sub}</div>
+    `;
+  }).join('') + `
+    <div class="macro-full-tile">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="macro-full-lbl">IBOV — Ibovespa</div>
+          <div class="macro-full-val">${MACRO.ibov.toLocaleString('pt-BR')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="macro-full-lbl">Desde 2016</div>
+          <div class="macro-full-chg ${IBOV_RETURNS.rMax>=0?'c-gain':'c-loss'}">${fPct(IBOV_RETURNS.rMax)}</div>
+        </div>
+      </div>
+      ${lineChart(IBOV_HIST.values.filter((_,i)=>i%3===0), IBOV_HIST.months.filter((_,i)=>i%3===0).map(m=>m.slice(2,4)+'/'+m.slice(2)), {color:'#16a34a', height:120})}
+      <div class="macro-full-sub">Principal índice da B3. Benchmark padrão para análise de performance relativa.</div>
     </div>
-  `).join('');
+  `;
 }
 
 // ═══════════════════════════════════════════════════════
-// RENDER STOCK LIST
+// RENDER: STOCK LIST (SCREENER)
 // ═══════════════════════════════════════════════════════
-let currentFilter = 'all';
-let currentSort = 'fusion';
-let currentSearch = '';
+let currentFilter='all', currentSort='fusion', currentSearch='';
 
-function getFiltered() {
+function getFiltered(){
   let list = STOCKS.filter(s => {
-    if (currentSearch) {
+    if (currentSearch){
       const q = currentSearch.toLowerCase();
       if (!s.ticker.toLowerCase().includes(q) && !s.name.toLowerCase().includes(q)) return false;
     }
-    if (currentFilter === 'buy') return s.decision === 'buy';
-    if (currentFilter === 'hold') return s.decision === 'hold';
-    if (currentFilter === 'avoid') return s.decision === 'avoid';
-    if (currentFilter === 'graham') return s.passing >= 5; // 5+ of 7 criteria
-    if (currentFilter === 'magicformula') return s.greenblattScore >= 70;
+    if (currentFilter==='buy') return s.decision==='buy';
+    if (currentFilter==='hold') return s.decision==='hold';
+    if (currentFilter==='avoid') return s.decision==='avoid';
+    if (currentFilter==='graham') return s.passing >= 5;
+    if (currentFilter==='magicformula') return s.greenblattScore >= 70;
+    if (currentFilter==='momentum') return s.momentum >= 0.10;
     return true;
   });
-
-  list.sort((a, b) => {
-    switch (currentSort) {
+  list.sort((a,b) => {
+    switch(currentSort){
       case 'pe': return a.pe - b.pe;
       case 'pb': return a.pb - b.pb;
       case 'mos': return b.grahamMoS - a.grahamMoS;
       case 'greenblatt': return b.greenblattScore - a.greenblattScore;
-      case 'momentum': return b.momentum - a.momentum;
+      case 'r1y': return (b.returns.r1y ?? -999) - (a.returns.r1y ?? -999);
+      case 'r5y': return (b.returns.r5y ?? -999) - (a.returns.r5y ?? -999);
+      case 'dy': return b.divYield - a.divYield;
       default: return b.fusionScore - a.fusionScore;
     }
   });
   return list;
 }
 
-function renderStockList() {
+function renderStockList(){
   const list = getFiltered();
   document.getElementById('stockCount').textContent = `${list.length} ação${list.length!==1?'ões':''}`;
-
-  if (!list.length) {
-    document.getElementById('stockList').innerHTML = `
-      <div class="empty">
-        <div class="empty-ic">🔍</div>
-        <div>Nenhuma ação encontrada</div>
-      </div>`;
+  if (!list.length){
+    document.getElementById('stockList').innerHTML = `<div class="empty"><div class="empty-ic">🔍</div><div>Nenhuma ação encontrada</div></div>`;
     return;
   }
-
   document.getElementById('stockList').innerHTML = list.map(s => {
     const sc = scoreColor(s.fusionScore);
+    const sparkVals = s.hist.monthlyPrices.slice(-36).filter(v => v != null);
+    const sparkColor = (s.returns.r1y ?? 0) >= 0 ? '#16a34a' : '#dc2626';
     return `
     <div class="card" data-ticker="${s.ticker}">
       <div class="card-top">
@@ -856,25 +1285,32 @@ function renderStockList() {
           <div class="card-price">${fBRL(s.price)}</div>
           <div class="card-chg ${clr(s.dailyChg)}">${fPct(s.dailyChg)}</div>
           ${badgeHtml(s.decision)}
+          <div class="card-spark">${sparklineSVG(sparkVals, sparkColor)}</div>
+        </div>
+      </div>
+      <div class="ret-row">
+        <div class="ret-box">
+          <div class="ret-lbl">1M</div>
+          <div class="ret-val ${clr(s.returns.r1m)}">${fPct(s.returns.r1m)}</div>
+        </div>
+        <div class="ret-box">
+          <div class="ret-lbl">1A</div>
+          <div class="ret-val ${clr(s.returns.r1y)}">${fPct(s.returns.r1y)}</div>
+        </div>
+        <div class="ret-box">
+          <div class="ret-lbl">3A</div>
+          <div class="ret-val ${clr(s.returns.r3y)}">${fPct(s.returns.r3y)}</div>
+        </div>
+        <div class="ret-box">
+          <div class="ret-lbl">5A</div>
+          <div class="ret-val ${clr(s.returns.r5y)}">${fPct(s.returns.r5y)}</div>
         </div>
       </div>
       <div class="metrics4">
-        <div class="mbox">
-          <div class="mbox-lbl">P/L</div>
-          <div class="mbox-val ${s.pe<=15?'c-gain':s.pe<=20?'c-warn':'c-loss'}">${fNum(s.pe,1)}x</div>
-        </div>
-        <div class="mbox">
-          <div class="mbox-lbl">P/VP</div>
-          <div class="mbox-val ${s.pb<=1.5?'c-gain':s.pb<=3?'c-warn':'c-loss'}">${fNum(s.pb,2)}x</div>
-        </div>
-        <div class="mbox">
-          <div class="mbox-lbl">EBIT%</div>
-          <div class="mbox-val ${s.ebitMargin>=0.2?'c-gain':s.ebitMargin>=0.1?'c-warn':'c-loss'}">${(s.ebitMargin*100).toFixed(1)}%</div>
-        </div>
-        <div class="mbox">
-          <div class="mbox-lbl">Graham</div>
-          <div class="mbox-val">${s.passing}/7</div>
-        </div>
+        <div class="mbox"><div class="mbox-lbl">P/L</div><div class="mbox-val ${s.pe<=15?'c-gain':s.pe<=20?'c-warn':'c-loss'}">${fNum(s.pe,1)}x</div></div>
+        <div class="mbox"><div class="mbox-lbl">P/VP</div><div class="mbox-val ${s.pb<=1.5?'c-gain':s.pb<=3?'c-warn':'c-loss'}">${fNum(s.pb,2)}x</div></div>
+        <div class="mbox"><div class="mbox-lbl">DY</div><div class="mbox-val ${s.divYield>=0.06?'c-gain':s.divYield>=0.03?'c-warn':'c-muted'}">${(s.divYield*100).toFixed(1)}%</div></div>
+        <div class="mbox"><div class="mbox-lbl">Graham</div><div class="mbox-val">${s.passing}/7</div></div>
       </div>
       <div class="fusion-row">
         <div class="fusion-lbl">Fusion</div>
@@ -883,391 +1319,555 @@ function renderStockList() {
       </div>
     </div>`;
   }).join('');
-
-  // Attach click handlers
   document.querySelectorAll('.card[data-ticker]').forEach(el => {
     el.addEventListener('click', () => openSheet(el.dataset.ticker));
   });
 }
 
 // ═══════════════════════════════════════════════════════
-// BOTTOM SHEET
+// BOTTOM SHEET (STOCK DETAIL)
 // ═══════════════════════════════════════════════════════
-let activeStock = null;
-let activeDTab = 'overview';
+let activeStock = null, activeDTab = 'overview';
 
-function openSheet(ticker) {
+function openSheet(ticker){
   activeStock = STOCKS.find(s => s.ticker === ticker);
   if (!activeStock) return;
   activeDTab = 'overview';
-
   const s = activeStock;
   document.getElementById('sTicker').textContent = s.ticker;
   document.getElementById('sName').textContent = s.name;
   document.getElementById('sBadge').innerHTML = badgeHtml(s.decision);
   document.getElementById('sPrice').textContent = fBRL(s.price);
   document.getElementById('sChg').innerHTML = `<span class="${clr(s.dailyChg)}">${fPct(s.dailyChg)} hoje</span> · <span class="c-muted">${s.sector}</span>`;
-
-  // reset tabs
   document.querySelectorAll('.dtab').forEach(t => t.classList.toggle('active', t.dataset.dtab === 'overview'));
-
   renderDetailPane('overview');
   document.getElementById('overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
 }
 
-function closeSheet() {
+function closeSheet(){
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('sheet').classList.remove('show');
   activeStock = null;
 }
 
-function renderDetailPane(tab) {
+function renderDetailPane(tab){
   const s = activeStock;
   if (!s) return;
   const el = document.getElementById('dcontent');
 
-  if (tab === 'overview') {
+  if (tab === 'overview'){
     el.innerHTML = `
-      <div class="dpane active">
-        <div class="dsec">
-          <div class="dsec-title">Valuation & Preço</div>
-          <div class="dgrid2">
-            <div class="dbox">
-              <div class="dbox-lbl">P/L (Price/Earnings)</div>
-              <div class="dbox-val ${s.pe<=15?'c-gain':s.pe<=20?'c-warn':'c-loss'}">${fNum(s.pe,1)}x</div>
-              <div class="dbox-sub">Graham: ≤ 15x ideal</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">P/VP (Price/Book)</div>
-              <div class="dbox-val ${s.pb<=1.5?'c-gain':s.pb<=3?'c-warn':'c-loss'}">${fNum(s.pb,2)}x</div>
-              <div class="dbox-sub">Graham: ≤ 1,5x ideal</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">LPA (EPS)</div>
-              <div class="dbox-val">${fBRL(s.eps)}</div>
-              <div class="dbox-sub">Lucro por ação</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">VPA (BVPS)</div>
-              <div class="dbox-val">${fBRL(s.bvps)}</div>
-              <div class="dbox-sub">Valor patrimonial/ação</div>
-            </div>
-          </div>
+      <div class="dsec">
+        <div class="dsec-title">Valuation & Preço</div>
+        <div class="dgrid2">
+          <div class="dbox"><div class="dbox-lbl">P/L</div><div class="dbox-val ${s.pe<=15?'c-gain':s.pe<=20?'c-warn':'c-loss'}">${fNum(s.pe,1)}x</div><div class="dbox-sub">Graham: ≤15x</div></div>
+          <div class="dbox"><div class="dbox-lbl">P/VP</div><div class="dbox-val ${s.pb<=1.5?'c-gain':s.pb<=3?'c-warn':'c-loss'}">${fNum(s.pb,2)}x</div><div class="dbox-sub">Graham: ≤1,5x</div></div>
+          <div class="dbox"><div class="dbox-lbl">LPA</div><div class="dbox-val">${fBRL(s.eps)}</div><div class="dbox-sub">Lucro/ação</div></div>
+          <div class="dbox"><div class="dbox-lbl">VPA</div><div class="dbox-val">${fBRL(s.bvps)}</div><div class="dbox-sub">VP/ação</div></div>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Rentabilidade & Saúde</div>
-          <div class="dgrid2">
-            <div class="dbox">
-              <div class="dbox-lbl">ROE</div>
-              <div class="dbox-val ${s.roe>=0.15?'c-gain':s.roe>=0.08?'c-warn':'c-loss'}">${(s.roe*100).toFixed(1)}%</div>
-              <div class="dbox-sub">Retorno sobre PL</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">Margem EBIT</div>
-              <div class="dbox-val ${s.ebitMargin>=0.2?'c-gain':s.ebitMargin>=0.1?'c-warn':'c-loss'}">${(s.ebitMargin*100).toFixed(1)}%</div>
-              <div class="dbox-sub">Eficiência operacional</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">Liquidez Corrente</div>
-              <div class="dbox-val ${s.currentRatio>=2?'c-gain':s.currentRatio>=1?'c-warn':'c-loss'}">${fNum(s.currentRatio,2)}x</div>
-              <div class="dbox-sub">Graham: ≥ 2,0x</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">Dívida Líquida</div>
-              <div class="dbox-val ${s.netDebt<0?'c-gain':''}">${s.netDebt < 0 ? 'Caixa Liq.' : fCompact(s.netDebt*1e6).replace('R$ ','')+'M'}</div>
-              <div class="dbox-sub">${s.netDebt < 0 ? '❤️ Posição de caixa' : 'BRL milhões'}</div>
-            </div>
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Rentabilidade & Saúde</div>
+        <div class="dgrid2">
+          <div class="dbox"><div class="dbox-lbl">ROE</div><div class="dbox-val ${s.roe>=0.15?'c-gain':s.roe>=0.08?'c-warn':'c-loss'}">${(s.roe*100).toFixed(1)}%</div><div class="dbox-sub">Retorno s/ PL</div></div>
+          <div class="dbox"><div class="dbox-lbl">M. EBIT</div><div class="dbox-val ${s.ebitMargin>=0.2?'c-gain':s.ebitMargin>=0.1?'c-warn':'c-loss'}">${(s.ebitMargin*100).toFixed(1)}%</div><div class="dbox-sub">Eficiência</div></div>
+          <div class="dbox"><div class="dbox-lbl">Liq. Corr.</div><div class="dbox-val ${s.currentRatio>=2?'c-gain':s.currentRatio>=1?'c-warn':'c-loss'}">${fNum(s.currentRatio,2)}x</div><div class="dbox-sub">Graham: ≥2,0</div></div>
+          <div class="dbox"><div class="dbox-lbl">Div. Liq.</div><div class="dbox-val ${s.netDebt<0?'c-gain':''}" style="font-size:13px">${s.netDebt<0?'Caixa Liq.':fCompact(s.netDebt*1e6).replace('R$ ','')+'M'}</div><div class="dbox-sub">${s.netDebt<0?'❤️ Caixa':'BRL milhões'}</div></div>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Tamanho & Crescimento</div>
-          <div class="dgrid2">
-            <div class="dbox">
-              <div class="dbox-lbl">Market Cap</div>
-              <div class="dbox-val" style="font-size:14px">${fCompact(s.marketCap*1e6)}</div>
-              <div class="dbox-sub">Capitalização de mercado</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">Receita Líquida</div>
-              <div class="dbox-val" style="font-size:14px">${fCompact(s.revenue*1e6)}</div>
-              <div class="dbox-sub">Últimos 12 meses</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">CAGR Receita 5a</div>
-              <div class="dbox-val ${s.cagr5y>=0.10?'c-gain':s.cagr5y>=0.05?'c-warn':'c-loss'}">${(s.cagr5y*100).toFixed(1)}%/a</div>
-              <div class="dbox-sub">Crescimento histórico</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">EBIT</div>
-              <div class="dbox-val" style="font-size:14px">${fCompact(s.ebit*1e6)}</div>
-              <div class="dbox-sub">Lucro antes de juros/IR</div>
-            </div>
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Tamanho & Crescimento</div>
+        <div class="dgrid2">
+          <div class="dbox"><div class="dbox-lbl">Market Cap</div><div class="dbox-val" style="font-size:14px">${fCompact(s.marketCap*1e6)}</div><div class="dbox-sub">Capitalização</div></div>
+          <div class="dbox"><div class="dbox-lbl">Receita</div><div class="dbox-val" style="font-size:14px">${fCompact(s.revenue*1e6)}</div><div class="dbox-sub">12 meses</div></div>
+          <div class="dbox"><div class="dbox-lbl">CAGR Rec. 5a</div><div class="dbox-val ${s.cagr5y>=0.10?'c-gain':s.cagr5y>=0.05?'c-warn':'c-loss'}">${(s.cagr5y*100).toFixed(1)}%/a</div><div class="dbox-sub">Histórico</div></div>
+          <div class="dbox"><div class="dbox-lbl">Div. Yield</div><div class="dbox-val ${s.divYield>=0.06?'c-gain':s.divYield>=0.03?'c-warn':'c-muted'}">${(s.divYield*100).toFixed(2)}%</div><div class="dbox-sub">Anual estim.</div></div>
         </div>
-      </div>`;
+      </div>
+    `;
 
-  } else if (tab === 'graham') {
+  } else if (tab === 'historico'){
+    const h = s.hist;
+    const sliceFromIpo = arr => arr.slice(h.startIdx);
+    const monthLabels = h.startIdx > 0 ? IBOV_HIST.months.slice(h.startIdx) : IBOV_HIST.months;
+    const priceData = sliceFromIpo(h.monthlyPrices);
+    const r = s.returns;
+
+    // Sample monthly to ~40 points for chart
+    const sampleEvery = Math.max(1, Math.floor(monthLabels.length / 40));
+    const chartPrices = priceData.filter((_,i) => i % sampleEvery === 0);
+    const chartLabelsP = monthLabels.filter((_,i) => i % sampleEvery === 0).map(m => m.slice(2,4)+'/'+m.slice(2));
+    const priceColor = (r.rMax ?? 0) >= 0 ? '#16a34a' : '#dc2626';
+
+    el.innerHTML = `
+      <div class="dsec">
+        <div class="dsec-title">Retornos Históricos</div>
+        <div class="hist-returns">
+          <div class="hr-box"><div class="hr-lbl">1 Mês</div><div class="hr-val ${clr(r.r1m)}">${fPct(r.r1m)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">3 Meses</div><div class="hr-val ${clr(r.r3m)}">${fPct(r.r3m)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">6 Meses</div><div class="hr-val ${clr(r.r6m)}">${fPct(r.r6m)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">1 Ano</div><div class="hr-val ${clr(r.r1y)}">${fPct(r.r1y)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">3 Anos</div><div class="hr-val ${clr(r.r3y)}">${fPct(r.r3y)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">5 Anos</div><div class="hr-val ${clr(r.r5y)}">${fPct(r.r5y)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">Total</div><div class="hr-val ${clr(r.rMax)}">${fPct(r.rMax)}</div></div>
+          <div class="hr-box"><div class="hr-lbl">vs IBOV 5A</div><div class="hr-val ${clr((r.r5y??0) - (IBOV_RETURNS.r5y??0))}">${fPct((r.r5y??0) - (IBOV_RETURNS.r5y??0))}</div></div>
+        </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Evolução do Preço (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>Preço mensal</span>
+            <span class="chart-val">${fBRL(s.price)}</span>
+          </div>
+          ${lineChart(chartPrices, chartLabelsP, {color: priceColor, height: 140, yFormat: v => 'R$'+v.toFixed(1)})}
+        </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Receita Líquida (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>Anual · BRL Bilhões</span>
+            <span class="chart-val">${(h.revenue[9]/1000).toFixed(1)}B</span>
+          </div>
+          ${barChart(h.revenue.map(v=>v/1000), h.years.map(String), {color:'#16a34a', yFormat: v => v.toFixed(0)+'B'})}
+        </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">EBIT (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>Lucro operacional · BRL Bilhões</span>
+            <span class="chart-val">${(h.ebit[9]/1000).toFixed(1)}B</span>
+          </div>
+          ${barChart(h.ebit.map(v=>v/1000), h.years.map(String), {color:'#d97706', yFormat: v => v.toFixed(0)+'B'})}
+        </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Lucro por Ação — EPS (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>EPS anual · R$/ação</span>
+            <span class="chart-val">R$ ${h.eps[9].toFixed(2)}</span>
+          </div>
+          ${barChart(h.eps, h.years.map(String), {color:'#3b82f6', yFormat: v => 'R$'+v.toFixed(1)})}
+        </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">ROE — Retorno sobre PL (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>ROE anual · %</span>
+            <span class="chart-val">${(h.roe[9]*100).toFixed(1)}%</span>
+          </div>
+          ${lineChart(h.roe.map(v=>v*100), h.years.map(String), {color:'#8b5cf6', height: 110, yFormat: v => v.toFixed(0)+'%'})}
+        </div>
+      </div>
+      ${s.dividends20y || h.divs[9] > 0 ? `
+      <div class="dsec">
+        <div class="dsec-title">Dividendos por Ação (10 anos)</div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>Distribuição anual · R$/ação</span>
+            <span class="chart-val">R$ ${h.divs[9].toFixed(2)}</span>
+          </div>
+          ${barChart(h.divs, h.years.map(String), {color:'#16a34a', yFormat: v => 'R$'+v.toFixed(1)})}
+        </div>
+      </div>
+      ` : ''}
+    `;
+
+  } else if (tab === 'graham'){
     const mosCls = s.grahamMoS >= 15 ? 'c-gain' : s.grahamMoS >= 0 ? 'c-warn' : 'c-loss';
-    const mosBg  = s.grahamMoS >= 15 ? 'rgba(22,163,74,.2)' : s.grahamMoS >= 0 ? 'rgba(217,119,6,.2)' : 'rgba(220,38,38,.2)';
+    const mosBg = s.grahamMoS >= 15 ? 'rgba(22,163,74,.2)' : s.grahamMoS >= 0 ? 'rgba(217,119,6,.2)' : 'rgba(220,38,38,.2)';
     el.innerHTML = `
-      <div class="dpane active">
-        <div class="gncard">
-          <div class="gn-lbl">Graham Number = √(22,5 × LPA × VPA)</div>
-          <div class="gn-val">${fBRL(s.grahamNumber)}</div>
-          <div class="c-muted" style="font-size:11px">Preço atual: ${fBRL(s.price)}</div>
-          <div class="mos-pill" style="background:${mosBg}">
-            <span class="${mosCls}">${s.grahamMoS >= 0 ? '📉 MoS' : '📈 Sobrepreço'}: ${Math.abs(s.grahamMoS).toFixed(1)}%</span>
-          </div>
+      <div class="gncard">
+        <div class="gn-lbl">Graham Number = √(22,5 × LPA × VPA)</div>
+        <div class="gn-val">${fBRL(s.grahamNumber)}</div>
+        <div class="c-muted" style="font-size:11px">Preço atual: ${fBRL(s.price)}</div>
+        <div class="mos-pill" style="background:${mosBg}">
+          <span class="${mosCls}">${s.grahamMoS >= 0 ? '📉 MoS' : '📈 Sobrepreço'}: ${Math.abs(s.grahamMoS).toFixed(1)}%</span>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Checklist Defensivo Graham (${s.passing}/7)</div>
-          <div class="chklist">
-            ${s.criteria.map(c => `
-              <div class="chk-item">
-                <div class="chk-icon ${c.pass?'ci-pass':'ci-fail'}">${c.pass?'✓':'✗'}</div>
-                <div style="font-size:12px;${c.pass?'':'color:var(--muted)'}">${c.label}</div>
-              </div>`).join('')}
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Checklist Defensivo (${s.passing}/7)</div>
+        <div class="chklist">
+          ${s.criteria.map(c => `
+            <div class="chk-item">
+              <div class="chk-icon ${c.pass?'ci-pass':'ci-fail'}">${c.pass?'✓':'✗'}</div>
+              <div style="font-size:12px;${c.pass?'':'color:var(--muted)'}">${c.label}</div>
+            </div>`).join('')}
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Score Graham</div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Critérios</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.grahamScore}%;background:${scoreColor(s.grahamScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.grahamScore)}">${Math.round(s.grahamScore)}</div>
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Score Graham</div>
+        <div class="sbar-row">
+          <div class="sbar-lbl">Critérios</div>
+          <div class="sbar-track"><div class="sbar-fill" style="width:${s.grahamScore}%;background:${scoreColor(s.grahamScore)}"></div></div>
+          <div class="sbar-num" style="color:${scoreColor(s.grahamScore)}">${Math.round(s.grahamScore)}</div>
         </div>
-        <div class="disclaimer">O Graham Number é uma estimativa de valor intrínseco conservadora. Mais útil para empresas industriais e financeiras tradicionais.</div>
-      </div>`;
+      </div>
+    `;
 
-  } else if (tab === 'greenblatt') {
+  } else if (tab === 'greenblatt'){
     el.innerHTML = `
-      <div class="dpane active">
-        <div class="dsec">
-          <div class="dsec-title">Magic Formula — Joel Greenblatt</div>
-          <div class="roc-card">
-            <div>
-              <div class="roc-desc-lbl">ROIC (Retorno sobre Capital)</div>
-              <div class="roc-val ${s.roc>=15?'c-gain':s.roc>=8?'c-warn':'c-loss'}">${fNum(s.roc,1)}%</div>
-              <div class="roc-desc-val c-muted">EBIT / (Cap. Giro + Ativo Fixo)</div>
-            </div>
-          </div>
-          <div class="roc-card">
-            <div>
-              <div class="roc-desc-lbl">Earnings Yield (E/EV)</div>
-              <div class="roc-val ${s.ey>=8?'c-gain':s.ey>=5?'c-warn':'c-loss'}">${fNum(s.ey,1)}%</div>
-              <div class="roc-desc-val c-muted">EBIT / Valor da Empresa</div>
-            </div>
-          </div>
+      <div class="dsec">
+        <div class="dsec-title">Magic Formula — Joel Greenblatt</div>
+        <div class="roc-card">
+          <div class="roc-desc-lbl">ROIC (Retorno sobre Capital)</div>
+          <div class="roc-val ${s.roc>=15?'c-gain':s.roc>=8?'c-warn':'c-loss'}">${fNum(s.roc,1)}%</div>
+          <div class="roc-desc-val">EBIT / (Cap. Giro + Ativo Fixo)</div>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Score Magic Formula</div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Greenblatt</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.greenblattScore}%;background:${scoreColor(s.greenblattScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.greenblattScore)}">${s.greenblattScore}</div>
-          </div>
+        <div class="roc-card">
+          <div class="roc-desc-lbl">Earnings Yield (E/EV)</div>
+          <div class="roc-val ${s.ey>=8?'c-gain':s.ey>=5?'c-warn':'c-loss'}">${fNum(s.ey,1)}%</div>
+          <div class="roc-desc-val">EBIT / Valor da Empresa</div>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Fisher — Qualidade (15 Pontos)</div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Fisher Score</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.fisherScore}%;background:${scoreColor(s.fisherScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.fisherScore)}">${s.fisherScore}</div>
-          </div>
-          <div class="dgrid2" style="margin-top:10px">
-            <div class="dbox">
-              <div class="dbox-lbl">P&D / Receita</div>
-              <div class="dbox-val">${(s.rde*100).toFixed(1)}%</div>
-              <div class="dbox-sub">Investimento em inovação</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">Insider Ownership</div>
-              <div class="dbox-val ${s.insider>=0.2?'c-gain':'c-muted'}">${(s.insider*100).toFixed(0)}%</div>
-              <div class="dbox-sub">Alinhamento de gestão</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">CAGR Receita 5a</div>
-              <div class="dbox-val ${s.cagr5y>=0.12?'c-gain':s.cagr5y>=0.06?'c-warn':'c-loss'}">${(s.cagr5y*100).toFixed(1)}%/a</div>
-              <div class="dbox-sub">Crescimento sustentável</div>
-            </div>
-            <div class="dbox">
-              <div class="dbox-lbl">EV (Valor Empresa)</div>
-              <div class="dbox-val" style="font-size:13px">${fCompact(s.ev*1e6)}</div>
-              <div class="dbox-sub">Market Cap + Dívida Liq.</div>
-            </div>
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Score Magic Formula</div>
+        <div class="sbar-row">
+          <div class="sbar-lbl">Greenblatt</div>
+          <div class="sbar-track"><div class="sbar-fill" style="width:${s.greenblattScore}%;background:${scoreColor(s.greenblattScore)}"></div></div>
+          <div class="sbar-num" style="color:${scoreColor(s.greenblattScore)}">${s.greenblattScore}</div>
         </div>
-      </div>`;
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Fisher — Qualidade (15 Pontos)</div>
+        <div class="sbar-row">
+          <div class="sbar-lbl">Fisher</div>
+          <div class="sbar-track"><div class="sbar-fill" style="width:${s.fisherScore}%;background:${scoreColor(s.fisherScore)}"></div></div>
+          <div class="sbar-num" style="color:${scoreColor(s.fisherScore)}">${s.fisherScore}</div>
+        </div>
+        <div class="dgrid2" style="margin-top:10px">
+          <div class="dbox"><div class="dbox-lbl">P&D / Receita</div><div class="dbox-val">${(s.rde*100).toFixed(1)}%</div><div class="dbox-sub">Inovação</div></div>
+          <div class="dbox"><div class="dbox-lbl">Insider Own.</div><div class="dbox-val ${s.insider>=0.2?'c-gain':'c-muted'}">${(s.insider*100).toFixed(0)}%</div><div class="dbox-sub">Alinhamento</div></div>
+          <div class="dbox"><div class="dbox-lbl">CAGR Rec. 5a</div><div class="dbox-val ${s.cagr5y>=0.12?'c-gain':s.cagr5y>=0.06?'c-warn':'c-loss'}">${(s.cagr5y*100).toFixed(1)}%/a</div><div class="dbox-sub">Crescimento</div></div>
+          <div class="dbox"><div class="dbox-lbl">EV (Empresa)</div><div class="dbox-val" style="font-size:13px">${fCompact(s.ev*1e6)}</div><div class="dbox-sub">MC + Dív.Liq</div></div>
+        </div>
+      </div>
+    `;
 
-  } else if (tab === 'quant') {
-    const momInterp = s.momentum > 0.15 ? {txt:'Forte momentum', cls:'c-gain'}
-      : s.momentum > 0 ? {txt:'Momentum positivo', cls:'c-warn'}
-      : {txt:'Momentum negativo', cls:'c-loss'};
-    const zInterp = s.zScore > 1.5 ? {txt:'Sobrecomprado', cls:'c-loss'}
-      : s.zScore < -1.5 ? {txt:'Sobrevendido', cls:'c-gain'}
-      : {txt:'Neutro', cls:'c-muted'};
-    const volInterp = s.volatility > 0.35 ? {txt:'Alta volatilidade', cls:'c-loss'}
-      : s.volatility > 0.20 ? {txt:'Moderada', cls:'c-warn'}
-      : {txt:'Baixa volatilidade', cls:'c-gain'};
-    const betaInterp = s.beta > 1.2 ? {txt:'Alta exposição', cls:'c-loss'}
-      : s.beta < 0.7 ? {txt:'Defensivo', cls:'c-gain'}
-      : {txt:'Neutro', cls:'c-muted'};
-
+  } else if (tab === 'quant'){
+    const interp = (val, h, l) => val > h.t ? {txt:h.txt, cls:h.cls} : val < l.t ? {txt:l.txt, cls:l.cls} : {txt:'Neutro', cls:'c-muted'};
+    const mom = interp(s.momentum, {t:0.15,txt:'Forte momentum',cls:'c-gain'}, {t:0,txt:'Momentum negativo',cls:'c-loss'});
+    const z = s.zScore > 1.5 ? {txt:'Sobrecomprado',cls:'c-loss'} : s.zScore < -1.5 ? {txt:'Sobrevendido',cls:'c-gain'} : {txt:'Neutro',cls:'c-muted'};
+    const vol = s.volatility > 0.35 ? {txt:'Alta',cls:'c-loss'} : s.volatility > 0.20 ? {txt:'Moderada',cls:'c-warn'} : {txt:'Baixa',cls:'c-gain'};
+    const beta = s.beta > 1.2 ? {txt:'Alta exposição',cls:'c-loss'} : s.beta < 0.7 ? {txt:'Defensivo',cls:'c-gain'} : {txt:'Neutro',cls:'c-muted'};
     el.innerHTML = `
-      <div class="dpane active">
-        <div class="dsec">
-          <div class="dsec-title">Sinais Quantitativos — Simons / Renaissance</div>
-          <div class="qgrid">
-            <div class="qcard">
-              <div class="qcard-name">Momentum 12-1</div>
-              <div class="qcard-val ${momInterp.cls}">${fPct(s.momentum*100)}</div>
-              <div class="qcard-interp ${momInterp.cls}">${momInterp.txt}</div>
-            </div>
-            <div class="qcard">
-              <div class="qcard-name">Z-Score Reversão</div>
-              <div class="qcard-val ${zInterp.cls}">${s.zScore >= 0 ? '+' : ''}${fNum(s.zScore,2)}</div>
-              <div class="qcard-interp ${zInterp.cls}">${zInterp.txt}</div>
-            </div>
-            <div class="qcard">
-              <div class="qcard-name">Volatilidade Anual</div>
-              <div class="qcard-val ${volInterp.cls}">${(s.volatility*100).toFixed(0)}%</div>
-              <div class="qcard-interp ${volInterp.cls}">${volInterp.txt}</div>
-            </div>
-            <div class="qcard">
-              <div class="qcard-name">Beta vs IBOV</div>
-              <div class="qcard-val ${betaInterp.cls}">${fNum(s.beta,2)}</div>
-              <div class="qcard-interp ${betaInterp.cls}">${betaInterp.txt}</div>
-            </div>
-          </div>
+      <div class="dsec">
+        <div class="dsec-title">Sinais Quantitativos</div>
+        <div class="qgrid">
+          <div class="qcard"><div class="qcard-name">Momentum 12-1</div><div class="qcard-val ${mom.cls}">${fPct(s.momentum*100)}</div><div class="qcard-interp ${mom.cls}">${mom.txt}</div></div>
+          <div class="qcard"><div class="qcard-name">Z-Score</div><div class="qcard-val ${z.cls}">${s.zScore>=0?'+':''}${fNum(s.zScore,2)}</div><div class="qcard-interp ${z.cls}">${z.txt}</div></div>
+          <div class="qcard"><div class="qcard-name">Volatilidade</div><div class="qcard-val ${vol.cls}">${(s.volatility*100).toFixed(0)}%</div><div class="qcard-interp ${vol.cls}">${vol.txt}</div></div>
+          <div class="qcard"><div class="qcard-name">Beta vs IBOV</div><div class="qcard-val ${beta.cls}">${fNum(s.beta,2)}</div><div class="qcard-interp ${beta.cls}">${beta.txt}</div></div>
         </div>
-        <div class="dsec">
-          <div class="dsec-title">Custo de Capital (Damodaran WACC)</div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">SELIC (Rf)</div>
-            <div class="dcf-val">${MACRO.selic.toFixed(2)}%</div>
-          </div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">Beta (β)</div>
-            <div class="dcf-val">${fNum(s.beta,2)}</div>
-          </div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">EMBI+ Brasil</div>
-            <div class="dcf-val">${MACRO.embi} bps</div>
-          </div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">ERP (Damodaran)</div>
-            <div class="dcf-val">${MACRO.erpUs.toFixed(1)}%</div>
-          </div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">Ke (custo do equity)</div>
-            <div class="dcf-val fw7">${fNum(s.ke,2)}%</div>
-          </div>
-          <div class="dcf-row">
-            <div class="dcf-lbl">Kd × (1-t)</div>
-            <div class="dcf-val">${fNum(s.costDebt*(1-0.34)*100,2)}%</div>
-          </div>
-          <div class="dcf-row" style="border-bottom:none">
-            <div class="dcf-lbl">WACC estimado</div>
-            <div class="dcf-val fw7 c-blue">${fNum(s.wacc,2)}%</div>
-          </div>
-        </div>
-        <div class="dsec">
-          <div class="dsec-title">Score Quant</div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Quant</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.quantScore}%;background:${scoreColor(s.quantScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.quantScore)}">${s.quantScore}</div>
-          </div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">DCF MoS</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${Math.max(0,Math.min(100,s.dcfMOS+50))}%;background:${s.dcfMOS>=15?'#16a34a':s.dcfMOS>=0?'#d97706':'#dc2626'}"></div></div>
-            <div class="sbar-num" style="color:${s.dcfMOS>=15?'#16a34a':s.dcfMOS>=0?'#d97706':'#dc2626'}">${s.dcfMOS>0?'+':''}${s.dcfMOS}%</div>
-          </div>
-        </div>
-      </div>`;
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Custo de Capital (WACC)</div>
+        <div class="dcf-row"><div class="dcf-lbl">SELIC (Rf)</div><div class="dcf-val">${MACRO.selic.toFixed(2)}%</div></div>
+        <div class="dcf-row"><div class="dcf-lbl">Beta (β)</div><div class="dcf-val">${fNum(s.beta,2)}</div></div>
+        <div class="dcf-row"><div class="dcf-lbl">EMBI+</div><div class="dcf-val">${MACRO.embi} bps</div></div>
+        <div class="dcf-row"><div class="dcf-lbl">ERP (Damodaran)</div><div class="dcf-val">${MACRO.erpUs.toFixed(1)}%</div></div>
+        <div class="dcf-row"><div class="dcf-lbl">Ke (custo equity)</div><div class="dcf-val fw7">${fNum(s.ke,2)}%</div></div>
+        <div class="dcf-row"><div class="dcf-lbl">Kd × (1-t)</div><div class="dcf-val">${fNum(s.costDebt*(1-0.34)*100,2)}%</div></div>
+        <div class="dcf-row" style="border-bottom:none"><div class="dcf-lbl">WACC</div><div class="dcf-val fw7 c-blue">${fNum(s.wacc,2)}%</div></div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Scores Quantitativos</div>
+        <div class="sbar-row"><div class="sbar-lbl">Quant</div><div class="sbar-track"><div class="sbar-fill" style="width:${s.quantScore}%;background:${scoreColor(s.quantScore)}"></div></div><div class="sbar-num" style="color:${scoreColor(s.quantScore)}">${s.quantScore}</div></div>
+        <div class="sbar-row"><div class="sbar-lbl">DCF MoS</div><div class="sbar-track"><div class="sbar-fill" style="width:${Math.max(0,Math.min(100,s.dcfMOS+50))}%;background:${s.dcfMOS>=15?'#16a34a':s.dcfMOS>=0?'#d97706':'#dc2626'}"></div></div><div class="sbar-num" style="color:${s.dcfMOS>=15?'#16a34a':s.dcfMOS>=0?'#d97706':'#dc2626'}">${s.dcfMOS>0?'+':''}${s.dcfMOS}%</div></div>
+      </div>
+    `;
 
-  } else if (tab === 'fusion') {
+  } else if (tab === 'fusion'){
     const sc = scoreColor(s.fusionScore);
     el.innerHTML = `
-      <div class="dpane active">
-        <div class="decision-box ${dbClass(s.decision)}" style="margin-bottom:16px">
-          <div class="db-title" style="color:${s.decision==='buy'?'#4ade80':s.decision==='hold'?'#fbbf24':'#f87171'}">${dbLabel(s.decision)}</div>
-          <div class="db-sub">Fusion Score: ${s.fusionScore}/100 · DCF MoS: ${s.dcfMOS > 0 ? '+' : ''}${s.dcfMOS}%</div>
+      <div class="decision-box ${dbClass(s.decision)}">
+        <div class="db-title" style="color:${s.decision==='buy'?'#4ade80':s.decision==='hold'?'#fbbf24':'#f87171'}">${dbLabel(s.decision)}</div>
+        <div class="db-sub">Fusion: ${s.fusionScore}/100 · DCF MoS: ${s.dcfMOS>0?'+':''}${s.dcfMOS}%</div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Decomposição do Fusion Score</div>
+        ${[
+          ['Graham (20%)', s.grahamScore],
+          ['Fisher (20%)', s.fisherScore],
+          ['Greenblatt (20%)', s.greenblattScore],
+          ['Damodaran (25%)', s.damodaranScore],
+          ['Quant (15%)', s.quantScore],
+        ].map(([lbl,v]) => `
+          <div class="sbar-row">
+            <div class="sbar-lbl">${lbl}</div>
+            <div class="sbar-track"><div class="sbar-fill" style="width:${v}%;background:${scoreColor(v)}"></div></div>
+            <div class="sbar-num" style="color:${scoreColor(v)}">${Math.round(v)}</div>
+          </div>`).join('')}
+        <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:13px;color:var(--muted)">Final</div>
+          <div style="flex:1;background:var(--border);border-radius:3px;height:8px;overflow:hidden">
+            <div style="width:${s.fusionScore}%;height:100%;border-radius:3px;background:${sc}"></div>
+          </div>
+          <div style="font-size:20px;font-weight:900;color:${sc}">${s.fusionScore}</div>
         </div>
-
-        <div class="dsec">
-          <div class="dsec-title">Decomposição do Fusion Score</div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Graham (20%)</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.grahamScore}%;background:${scoreColor(s.grahamScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.grahamScore)}">${Math.round(s.grahamScore)}</div>
-          </div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Fisher (20%)</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.fisherScore}%;background:${scoreColor(s.fisherScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.fisherScore)}">${s.fisherScore}</div>
-          </div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Greenblatt (20%)</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.greenblattScore}%;background:${scoreColor(s.greenblattScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.greenblattScore)}">${s.greenblattScore}</div>
-          </div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Damodaran (25%)</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.damodaranScore}%;background:${scoreColor(s.damodaranScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.damodaranScore)}">${s.damodaranScore}</div>
-          </div>
-          <div class="sbar-row">
-            <div class="sbar-lbl">Quant (15%)</div>
-            <div class="sbar-track"><div class="sbar-fill" style="width:${s.quantScore}%;background:${scoreColor(s.quantScore)}"></div></div>
-            <div class="sbar-num" style="color:${scoreColor(s.quantScore)}">${s.quantScore}</div>
-          </div>
-          <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;gap:12px">
-            <div style="font-size:13px;color:var(--muted)">Fusion Final</div>
-            <div style="flex:1;background:var(--border);border-radius:3px;height:8px;overflow:hidden">
-              <div style="width:${s.fusionScore}%;height:100%;border-radius:3px;background:${sc}"></div>
-            </div>
-            <div style="font-size:20px;font-weight:900;color:${sc}">${s.fusionScore}</div>
-          </div>
+      </div>
+      <div class="dsec">
+        <div class="dsec-title">Regras de Decisão</div>
+        <div class="chklist">
+          <div class="chk-item"><div class="chk-icon ${s.fusionScore>=65?'ci-pass':'ci-fail'}">${s.fusionScore>=65?'✓':'✗'}</div><div style="font-size:12px">Fusion ≥ 65 (atual: ${s.fusionScore})</div></div>
+          <div class="chk-item"><div class="chk-icon ${s.dcfMOS>=10?'ci-pass':'ci-fail'}">${s.dcfMOS>=10?'✓':'✗'}</div><div style="font-size:12px">DCF MoS ≥ 10% (atual: ${s.dcfMOS>0?'+':''}${s.dcfMOS}%)</div></div>
+          <div class="chk-item"><div class="chk-icon ${s.grahamMoS>=15?'ci-pass':'ci-fail'}">${s.grahamMoS>=15?'✓':'✗'}</div><div style="font-size:12px">Graham MoS ≥ 15% (atual: ${s.grahamMoS.toFixed(1)}%)</div></div>
+          <div class="chk-item"><div class="chk-icon ${s.passing>=5?'ci-pass':'ci-fail'}">${s.passing>=5?'✓':'✗'}</div><div style="font-size:12px">Graham ≥ 5/7 (atual: ${s.passing}/7)</div></div>
         </div>
-
-        <div class="dsec">
-          <div class="dsec-title">Regras de Decisão (Annie Duke)</div>
-          <div class="chklist">
-            <div class="chk-item">
-              <div class="chk-icon ${s.fusionScore>=65?'ci-pass':'ci-fail'}">${s.fusionScore>=65?'✓':'✗'}</div>
-              <div style="font-size:12px">Fusion ≥ 65 (atual: ${s.fusionScore})</div>
-            </div>
-            <div class="chk-item">
-              <div class="chk-icon ${s.dcfMOS>=10?'ci-pass':'ci-fail'}">${s.dcfMOS>=10?'✓':'✗'}</div>
-              <div style="font-size:12px">DCF MoS ≥ 10% (atual: ${s.dcfMOS > 0 ? '+' : ''}${s.dcfMOS}%)</div>
-            </div>
-            <div class="chk-item">
-              <div class="chk-icon ${s.grahamMoS>=15?'ci-pass':'ci-fail'}">${s.grahamMoS>=15?'✓':'✗'}</div>
-              <div style="font-size:12px">Graham MoS ≥ 15% (atual: ${s.grahamMoS.toFixed(1)}%)</div>
-            </div>
-            <div class="chk-item">
-              <div class="chk-icon ${s.passing>=5?'ci-pass':'ci-fail'}">${s.passing>=5?'✓':'✗'}</div>
-              <div style="font-size:12px">Graham Defensivo ≥ 5/7 (atual: ${s.passing}/7)</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="disclaimer">
-          Fusion Score = 20%×Graham + 20%×Fisher + 20%×Greenblatt + 25%×Damodaran + 15%×Quant.
-          Não constitui recomendação de investimento.
-        </div>
-      </div>`;
+      </div>
+    `;
   }
+}
+
+// ═══════════════════════════════════════════════════════
+// BACKTEST ENGINE
+// ═══════════════════════════════════════════════════════
+const BT_PRESETS = {
+  'ibov-top5': ['VALE3','PETR4','ITUB4','BBAS3','ABEV3'],
+  'dividends': ['PETR4','BBAS3','BBDC4','GGBR4','VIVT3','ITUB4'],
+  'growth': ['WEGE3','RDOR3','RENT3','PRIO3','RADL3','TOTS3'],
+  'value': ['PETR4','BBAS3','GGBR4','VALE3','BBDC4','HYPE3'],
+};
+
+let btSelected = new Set();
+
+function renderBacktestUI(){
+  // Date selector — months from Jan 2017 to Jan 2024
+  const sel = document.getElementById('btStartDate');
+  const opts = [];
+  for (let y = 2017; y <= 2024; y++){
+    for (let m of [1, 7]){
+      const ym = `${y}-${String(m).padStart(2,'0')}`;
+      const idx = IBOV_HIST.months.indexOf(ym);
+      if (idx >= 0) opts.push(`<option value="${idx}">${m===1?'Jan':'Jul'} ${y}</option>`);
+    }
+  }
+  sel.innerHTML = opts.join('');
+  sel.value = IBOV_HIST.months.indexOf('2020-01'); // default
+  sel.addEventListener('change', renderBtStockChips);
+
+  // Stock chips
+  renderBtStockChips();
+}
+
+function renderBtStockChips(){
+  const startIdx = parseInt(document.getElementById('btStartDate').value);
+  const startYear = parseInt(IBOV_HIST.months[startIdx].split('-')[0]);
+  const cont = document.getElementById('btStockChips');
+  cont.innerHTML = STOCKS.map(s => {
+    const available = s.ipoYear <= startYear;
+    const sel = btSelected.has(s.ticker);
+    return `<div class="chip chip-mini ${sel?'chip-sel':''}" data-bt-ticker="${s.ticker}"
+      ${!available?'style="opacity:.35;pointer-events:none"':''}>${s.ticker}</div>`;
+  }).join('');
+  cont.querySelectorAll('[data-bt-ticker]').forEach(el => {
+    el.addEventListener('click', () => {
+      const t = el.dataset.btTicker;
+      if (btSelected.has(t)){ btSelected.delete(t); el.classList.remove('chip-sel'); }
+      else { btSelected.add(t); el.classList.add('chip-sel'); }
+      document.getElementById('btSelectedCount').textContent = btSelected.size;
+    });
+  });
+  document.getElementById('btSelectedCount').textContent = btSelected.size;
+}
+
+function applyBtPreset(preset){
+  if (preset === 'clear'){
+    btSelected.clear();
+  } else {
+    btSelected = new Set(BT_PRESETS[preset] || []);
+  }
+  renderBtStockChips();
+}
+
+function runBacktest(){
+  const startIdx = parseInt(document.getElementById('btStartDate').value);
+  const capital = parseFloat(document.getElementById('btCapital').value) || 10000;
+  const strategy = document.getElementById('btStrategy').value;
+  const benchmark = document.getElementById('btBenchmark').value;
+  const tickers = Array.from(btSelected);
+
+  if (tickers.length === 0){
+    document.getElementById('btResults').innerHTML = `
+      <div class="empty"><div class="empty-ic">⚠️</div><div>Selecione ao menos 1 ação</div></div>`;
+    document.getElementById('btResults').classList.add('show');
+    return;
+  }
+
+  const startYear = parseInt(IBOV_HIST.months[startIdx].split('-')[0]);
+  // Filter out unavailable
+  const available = tickers.filter(t => {
+    const s = STOCKS.find(x => x.ticker === t);
+    return s && s.ipoYear <= startYear;
+  });
+
+  if (available.length === 0){
+    document.getElementById('btResults').innerHTML = `<div class="empty"><div>Nenhuma ação tinha dados na data selecionada</div></div>`;
+    document.getElementById('btResults').classList.add('show');
+    return;
+  }
+
+  const endIdx = IBOV_HIST.months.length - 1;
+  const months = IBOV_HIST.months.slice(startIdx, endIdx + 1);
+  const nMonths = months.length;
+  const stocks = available.map(t => STOCKS.find(x => x.ticker === t));
+
+  // Equal weight initial allocation
+  let weights = stocks.map(() => 1 / stocks.length);
+  // Track number of "shares" per stock based on initial capital
+  let shares = stocks.map((s, i) => (capital * weights[i]) / s.hist.monthlyPrices[startIdx]);
+
+  // Portfolio value series
+  const portfolioVals = [capital];
+  const benchVals = [capital];
+  const benchStart = benchmark === 'ibov' ? IBOV_HIST.values[startIdx] : 1;
+  const monthlyCdiRate = Math.pow(1 + MACRO.selic/100, 1/12) - 1;
+
+  for (let i = 1; i < nMonths; i++){
+    const idx = startIdx + i;
+    let val = stocks.reduce((sum, s, k) => sum + shares[k] * s.hist.monthlyPrices[idx], 0);
+    portfolioVals.push(val);
+
+    // Rebalance check
+    if ((strategy === 'quarterly' && i % 3 === 0) || (strategy === 'annual' && i % 12 === 0)){
+      shares = stocks.map((s, k) => (val * (1/stocks.length)) / s.hist.monthlyPrices[idx]);
+    }
+
+    if (benchmark === 'ibov'){
+      benchVals.push(capital * IBOV_HIST.values[idx] / benchStart);
+    } else {
+      benchVals.push(benchVals[i-1] * (1 + monthlyCdiRate));
+    }
+  }
+
+  // Metrics
+  const finalVal = portfolioVals[portfolioVals.length-1];
+  const totalRet = (finalVal / capital - 1) * 100;
+  const years = nMonths / 12;
+  const cagr = (Math.pow(finalVal / capital, 1/years) - 1) * 100;
+
+  // Monthly returns of portfolio
+  const monthlyRets = [];
+  for (let i = 1; i < portfolioVals.length; i++){
+    monthlyRets.push(portfolioVals[i] / portfolioVals[i-1] - 1);
+  }
+  const meanMonthly = monthlyRets.reduce((a,b) => a+b, 0) / monthlyRets.length;
+  const varMonthly = monthlyRets.reduce((a,b) => a + (b-meanMonthly)**2, 0) / monthlyRets.length;
+  const annualVol = Math.sqrt(varMonthly * 12) * 100;
+  const annualRet = meanMonthly * 12 * 100;
+
+  // Sharpe (vs SELIC)
+  const sharpe = annualVol > 0 ? (annualRet - MACRO.selic) / annualVol : 0;
+
+  // Max Drawdown
+  let peak = portfolioVals[0], maxDD = 0;
+  for (const v of portfolioVals){
+    if (v > peak) peak = v;
+    const dd = (v - peak) / peak * 100;
+    if (dd < maxDD) maxDD = dd;
+  }
+
+  // Benchmark final
+  const benchFinal = benchVals[benchVals.length-1];
+  const benchTotalRet = (benchFinal / capital - 1) * 100;
+  const alpha = totalRet - benchTotalRet;
+
+  // Per-stock contributions
+  const perStock = stocks.map((s, k) => {
+    const startP = s.hist.monthlyPrices[startIdx];
+    const endP = s.hist.monthlyPrices[endIdx];
+    const ret = (endP / startP - 1) * 100;
+    return { ticker: s.ticker, name: s.name, ret };
+  }).sort((a,b) => b.ret - a.ret);
+
+  // Render
+  const sampleEvery = Math.max(1, Math.floor(nMonths / 50));
+  const chartPort = portfolioVals.filter((_,i) => i % sampleEvery === 0);
+  const chartBench = benchVals.filter((_,i) => i % sampleEvery === 0);
+  const chartLabels = months.filter((_,i) => i % sampleEvery === 0).map(m => m.slice(2,4)+'/'+m.slice(2));
+
+  const benchLabel = benchmark === 'ibov' ? 'IBOV' : 'CDI';
+
+  document.getElementById('btResults').innerHTML = `
+    <div class="bt-section" style="background:linear-gradient(135deg,${totalRet>=benchTotalRet?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)'},transparent)">
+      <div class="bt-section-title">📊 Resultados · ${months[0]} → ${months[nMonths-1]}</div>
+      <div class="bt-metrics">
+        <div class="bt-met">
+          <div class="bt-met-lbl">Valor Final</div>
+          <div class="bt-met-val ${totalRet>=0?'c-gain':'c-loss'}">${fCompact(finalVal)}</div>
+          <div class="bt-met-sub">de ${fCompact(capital)}</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">Retorno Total</div>
+          <div class="bt-met-val ${totalRet>=0?'c-gain':'c-loss'}">${fPct(totalRet)}</div>
+          <div class="bt-met-sub">${years.toFixed(1)} anos</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">CAGR</div>
+          <div class="bt-met-val ${cagr>=0?'c-gain':'c-loss'}">${fPct(cagr)}</div>
+          <div class="bt-met-sub">ao ano</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">Volatilidade</div>
+          <div class="bt-met-val">${fNum(annualVol,1)}%</div>
+          <div class="bt-met-sub">anualizada</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">Sharpe</div>
+          <div class="bt-met-val ${sharpe>=1?'c-gain':sharpe>=0.5?'c-warn':'c-loss'}">${fNum(sharpe,2)}</div>
+          <div class="bt-met-sub">vs SELIC</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">Drawdown Máx</div>
+          <div class="bt-met-val c-loss">${fNum(maxDD,1)}%</div>
+          <div class="bt-met-sub">pior queda</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">vs ${benchLabel}</div>
+          <div class="bt-met-val ${alpha>=0?'c-gain':'c-loss'}">${fPct(alpha)}</div>
+          <div class="bt-met-sub">${benchLabel}: ${fPct(benchTotalRet)}</div>
+        </div>
+        <div class="bt-met">
+          <div class="bt-met-lbl">Ações</div>
+          <div class="bt-met-val">${stocks.length}</div>
+          <div class="bt-met-sub">peso igual</div>
+        </div>
+      </div>
+    </div>
+    <div class="bt-section">
+      <div class="bt-section-title">📈 Evolução do Portfólio vs ${benchLabel}</div>
+      ${multiLineChart([
+        {label:'Portfólio', color:'#d97706', values: chartPort},
+        {label: benchLabel, color:'#3b82f6', values: chartBench},
+      ], chartLabels, {height: 180, yFormat: v => fCompact(v).replace('R$ ','')})}
+    </div>
+    <div class="bt-section">
+      <div class="bt-section-title">📋 Contribuição por Ação</div>
+      <div class="bt-comp-tbl">
+        ${perStock.map(p => {
+          const maxAbs = Math.max(...perStock.map(x => Math.abs(x.ret)));
+          const w = (Math.abs(p.ret) / maxAbs) * 100;
+          return `<div class="bt-comp-row">
+            <div class="bt-comp-tk">${p.ticker}</div>
+            <div class="bt-comp-bar"><div class="bt-comp-bf" style="width:${w}%;background:${p.ret>=0?'#16a34a':'#dc2626'}"></div></div>
+            <div class="bt-comp-r ${p.ret>=0?'c-gain':'c-loss'}">${fPct(p.ret)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('btResults').classList.add('show');
+  document.getElementById('btResults').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 // ═══════════════════════════════════════════════════════
 // EVENT LISTENERS
 // ═══════════════════════════════════════════════════════
-
-// Main tabs
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1277,33 +1877,28 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
   });
 });
 
-// Filter chips
-document.querySelectorAll('.chip').forEach(chip => {
+document.querySelectorAll('.chip[data-filter]').forEach(chip => {
   chip.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     currentFilter = chip.dataset.filter;
     renderStockList();
   });
 });
 
-// Sort
 document.getElementById('sortSel').addEventListener('change', e => {
   currentSort = e.target.value;
   renderStockList();
 });
 
-// Search
 document.getElementById('searchInput').addEventListener('input', e => {
   currentSearch = e.target.value.trim();
   renderStockList();
 });
 
-// Close sheet
 document.getElementById('sheetClose').addEventListener('click', closeSheet);
 document.getElementById('overlay').addEventListener('click', closeSheet);
 
-// Detail tabs
 document.querySelectorAll('.dtab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
@@ -1313,8 +1908,13 @@ document.querySelectorAll('.dtab').forEach(tab => {
   });
 });
 
-// Prevent sheet body scroll from closing
 document.getElementById('sheet').addEventListener('click', e => e.stopPropagation());
+
+// Backtest events
+document.querySelectorAll('.bt-quick').forEach(btn => {
+  btn.addEventListener('click', () => applyBtPreset(btn.dataset.preset));
+});
+document.getElementById('btRun').addEventListener('click', runBacktest);
 
 // Swipe to close sheet
 let startY = 0;
@@ -1331,6 +1931,12 @@ sheet.addEventListener('touchend', e => {
 renderMacroStrip();
 renderMacroFull();
 renderStockList();
+renderBacktestUI();
+// Default backtest selection
+applyBtPreset('ibov-top5');
+
+// Try live quotes (non-blocking)
+tryLiveQuotes();
 </script>
 </body>
 </html>
