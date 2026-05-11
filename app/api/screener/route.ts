@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TOP_100_TICKERS } from '@/lib/data/tickers'
-import { fetchQuotes } from '@/lib/api/brapi'
+import { fetchQuotes } from '@/lib/api/yahoo'
+import { overlayCVMData } from '@/lib/api/cvm'
 import { computeGrahamAnalysis } from '@/lib/calculations/graham'
 import { rankMagicFormula } from '@/lib/calculations/greenblatt'
 import { computeFusionScore, fusionToDecision } from '@/lib/calculations/fusion'
@@ -29,11 +30,12 @@ export async function GET(req: NextRequest) {
     const quotes = await fetchQuotes(TOP_100_TICKERS)
     const quoteMap = new Map(quotes.map((q) => [q.ticker, q]))
 
-    // Build screener rows using seeded fundamental data
+    // Build screener rows: seeded baseline overlaid with real CVM fundamentals
     const { SEEDED_FUNDAMENTALS } = await import('@/lib/data/seeded-fundamentals')
+    const fundamentals = SEEDED_FUNDAMENTALS.map(overlayCVMData)
 
     // Compute Greenblatt rankings across universe
-    const gblUniverse = SEEDED_FUNDAMENTALS
+    const gblUniverse = fundamentals
       .filter((f) => f.ebit > 0)
       .map((f) => ({
         ticker: f.ticker,
@@ -50,7 +52,7 @@ export async function GET(req: NextRequest) {
     const gblRanked = rankMagicFormula(gblUniverse)
     const gblMap = new Map(gblRanked.map((g) => [g.ticker, g]))
 
-    const rows: ScreenerRow[] = SEEDED_FUNDAMENTALS
+    const rows: ScreenerRow[] = fundamentals
       .map((f) => {
         const quote = quoteMap.get(f.ticker)
         const price = quote?.price ?? f.priceRef

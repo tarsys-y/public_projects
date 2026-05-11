@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchQuote, fetchHistorical } from '@/lib/api/brapi'
+import { fetchQuote, fetchHistorical } from '@/lib/api/yahoo'
+import { overlayCVMData, getCVMData } from '@/lib/api/cvm'
 import { fetchCurrentSELIC, fetchCurrentEMBI } from '@/lib/api/bcb'
 import { computeGrahamAnalysis } from '@/lib/calculations/graham'
 import { computeDamodaranAnalysis } from '@/lib/calculations/damodaran'
@@ -24,9 +25,11 @@ export async function GET(
       return NextResponse.json({ error: 'Ticker not found' }, { status: 404 })
     }
 
-    // Load seeded fundamentals as baseline
+    // Load seeded fundamentals as baseline, overlay with real CVM data if available
     const { SEEDED_FUNDAMENTALS } = await import('@/lib/data/seeded-fundamentals')
-    const seeded = SEEDED_FUNDAMENTALS.find((f) => f.ticker === ticker)
+    const seededRaw = SEEDED_FUNDAMENTALS.find((f) => f.ticker === ticker)
+    const seeded = seededRaw ? overlayCVMData(seededRaw) : seededRaw
+    const cvmData = getCVMData(ticker)
 
     if (!seeded) {
       return NextResponse.json({ error: 'Fundamentals not available' }, { status: 404 })
@@ -35,6 +38,7 @@ export async function GET(
     const prices = history.map((h) => h.close)
     const volumes = history.map((h) => h.volume)
     const ibovHistory = await fetchHistorical('^BVSP', '2y', '1d')
+
     const ibovPrices = ibovHistory.map((h) => h.close)
 
     const graham = computeGrahamAnalysis({
@@ -160,6 +164,9 @@ export async function GET(
           scuttlebuttNotes: '',
         },
         fundamentals: seeded,
+        // Real CVM financials history (present only when sync-cvm has been run)
+        cvmAnnual: cvmData?.annual ?? null,
+        cvmQuarterly: cvmData?.quarterly ?? null,
       },
       cached: false,
     })
