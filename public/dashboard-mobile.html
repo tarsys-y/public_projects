@@ -1123,27 +1123,50 @@ async function tryLiveQuotes(){
   const status = document.getElementById('liveStatus');
   try {
     const tickers = STOCKS.map(s => s.ticker).join(',');
-    const url = `https://brapi.dev/api/quote/${tickers}?range=1d`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 4500);
-    const res = await fetch(url, { signal: ctrl.signal });
+
+    // Try brapi.dev first (requires free token from brapi.dev, then pass as ?token=YOUR_TOKEN)
+    let res = await fetch(`https://brapi.dev/api/quote/${tickers}?range=1d`, { signal: ctrl.signal }).catch(() => null);
+
+    // If brapi fails, try quote.cnpj.info as fallback (Brazilian public API)
+    if (!res || !res.ok) {
+      const tickerList = STOCKS.map(s => s.ticker).join('|');
+      res = await fetch(`https://quote.cnpj.info/?q=${tickerList}`, { signal: ctrl.signal }).catch(() => null);
+    }
+
     clearTimeout(timer);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res || !res.ok) throw new Error('All APIs failed');
+
     const data = await res.json();
-    if (!data.results) throw new Error('no results');
     let updated = 0;
-    for (const q of data.results){
-      const stock = STOCKS.find(s => s.ticker === q.symbol);
-      if (stock && q.regularMarketPrice){
-        stock.price = q.regularMarketPrice;
-        stock.dailyChg = q.regularMarketChangePercent ?? stock.dailyChg;
-        updated++;
+
+    // Handle brapi.dev format
+    if (data.results && Array.isArray(data.results)) {
+      for (const q of data.results){
+        const stock = STOCKS.find(s => s.ticker === q.symbol);
+        if (stock && q.regularMarketPrice){
+          stock.price = q.regularMarketPrice;
+          stock.dailyChg = q.regularMarketChangePercent ?? stock.dailyChg;
+          updated++;
+        }
       }
     }
+    // Handle quote.cnpj.info format
+    else if (data.results && typeof data.results === 'object') {
+      for (const [ticker, info] of Object.entries(data.results)){
+        const stock = STOCKS.find(s => s.ticker === ticker);
+        if (stock && info.price){
+          stock.price = parseFloat(info.price);
+          if (info.change) stock.dailyChg = parseFloat(info.change);
+          updated++;
+        }
+      }
+    }
+
     if (updated > 0){
       dot.className = 'live-dot online';
       status.textContent = `🟢 Live · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
-      // Re-render
       renderStockList();
       return true;
     }
