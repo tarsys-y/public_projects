@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { ArrowLeft, Star, Plus, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
@@ -9,6 +9,7 @@ import { DecisionCard } from '@/components/decision-card'
 import { PriceChart } from '@/components/price-chart'
 import { DCFModel } from '@/components/dcf-model'
 import { FusionRadar } from '@/components/fusion-radar'
+import { DataFreshness } from '@/components/data-freshness'
 import type {
   Quote, HistoricalBar, GrahamAnalysis, DamodaranAnalysis,
   QuantAnalysis, FusionAnalysis, FisherChecklist,
@@ -43,12 +44,21 @@ interface StockData {
 export default function StockDetailPage({ params }: { params: { ticker: string } }) {
   const ticker = params.ticker.toUpperCase()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null)
+  const prevDataRef = useRef<unknown>(null)
 
   const { data: res, isLoading, mutate } = useSWR<{ data: StockData }>(
     `/api/stock/${ticker}`,
     fetcher,
     { revalidateOnFocus: false },
   )
+
+  useEffect(() => {
+    if (res && res !== prevDataRef.current) {
+      prevDataRef.current = res
+      setFetchedAt(Date.now())
+    }
+  }, [res])
 
   if (isLoading) return <StockDetailSkeleton ticker={ticker} />
   if (!res?.data) return (
@@ -94,17 +104,20 @@ export default function StockDetailPage({ params }: { params: { ticker: string }
               {quote.change >= 0 ? '+' : ''}R$ {quote.change.toFixed(2)} ({formatPct(quote.changePercent)})
             </p>
           </div>
-          <button
-            onClick={() => mutate()}
-            className="rounded-md border border-border p-2 hover:bg-accent transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={() => mutate()}
+              className="rounded-md border border-border p-2 hover:bg-accent transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <DataFreshness source="Yahoo Finance" fetchedAt={isLoading ? null : fetchedAt} staleAfterMs={60_000} />
+          </div>
         </div>
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         <KPI label="Fusion Score" value={fusion.fusionScore.toFixed(0)} valueClass={fusionScoreColor(fusion.fusionScore)} sub="ponderado" />
         <KPI label="DCF MoS" value={`${damodaran.marginOfSafety.toFixed(1)}%`} valueClass={mosColor(damodaran.marginOfSafety)} sub={`IV: R$ ${damodaran.intrinsicValuePerShare.toFixed(2)}`} />
         <KPI label="Graham #" value={`R$ ${graham.grahamNumber.toFixed(2)}`} valueClass={graham.grahamNumber > quote.price ? 'text-gain' : 'text-loss'} sub={`${graham.passedCriteria}/7 critérios`} />
@@ -313,7 +326,7 @@ function FisherTab({ fisher }: { fisher: FisherChecklist }) {
       </div>
 
       {/* Auto metrics */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-xs text-muted-foreground">CAGR Receita 5a</p>
           <p className={cn('font-mono text-lg font-bold', fisher.revenueCAGR5y > 0.10 ? 'text-gain' : 'text-warning')}>

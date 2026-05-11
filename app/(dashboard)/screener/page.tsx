@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { RefreshCw, Search } from 'lucide-react'
 import { ScreenerTable } from '@/components/screener-table'
 import { ScreenerFiltersPanel } from '@/components/screener-filters'
+import { DataFreshness } from '@/components/data-freshness'
 import type { ScreenerRow, ScreenerFilters } from '@/types'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -15,6 +16,8 @@ export default function ScreenerPage() {
     excludeFinancials: true,
   })
   const [search, setSearch] = useState('')
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null)
+  const prevDataRef = useRef<unknown>(null)
 
   const queryString = new URLSearchParams(
     Object.fromEntries(
@@ -27,6 +30,13 @@ export default function ScreenerPage() {
     fetcher,
     { revalidateOnFocus: false },
   )
+
+  useEffect(() => {
+    if (data && data !== prevDataRef.current) {
+      prevDataRef.current = data
+      setFetchedAt(Date.now())
+    }
+  }, [data])
 
   const rows = (data?.data ?? []).filter((r) => {
     if (!search) return true
@@ -44,13 +54,16 @@ export default function ScreenerPage() {
             Análise multi-framework de todas as ações listadas na B3 — Graham, Fisher, Greenblatt, Damodaran e Quant.
           </p>
         </div>
-        <button
-          onClick={() => mutate()}
-          className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Atualizar
-        </button>
+        <div className="flex items-center gap-3">
+          <DataFreshness source="Yahoo Finance" fetchedAt={isLoading ? null : fetchedAt} staleAfterMs={60_000} onRefresh={() => mutate()} />
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Atualizar
+          </button>
+        </div>
       </div>
 
       {/* Controls */}

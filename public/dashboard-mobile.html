@@ -832,7 +832,7 @@ function buildIbovMonthly(){
   vals[vals.length-1] = MACRO.ibov;
   return { months, values: vals };
 }
-const IBOV_HIST = buildIbovMonthly();
+let IBOV_HIST = buildIbovMonthly();
 
 // Generate per-stock historical fundamentals + monthly prices
 function generateStockHistory(s){
@@ -959,7 +959,7 @@ function computeStock(s){
 const STOCKS = RAW.map(computeStock);
 
 // Pre-compute IBOV returns for benchmark comparison
-const IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+let IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
 
 // ═══════════════════════════════════════════════════════
 // HELPERS
@@ -1155,7 +1155,7 @@ async function bcbFetch(series, n) {
     );
     if (!r.ok) return null;
     return r.json();
-  } catch { return null; }
+  } catch(e) { console.warn('[BCB]', e); return null; }
 }
 
 // ── Yahoo Finance v8/chart — gratuito, sem autenticação ──────────────────────
@@ -1169,23 +1169,27 @@ async function yahooFetch(symbol, interval, range) {
     if (!r.ok) return null;
     const d = await r.json();
     return d?.chart?.result?.[0] ?? null;
-  } catch { return null; }
+  } catch(e) { console.warn('[Yahoo]', e); return null; }
 }
 
 // Converte string BCB "12,75" → 12.75
 const bcbNum = (s) => parseFloat(String(s).replace(',', '.'));
 
-// ── Macro atual: BCB em tempo real ───────────────────────────────────────────
+// ── Macro atual: BCB + Yahoo Finance em tempo real ───────────────────────────
 async function initMacroLive() {
   // Séries BCB: 4189=Meta SELIC %a.a. | 13522=IPCA 12m % | 3697=PTAX USD mensal | 4734=EMBI+
-  const [selic, ipca, ptax, embi] = await Promise.allSettled([
+  // Yahoo: ^BVSP=IBOV | ^BVSPN=SMLL
+  const [selic, ipca, ptax, embi, ibov, smll] = await Promise.allSettled([
     bcbFetch(4189,  1),
     bcbFetch(13522, 1),
     bcbFetch(3697,  1),
     bcbFetch(4734,  1),
+    yahooFetch('^BVSP',  '1d', '5d'),
+    yahooFetch('^BVSPN', '1d', '5d'),
   ]);
 
-  const ok = (r) => r.status === 'fulfilled' && r.value?.length;
+  const ok  = (r) => r.status === 'fulfilled' && r.value?.length;
+  const yOk = (r) => r.status === 'fulfilled' && r.value?.meta;
   let changed = false;
 
   if (ok(selic)) { MACRO.selic  = bcbNum(selic.value[0].valor);  changed = true; }
@@ -1193,8 +1197,23 @@ async function initMacroLive() {
   if (ok(ptax))  { MACRO.usdBrl = bcbNum(ptax.value[0].valor);   changed = true; }
   if (ok(embi))  { MACRO.embi   = bcbNum(embi.value[0].valor);   changed = true; }
 
+  if (yOk(ibov)) {
+    const { regularMarketPrice: p, regularMarketChangePercent: c } = ibov.value.meta;
+    if (p > 0) { MACRO.ibov = Math.round(p); if (c != null) MACRO.ibovChg = c; changed = true;
+      // Rebuild IBOV history with the live anchor value
+      IBOV_HIST    = buildIbovMonthly();
+      IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+    }
+  }
+  if (yOk(smll)) {
+    const { regularMarketPrice: p, regularMarketChangePercent: c } = smll.value.meta;
+    if (p > 0) { MACRO.smll = Math.round(p); if (c != null) MACRO.smllChg = c; changed = true; }
+  }
+
   if (changed) {
-    MACRO.asOf = new Date().toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    const _now = new Date();
+    const _ms = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    MACRO.asOf = `${_ms[_now.getMonth()]}/${_now.getFullYear()}`;
     renderMacroStrip();
     renderMacroFull();
   }
@@ -1297,15 +1316,21 @@ async function tryLiveQuotes() {
       renderStockList();
       return true;
     }
-  } catch { /* fallthrough */ }
+  } catch(e) { console.warn('[Yahoo primary]', e); }
 
-  // Fallback: brapi.dev → quote.cnpj.info
+  // Fallback: brapi.dev → quote.cnpj.info (separate AbortControllers to avoid reuse after abort)
   try {
-    const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 5000);
-    let res = await fetch(`https://brapi.dev/api/quote/${STOCKS.map(s => s.ticker).join(',')}?range=1d`, { signal: ctrl.signal }).catch(() => null);
-    if (!res?.ok) res = await fetch(`https://quote.cnpj.info/?q=${STOCKS.map(s => s.ticker).join('|')}`, { signal: ctrl.signal }).catch(() => null);
-    clearTimeout(timer);
+    const tickers = STOCKS.map(s => s.ticker).join(',');
+    const ctrl1 = new AbortController();
+    const t1 = setTimeout(() => ctrl1.abort(), 5000);
+    let res = await fetch(`https://brapi.dev/api/quote/${tickers}?range=1d`, { signal: ctrl1.signal }).catch(() => null);
+    clearTimeout(t1);
+    if (!res?.ok) {
+      const ctrl2 = new AbortController();
+      const t2 = setTimeout(() => ctrl2.abort(), 5000);
+      res = await fetch(`https://quote.cnpj.info/?q=${STOCKS.map(s => s.ticker).join('|')}`, { signal: ctrl2.signal }).catch(() => null);
+      clearTimeout(t2);
+    }
     if (!res?.ok) throw new Error('all failed');
 
     const data = await res.json();
@@ -1328,7 +1353,7 @@ async function tryLiveQuotes() {
       renderStockList();
       return true;
     }
-  } catch { /* ignore */ }
+  } catch(e) { console.warn('[brapi/cnpj]', e); }
 
   dot.className = 'live-dot offline';
   status.textContent = `📁 Dados embarcados (${MACRO.asOf}) · sem conexão live`;

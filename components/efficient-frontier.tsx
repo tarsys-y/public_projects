@@ -295,7 +295,7 @@ export function EfficientFrontier({ result, onApplyWeights }: Props) {
               onClick={() => onApplyWeights(weightsRecord(result.tickers, selectedPoint.weights))}
               className="w-full rounded-lg bg-primary py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
             >
-              Aplicar pesos "{selected === 'minVariance' ? 'Mínima Variância' : selected === 'maxSharpe' ? 'Máximo Sharpe' : 'Equal-Weight'}" ao Portfólio
+              Aplicar pesos &quot;{selected === 'minVariance' ? 'Mínima Variância' : selected === 'maxSharpe' ? 'Máximo Sharpe' : 'Equal-Weight'}&quot; ao Portfólio
             </button>
           )}
         </div>

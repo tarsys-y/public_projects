@@ -1,12 +1,45 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Component, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Trash2, BookOpen, TrendingUp, TrendingDown, BarChart2, RefreshCw, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, BookOpen, TrendingUp, TrendingDown, BarChart2, RefreshCw, AlertCircle, Download, Upload } from 'lucide-react'
 import { cn, formatBRL, formatPct, changeClass, fusionScoreColor, generateId, formatDatetime } from '@/lib/utils'
 import { EfficientFrontier } from '@/components/efficient-frontier'
 import type { Position, DecisionEntry } from '@/types'
 import type { OptimizationResult } from '@/lib/calculations/optimizer'
+
+// ─── Error Boundary ─────────────────────────────────────────────────────────
+
+class TabErrorBoundary extends Component<
+  { children: React.ReactNode; label: string },
+  { hasError: boolean; message: string }
+> {
+  constructor(props: { children: React.ReactNode; label: string }) {
+    super(props)
+    this.state = { hasError: false, message: '' }
+  }
+  static getDerivedStateFromError(err: Error) {
+    return { hasError: true, message: err.message }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/5 px-4 py-6 text-center">
+          <AlertCircle className="mx-auto h-6 w-6 text-red-500 mb-2" />
+          <p className="text-sm font-semibold text-red-600 dark:text-red-400">Erro em {this.props.label}</p>
+          <p className="text-xs text-muted-foreground mt-1">{this.state.message}</p>
+          <button
+            onClick={() => this.setState({ hasError: false, message: '' })}
+            className="mt-3 rounded-md border border-border px-3 py-1 text-xs hover:bg-accent transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // ─── Portfolio Store (localStorage) ────────────────────────────────────────
 
@@ -46,16 +79,59 @@ function usePortfolio() {
     ])
   }
 
-  return { positions, journal, addPosition, removePosition, addJournalEntry, saveJournal }
+  return { positions, journal, addPosition, removePosition, addJournalEntry, saveJournal, savePositions }
 }
 
 export default function PortfolioPage() {
-  const { positions, journal, addPosition, removePosition, addJournalEntry, saveJournal } = usePortfolio()
+  const { positions, journal, addPosition, removePosition, addJournalEntry, saveJournal, savePositions } = usePortfolio()
   const [tab, setTab] = useState<'holdings' | 'journal' | 'risk' | 'optimizer'>('holdings')
   const [showAddPosition, setShowAddPosition] = useState(false)
   const [showAddJournal, setShowAddJournal] = useState(false)
   const [prefillTicker, setPrefillTicker] = useState('')
   const searchParams = useSearchParams()
+
+  const exportJSON = () => {
+    const payload = { positions, journal, exportedAt: new Date().toISOString(), version: 1 }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `portfolio-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportCSV = () => {
+    const header = 'Ticker,Quantidade,Preço Médio (R$),Data Entrada,Notas'
+    const rows = positions.map((p) =>
+      [p.ticker, p.shares, p.avgCostBRL.toFixed(2), p.entryDate ?? '', `"${p.notes ?? ''}"`].join(',')
+    )
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `portfolio-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string)
+        if (Array.isArray(data.positions)) savePositions(data.positions)
+        if (Array.isArray(data.journal)) saveJournal(data.journal)
+      } catch {
+        alert('Arquivo inválido. Certifique-se de importar um JSON exportado por este app.')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   useEffect(() => {
     const prefill = searchParams.get('prefill')
@@ -74,7 +150,26 @@ export default function PortfolioPage() {
             Acompanhe seus investimentos e registre suas decisões no Diário de Apostas.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors">
+            <Upload className="h-4 w-4" />
+            Importar JSON
+            <input type="file" accept=".json" className="sr-only" onChange={importJSON} />
+          </label>
+          <button
+            onClick={exportJSON}
+            className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Exportar JSON
+          </button>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Exportar CSV
+          </button>
           <button
             onClick={() => setShowAddPosition(true)}
             className="flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -87,7 +182,7 @@ export default function PortfolioPage() {
 
       {/* Summary */}
       {positions.length > 0 && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <SummaryCard label="Posições" value={String(positions.length)} sub="ativos" />
           <SummaryCard label="Entradas no Diário" value={String(journal.length)} sub="decisões registradas" />
           <SummaryCard label="Revisadas" value={String(journal.filter((j) => j.reviewed).length)} sub={`de ${journal.length}`} />
@@ -137,8 +232,8 @@ export default function PortfolioPage() {
           }}
         />
       )}
-      {tab === 'risk' && <RiskTab positions={positions} />}
-      {tab === 'optimizer' && <OptimizerTab positions={positions} />}
+      {tab === 'risk' && <TabErrorBoundary label="Risco & Métricas"><RiskTab positions={positions} /></TabErrorBoundary>}
+      {tab === 'optimizer' && <TabErrorBoundary label="Otimizador MPT"><OptimizerTab positions={positions} /></TabErrorBoundary>}
 
       {/* Add Position Modal */}
       {showAddPosition && (
@@ -580,7 +675,7 @@ function OptimizerTab({ positions }: { positions: Position[] }) {
 
       {!result && !loading && (
         <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center">
-          <p className="text-sm text-muted-foreground">Clique em "Calcular Fronteira Eficiente" para ver a otimização</p>
+          <p className="text-sm text-muted-foreground">Clique em &quot;Calcular Fronteira Eficiente&quot; para ver a otimização</p>
           <p className="text-xs text-muted-foreground mt-1">Portfólios: Mínima Variância · Máximo Sharpe · Equal-Weight + nuvem de 8.000 simulações Monte Carlo</p>
         </div>
       )}

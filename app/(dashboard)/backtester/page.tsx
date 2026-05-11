@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Play, BarChart3, TrendingUp, Clock } from 'lucide-react'
+import { Play, BarChart3, TrendingUp, Clock, Layers } from 'lucide-react'
+import { DataFreshness } from '@/components/data-freshness'
+import { StrategyComparison } from '@/components/strategy-comparison'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area,
@@ -41,12 +43,42 @@ const STRATEGIES = [
 ]
 
 export default function BacktesterPage() {
+  const [mode, setMode] = useState<'single' | 'compare'>('single')
   const [config, setConfig] = useState<BacktestConfig>(DEFAULT_CONFIG)
   const [result, setResult] = useState<BacktestResult | null>(null)
+  const [compareResults, setCompareResults] = useState<BacktestResult[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [resultFetchedAt, setResultFetchedAt] = useState<number | null>(null)
 
   const runBacktest = async () => {
     setLoading(true)
+    setError(null)
+    if (mode === 'compare') {
+      try {
+        const { strategy: _s, ...compareConfig } = config
+        const res = await fetch('/api/quant/backtest/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(compareConfig),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setCompareResults(data.results)
+          setResultFetchedAt(Date.now())
+        } else {
+          const errData = await res.json().catch(() => ({}))
+          throw new Error(errData.error ?? `HTTP ${res.status}`)
+        }
+      } catch (e) {
+        console.error('Compare error:', e)
+        setError(e instanceof Error ? e.message : 'Erro desconhecido ao comparar estratégias.')
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
     try {
       const res = await fetch('/api/quant/backtest', {
         method: 'POST',
@@ -56,13 +88,14 @@ export default function BacktesterPage() {
       if (res.ok) {
         const data = await res.json()
         setResult(data)
+        setResultFetchedAt(Date.now())
       } else {
         const errData = await res.json().catch(() => ({}))
         throw new Error(errData.error ?? `HTTP ${res.status}`)
       }
     } catch (e) {
       console.error('Backtest error:', e)
-      setResult(generateMockResult(config))
+      setError(e instanceof Error ? e.message : 'Erro desconhecido ao executar o backtest.')
     } finally {
       setLoading(false)
     }
@@ -70,39 +103,65 @@ export default function BacktesterPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="font-serif text-2xl font-semibold">Backtester</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Teste estratégias de investimento contra o IBOV de 2010 em diante.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="font-serif text-2xl font-semibold">Backtester</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Teste estratégias de investimento contra o IBOV de 2010 em diante.
+          </p>
+        </div>
+        {/* Mode toggle */}
+        <div className="flex rounded-lg border border-border overflow-hidden text-sm">
+          <button
+            onClick={() => setMode('single')}
+            className={cn('flex items-center gap-1.5 px-3 py-1.5 transition-colors', mode === 'single' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent')}
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            Estratégia única
+          </button>
+          <button
+            onClick={() => setMode('compare')}
+            className={cn('flex items-center gap-1.5 px-3 py-1.5 transition-colors border-l border-border', mode === 'compare' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent')}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            Comparar estratégias
+          </button>
+        </div>
       </div>
 
       {/* Config */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Strategy */}
-        <div className="col-span-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Estratégia
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            {STRATEGIES.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setConfig({ ...config, strategy: s.id })}
-                className={cn(
-                  'rounded-lg border p-3 text-left transition-colors',
-                  config.strategy === s.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/40',
-                )}
-              >
-                <p className="text-sm font-medium">{s.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
-                <p className="text-[10px] text-muted-foreground italic mt-1">📚 {s.book}</p>
-              </button>
-            ))}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {/* Strategy (single mode only) */}
+        {mode === 'single' && (
+          <div className="col-span-2 sm:col-span-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Estratégia
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {STRATEGIES.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setConfig({ ...config, strategy: s.id })}
+                  className={cn(
+                    'rounded-lg border p-3 text-left transition-colors',
+                    config.strategy === s.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/40',
+                  )}
+                >
+                  <p className="text-sm font-medium">{s.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
+                  <p className="text-[10px] text-muted-foreground italic mt-1">📚 {s.book}</p>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+        {mode === 'compare' && (
+          <div className="col-span-2 sm:col-span-3 rounded-lg border border-dashed border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+            Comparará <strong>Magic Formula</strong>, <strong>Graham Defensivo</strong> e <strong>Fusion Top Decil</strong> simultaneamente com os parâmetros abaixo.
+          </div>
+        )}
 
         {/* Params */}
         <div>
@@ -157,21 +216,47 @@ export default function BacktesterPage() {
         </div>
       </div>
 
+      {/* Look-ahead bias warning */}
+      <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/5 px-4 py-3 text-sm">
+        <p className="font-semibold text-yellow-600 dark:text-yellow-400">⚠️ Look-ahead bias — leia antes de interpretar</p>
+        <p className="mt-1 text-muted-foreground text-xs">
+          Os scores de seleção (Greenblatt, Graham, Fusion) são calculados com dados de <strong>hoje</strong>, não com os dados que estariam disponíveis em cada data histórica de rebalanceamento.
+          Isso equivale a usar informação futura no passado, inflando artificialmente os retornos simulados.
+          Os resultados têm valor pedagógico para comparar <em>como</em> as estratégias diferem, mas <strong>não devem ser usados para validar capacidade preditiva.</strong>
+        </p>
+      </div>
+
       <button
         onClick={runBacktest}
         disabled={loading}
         className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
         <Play className={cn('h-4 w-4', loading && 'animate-pulse')} />
-        {loading ? 'Executando...' : 'Executar Backtest'}
+        {loading ? 'Executando...' : mode === 'compare' ? 'Comparar Estratégias' : 'Executar Backtest'}
       </button>
 
-      {result && <BacktestResults result={result} config={config} />}
+      {error && (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+          <p className="font-semibold">Erro ao executar backtest</p>
+          <p className="mt-1 text-xs">{error}</p>
+        </div>
+      )}
+
+      {mode === 'single' && result && <BacktestResults result={result} config={config} fetchedAt={resultFetchedAt} />}
+      {mode === 'compare' && compareResults && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Comparativo de Estratégias</h3>
+            <DataFreshness source="dados seeded mai/2024" fetchedAt={resultFetchedAt} staleAfterMs={3_600_000} />
+          </div>
+          <StrategyComparison results={compareResults} initialCapital={config.initialCapitalBRL} />
+        </div>
+      )}
     </div>
   )
 }
 
-function BacktestResults({ result, config }: { result: BacktestResult; config: BacktestConfig }) {
+function BacktestResults({ result, config, fetchedAt }: { result: BacktestResult; config: BacktestConfig; fetchedAt: number | null }) {
   const chartData = result.portfolioValues.map((p, i) => ({
     date: p.date,
     portfolio: ((p.value / config.initialCapitalBRL - 1) * 100).toFixed(2),
@@ -181,7 +266,7 @@ function BacktestResults({ result, config }: { result: BacktestResult; config: B
   return (
     <div className="space-y-4">
       {/* Metrics */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <MetricCard
           label="CAGR Estratégia"
           value={formatPct(result.cagr * 100)}
@@ -251,10 +336,12 @@ function BacktestResults({ result, config }: { result: BacktestResult; config: B
         </ResponsiveContainer>
       </div>
 
-      <p className="text-xs text-muted-foreground italic">
-        ⚠️ Resultados de backtest não garantem performance futura. Custos de transação, liquidez e impostos não estão modelados.
-        Os scores de seleção (Greenblatt, Graham, Fusion) refletem dados atuais, não históricos.
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground italic">
+          Custos de transação, liquidez e impostos não estão modelados. Resultados passados não garantem performance futura.
+        </p>
+        <DataFreshness source="dados seeded mai/2024" fetchedAt={fetchedAt} staleAfterMs={3_600_000} />
+      </div>
     </div>
   )
 }
