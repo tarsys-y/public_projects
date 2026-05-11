@@ -12,7 +12,8 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink, Filter } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink, Filter, Plus } from 'lucide-react'
 import { cn, formatBRL, formatPct, formatNumber, decisionBadgeClass, changeClass, fusionScoreColor, mosColor } from '@/lib/utils'
 import type { ScreenerRow, ScreenerFilters } from '@/types'
 
@@ -440,7 +441,26 @@ const COLUMNS = [
     },
     size: 100,
   }),
+  col.display({
+    id: 'addToPortfolio',
+    header: '',
+    cell: (info) => <AddToPortfolioButton ticker={info.row.original.ticker} />,
+    size: 40,
+  }),
 ]
+
+function AddToPortfolioButton({ ticker }: { ticker: string }) {
+  const router = useRouter()
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); router.push(`/portfolio?prefill=${ticker}`) }}
+      title={`Adicionar ${ticker} ao portfólio`}
+      className="rounded-md border border-border p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+    >
+      <Plus className="h-3 w-3" />
+    </button>
+  )
+}
 
 interface ScreenerTableProps {
   data: ScreenerRow[]

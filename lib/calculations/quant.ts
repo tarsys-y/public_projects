@@ -73,6 +73,82 @@ export function computeBeta(stockPrices: number[], benchmarkPrices: number[], wi
   return covariance / variance
 }
 
+// ─── Portfolio risk functions ─────────────────────────────────────────────────
+
+export function computeSharpe(returns: number[], riskFreeDaily: number): number {
+  if (returns.length < 20) return 0
+  const excess = returns.map((r) => r - riskFreeDaily)
+  const mean = excess.reduce((s, v) => s + v, 0) / excess.length
+  const std = computeStdDev(excess)
+  if (std === 0) return 0
+  return (mean / std) * Math.sqrt(252)
+}
+
+export function computeSortino(returns: number[], riskFreeDaily: number): number {
+  if (returns.length < 20) return 0
+  const excess = returns.map((r) => r - riskFreeDaily)
+  const mean = excess.reduce((s, v) => s + v, 0) / excess.length
+  const downside = excess.filter((r) => r < 0)
+  if (downside.length < 2) return mean > 0 ? 3 : 0
+  const downsideStd = computeStdDev(downside)
+  if (downsideStd === 0) return 0
+  return (mean / downsideStd) * Math.sqrt(252)
+}
+
+export function computeMaxDrawdown(prices: number[]): number {
+  if (prices.length < 2) return 0
+  let peak = prices[0]
+  let maxDD = 0
+  for (const p of prices) {
+    if (p > peak) peak = p
+    const dd = (peak - p) / peak
+    if (dd > maxDD) maxDD = dd
+  }
+  return maxDD
+}
+
+export function computeVaR95(returns: number[], portfolioValue: number): number {
+  if (returns.length < 20) return 0
+  const sorted = [...returns].sort((a, b) => a - b)
+  const idx = Math.floor(sorted.length * 0.05)
+  return Math.abs(sorted[idx] * portfolioValue)
+}
+
+// Weighted sum of individual asset daily returns
+export function computePortfolioReturns(returnMatrix: number[][], weights: number[]): number[] {
+  if (!returnMatrix.length || !weights.length) return []
+  const T = returnMatrix[0].length
+  const portReturns: number[] = []
+  for (let t = 0; t < T; t++) {
+    let r = 0
+    for (let i = 0; i < weights.length; i++) {
+      r += (returnMatrix[i]?.[t] ?? 0) * weights[i]
+    }
+    portReturns.push(r)
+  }
+  return portReturns
+}
+
+// Pairwise Pearson correlation between two return series
+export function computeCorrelation(a: number[], b: number[]): number {
+  const len = Math.min(a.length, b.length)
+  if (len < 5) return 0
+  const as = a.slice(-len)
+  const bs = b.slice(-len)
+  const ma = as.reduce((s, v) => s + v, 0) / len
+  const mb = bs.reduce((s, v) => s + v, 0) / len
+  let num = 0, da = 0, db = 0
+  for (let i = 0; i < len; i++) {
+    num += (as[i] - ma) * (bs[i] - mb)
+    da += (as[i] - ma) ** 2
+    db += (bs[i] - mb) ** 2
+  }
+  const denom = Math.sqrt(da * db)
+  return denom === 0 ? 0 : num / denom
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function computeQuantAnalysis(params: {
   ticker: string
   prices: number[]       // daily closes, oldest → newest

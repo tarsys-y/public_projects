@@ -57,10 +57,11 @@ export default function BacktesterPage() {
         const data = await res.json()
         setResult(data)
       } else {
-        // Use mock data if Python service unavailable
-        setResult(generateMockResult(config))
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error ?? `HTTP ${res.status}`)
       }
-    } catch {
+    } catch (e) {
+      console.error('Backtest error:', e)
       setResult(generateMockResult(config))
     } finally {
       setLoading(false)
@@ -251,8 +252,8 @@ function BacktestResults({ result, config }: { result: BacktestResult; config: B
       </div>
 
       <p className="text-xs text-muted-foreground italic">
-        ⚠️ Resultados de backtest não garantem performance futura. Custos de transação, liquidez e impostos não estão totalmente modelados.
-        Use o serviço Python (FastAPI) para backtests com dados históricos reais da B3.
+        ⚠️ Resultados de backtest não garantem performance futura. Custos de transação, liquidez e impostos não estão modelados.
+        Os scores de seleção (Greenblatt, Graham, Fusion) refletem dados atuais, não históricos.
       </p>
     </div>
   )

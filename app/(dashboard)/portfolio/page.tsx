@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, BookOpen, TrendingUp, TrendingDown, BarChart2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Plus, Trash2, BookOpen, TrendingUp, TrendingDown, BarChart2, RefreshCw, AlertCircle } from 'lucide-react'
 import { cn, formatBRL, formatPct, changeClass, fusionScoreColor, generateId, formatDatetime } from '@/lib/utils'
+import { EfficientFrontier } from '@/components/efficient-frontier'
 import type { Position, DecisionEntry } from '@/types'
+import type { OptimizationResult } from '@/lib/calculations/optimizer'
 
 // ─── Portfolio Store (localStorage) ────────────────────────────────────────
 
@@ -48,9 +51,19 @@ function usePortfolio() {
 
 export default function PortfolioPage() {
   const { positions, journal, addPosition, removePosition, addJournalEntry, saveJournal } = usePortfolio()
-  const [tab, setTab] = useState<'holdings' | 'journal' | 'risk'>('holdings')
+  const [tab, setTab] = useState<'holdings' | 'journal' | 'risk' | 'optimizer'>('holdings')
   const [showAddPosition, setShowAddPosition] = useState(false)
   const [showAddJournal, setShowAddJournal] = useState(false)
+  const [prefillTicker, setPrefillTicker] = useState('')
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const prefill = searchParams.get('prefill')
+    if (prefill) {
+      setPrefillTicker(prefill.toUpperCase())
+      setShowAddPosition(true)
+    }
+  }, [searchParams])
 
   return (
     <div className="space-y-4">
@@ -84,11 +97,12 @@ export default function PortfolioPage() {
 
       {/* Tabs */}
       <div className="border-b border-border">
-        <nav className="flex gap-0">
+        <nav className="flex gap-0 overflow-x-auto">
           {[
             { id: 'holdings' as const, label: 'Posições' },
             { id: 'journal' as const, label: 'Diário de Decisões' },
             { id: 'risk' as const, label: 'Risco & Métricas' },
+            { id: 'optimizer' as const, label: '⚡ Otimizador MPT' },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -124,12 +138,14 @@ export default function PortfolioPage() {
         />
       )}
       {tab === 'risk' && <RiskTab positions={positions} />}
+      {tab === 'optimizer' && <OptimizerTab positions={positions} />}
 
       {/* Add Position Modal */}
       {showAddPosition && (
         <AddPositionModal
-          onAdd={(pos) => { addPosition(pos); setShowAddPosition(false) }}
-          onClose={() => setShowAddPosition(false)}
+          initialTicker={prefillTicker}
+          onAdd={(pos) => { addPosition(pos); setShowAddPosition(false); setPrefillTicker('') }}
+          onClose={() => { setShowAddPosition(false); setPrefillTicker('') }}
         />
       )}
 
@@ -348,32 +364,236 @@ function ReviewForm({ onSubmit }: { onSubmit: (r: Partial<DecisionEntry>) => voi
 }
 
 function RiskTab({ positions }: { positions: Position[] }) {
+  const [metrics, setMetrics] = useState<{
+    beta: number; sharpe: number; sortino: number; maxDD: number; var95: number; diversification: number
+  } | null>(null)
+  const [corrMatrix, setCorrMatrix] = useState<{ tickers: string[]; matrix: number[][] } | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const compute = useCallback(async () => {
+    if (positions.length === 0) return
+    setLoading(true)
+    setError('')
+    try {
+      const { computeLogReturns, computeSharpe, computeSortino, computeMaxDrawdown, computeVaR95, computePortfolioReturns, computeBeta, computeCorrelation } = await import('@/lib/calculations/quant')
+      const { fetchHistorical } = await import('@/lib/api/yahoo')
+      const { fetchCurrentSELIC } = await import('@/lib/api/bcb')
+
+      const [selic, ibovBars, ...tickerBars] = await Promise.all([
+        fetchCurrentSELIC(),
+        fetchHistorical('^BVSP', '2y', '1d'),
+        ...positions.map((p) => fetchHistorical(p.ticker, '2y', '1d')),
+      ])
+
+      // Align dates across all tickers + IBOV
+      const allBars = [ibovBars, ...tickerBars]
+      const dateSets = allBars.map((b) => new Set(b.map((x) => x.date)))
+      const common = [...dateSets[0]].filter((d) => dateSets.every((s) => s.has(d))).sort()
+
+      const getReturns = (bars: typeof ibovBars): number[] => {
+        const byDate = new Map(bars.map((b) => [b.date, b.adjustedClose || b.close]))
+        const prices = common.map((d) => byDate.get(d) ?? 0).filter((p) => p > 0)
+        return computeLogReturns(prices)
+      }
+
+      const ibovReturns = getReturns(ibovBars)
+      const assetReturns = tickerBars.map(getReturns)
+
+      // Portfolio weights (equal by position value, or by cost × shares)
+      const values = positions.map((p) => p.shares * p.avgCostBRL)
+      const totalValue = values.reduce((s, v) => s + v, 0) || 1
+      const weights = values.map((v) => v / totalValue)
+
+      const portReturns = computePortfolioReturns(assetReturns, weights)
+      const rfDaily = Math.log(1 + (selic ?? 10.5) / 100) / 252
+
+      // Reconstruct portfolio price series for drawdown + VaR
+      const portPrices = portReturns.reduce((acc, r) => { acc.push(acc[acc.length - 1] * Math.exp(r)); return acc }, [100])
+
+      setMetrics({
+        beta: computeBeta(portPrices, ibovBars.map((b) => b.close), portPrices.length),
+        sharpe: computeSharpe(portReturns, rfDaily),
+        sortino: computeSortino(portReturns, rfDaily),
+        maxDD: computeMaxDrawdown(portPrices),
+        var95: computeVaR95(portReturns, totalValue),
+        diversification: positions.length,
+      })
+
+      // Correlation matrix
+      const matrix = assetReturns.map((ra) => assetReturns.map((rb) => computeCorrelation(ra, rb)))
+      setCorrMatrix({ tickers: positions.map((p) => p.ticker), matrix })
+    } catch (e) {
+      setError('Erro ao calcular métricas: ' + String(e))
+    } finally {
+      setLoading(false)
+    }
+  }, [positions])
+
+  useEffect(() => { compute() }, [compute])
+
+  if (positions.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center">
+        <BarChart2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+        <p className="text-muted-foreground">Adicione posições para calcular métricas de risco</p>
+      </div>
+    )
+  }
+
+  const MetricCard = ({ label, value, sub, good }: { label: string; value: string; sub: string; good?: boolean }) => (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={cn('font-mono text-xl font-bold', loading ? 'text-muted-foreground' : good === undefined ? '' : good ? 'text-green-500' : 'text-red-500')}>{loading ? '…' : value}</p>
+      <p className="text-xs text-muted-foreground">{sub}</p>
+    </div>
+  )
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Métricas de risco calculadas em tempo real quando posições têm dados de mercado.
-      </p>
-      <div className="grid grid-cols-3 gap-4">
-        {['Beta do Portfólio', 'Sharpe Ratio', 'Max Drawdown', 'Sortino Ratio', 'VaR 95% (1 dia)', 'Diversificação'].map((metric) => (
-          <div key={metric} className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs text-muted-foreground">{metric}</p>
-            <p className="font-mono text-xl font-bold text-muted-foreground">–</p>
-            <p className="text-xs text-muted-foreground">Requer dados de preço</p>
-          </div>
-        ))}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Métricas calculadas com dados históricos de 2 anos (Yahoo Finance).</p>
+        <button onClick={compute} disabled={loading} className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent transition-colors">
+          <RefreshCw className={cn('h-3 w-3', loading && 'animate-spin')} /> Atualizar
+        </button>
       </div>
-      <p className="text-xs text-muted-foreground italic">
-        Métricas de risco completas disponíveis quando o serviço Python (FastAPI) estiver rodando.
-      </p>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="h-3 w-3 flex-shrink-0" />{error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-4">
+        <MetricCard label="Beta do Portfólio" value={metrics ? metrics.beta.toFixed(2) : '–'} sub="vs IBOV" good={metrics ? metrics.beta < 1 : undefined} />
+        <MetricCard label="Sharpe Ratio" value={metrics ? metrics.sharpe.toFixed(2) : '–'} sub="retorno ajust. ao risco" good={metrics ? metrics.sharpe > 0.5 : undefined} />
+        <MetricCard label="Sortino Ratio" value={metrics ? metrics.sortino.toFixed(2) : '–'} sub="downside risk" good={metrics ? metrics.sortino > 0.5 : undefined} />
+        <MetricCard label="Max Drawdown" value={metrics ? formatPct(-metrics.maxDD) : '–'} sub="pior queda do período" good={metrics ? metrics.maxDD < 0.2 : undefined} />
+        <MetricCard label="VaR 95% (1 dia)" value={metrics ? formatBRL(metrics.var95) : '–'} sub="perda máxima esperada" />
+        <MetricCard label="Ativos" value={metrics ? String(metrics.diversification) : '–'} sub="posições abertas" />
+      </div>
+
+      {corrMatrix && corrMatrix.tickers.length >= 2 && (
+        <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+          <h3 className="text-sm font-semibold">Matriz de Correlação</h3>
+          <p className="text-xs text-muted-foreground">Correlação de Pearson dos retornos diários (2 anos). Azul = positiva, Vermelho = negativa.</p>
+          <CorrelationGrid tickers={corrMatrix.tickers} matrix={corrMatrix.matrix} />
+        </div>
+      )}
     </div>
   )
 }
 
-function AddPositionModal({ onAdd, onClose }: {
+function CorrelationGrid({ tickers, matrix }: { tickers: string[]; matrix: number[][] }) {
+  const N = tickers.length
+  return (
+    <div className="overflow-x-auto">
+      <div className="grid text-center" style={{ gridTemplateColumns: `64px repeat(${N}, minmax(44px, 1fr))` }}>
+        <div />
+        {tickers.map((t) => <div key={t} className="text-[10px] font-mono font-semibold text-muted-foreground truncate">{t}</div>)}
+        {tickers.map((rT, i) => (
+          <>{/* eslint-disable-next-line react/jsx-key */}
+            <div key={`l-${i}`} className="text-[10px] font-mono text-right pr-1 truncate text-muted-foreground self-center">{rT}</div>
+            {matrix[i]?.map((corr, j) => {
+              const abs = Math.abs(corr)
+              const bg = corr >= 0 ? `rgba(59,130,246,${(abs * 0.8).toFixed(2)})` : `rgba(220,38,38,${(abs * 0.8).toFixed(2)})`
+              return <div key={`${i}-${j}`} title={`${rT}/${tickers[j]}: ${corr.toFixed(2)}`} className="aspect-square flex items-center justify-center text-[9px] font-mono rounded-sm m-0.5" style={{ background: bg, color: abs > 0.55 ? '#fff' : undefined }}>{corr.toFixed(1)}</div>
+            })}
+          </>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function OptimizerTab({ positions }: { positions: Position[] }) {
+  const [result, setResult] = useState<OptimizationResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const runOptimization = useCallback(async () => {
+    if (positions.length < 2) return
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/optimizer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickers: positions.map((p) => p.ticker) }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erro desconhecido')
+      setResult(json.data)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setLoading(false)
+    }
+  }, [positions])
+
+  if (positions.length < 2) {
+    return (
+      <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center">
+        <BarChart2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+        <p className="font-medium">Adicione pelo menos 2 posições</p>
+        <p className="text-xs text-muted-foreground mt-1">O otimizador usa Teoria Moderna de Portfólio (Markowitz) para calcular a Fronteira Eficiente.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Otimização de Markowitz (Média-Variância)</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{positions.length} ativos · dados históricos 5 anos (Yahoo Finance)</p>
+        </div>
+        <button
+          onClick={runOptimization}
+          disabled={loading}
+          className="flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+          {loading ? 'Otimizando…' : result ? 'Re-otimizar' : 'Calcular Fronteira Eficiente'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="h-3 w-3 flex-shrink-0" />{error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mb-3" />
+          <p className="text-sm text-muted-foreground">Buscando dados e calculando fronteira eficiente…</p>
+          <p className="text-xs text-muted-foreground mt-1">Isso pode levar 15–30 segundos</p>
+        </div>
+      )}
+
+      {result && !loading && (
+        <div className="rounded-lg border border-border bg-card p-4">
+          <EfficientFrontier result={result} />
+        </div>
+      )}
+
+      {!result && !loading && (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center">
+          <p className="text-sm text-muted-foreground">Clique em "Calcular Fronteira Eficiente" para ver a otimização</p>
+          <p className="text-xs text-muted-foreground mt-1">Portfólios: Mínima Variância · Máximo Sharpe · Equal-Weight + nuvem de 8.000 simulações Monte Carlo</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AddPositionModal({ onAdd, onClose, initialTicker = '' }: {
   onAdd: (pos: Omit<Position, 'id'>) => void
   onClose: () => void
+  initialTicker?: string
 }) {
-  const [form, setForm] = useState({ ticker: '', shares: '', avgCostBRL: '', entryDate: new Date().toISOString().split('T')[0], notes: '' })
+  const [form, setForm] = useState({ ticker: initialTicker, shares: '', avgCostBRL: '', entryDate: new Date().toISOString().split('T')[0], notes: '' })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
