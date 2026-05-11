@@ -340,6 +340,7 @@ body{
   <div class="nav-tab active" data-tab="screener">📊 Screener</div>
   <div class="nav-tab" data-tab="backtest">🎯 Backtest</div>
   <div class="nav-tab" data-tab="macro">📈 Macro</div>
+  <div class="nav-tab" data-tab="optimizer">⚡ MPT</div>
   <div class="nav-tab" data-tab="about">📚 Sobre</div>
 </div>
 
@@ -444,6 +445,32 @@ body{
     <div class="disclaimer">
       Indicadores macroeconômicos. Fontes oficiais: BCB (SELIC, IPCA, EMBI+, PTAX) e B3 (IBOV, SMLL).
       Histórico de 10 anos para análise de tendências.
+    </div>
+  </div>
+
+  <!-- OPTIMIZER TAB -->
+  <div class="tab-pane" id="tab-optimizer">
+    <div class="bt-section">
+      <div class="bt-section-title">⚡ Otimizador de Portfólio — Markowitz MPT</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">
+        Selecione 2–15 ações para calcular a <strong style="color:var(--text)">Fronteira Eficiente</strong> (Média-Variância). O otimizador encontra os portfólios de Mínima Variância e Máximo Sharpe analiticamente.
+      </p>
+      <div class="bt-quick-row" id="optPresets">
+        <div class="bt-quick" data-opt-preset="ibov-top5">⭐ IBOV Top</div>
+        <div class="bt-quick" data-opt-preset="value">💎 Valor</div>
+        <div class="bt-quick" data-opt-preset="growth">📈 Crescimento</div>
+        <div class="bt-quick" data-opt-preset="clear">✕ Limpar</div>
+      </div>
+      <div class="bt-stocks" id="optStockChips"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">
+        <span id="optSelectedCount">0</span> ações selecionadas (min. 2, max. 15)
+      </div>
+    </div>
+    <button class="bt-run" id="optRun">⚡ Calcular Fronteira Eficiente</button>
+    <div class="bt-results" id="optResults"></div>
+    <div class="disclaimer">
+      Otimização Média-Variância (Markowitz 1952). Monte Carlo com 800 portfólios aleatórios.
+      Histórico mensal sintético de ~9 anos gerado por modelo CAPM. Fins educacionais apenas.
     </div>
   </div>
 
@@ -1648,6 +1675,385 @@ function renderDetailPane(tab){
 }
 
 // ═══════════════════════════════════════════════════════
+// MARKOWITZ MPT OPTIMIZER
+// ═══════════════════════════════════════════════════════
+
+// ── Matrix math (pure JS, no external deps) ──────────────────────────────────
+
+function mVec(M, v) { return M.map(row => row.reduce((s, val, j) => s + val * v[j], 0)); }
+function vDot(a, b) { return a.reduce((s, v, i) => s + v * b[i], 0); }
+
+function mInv(M) {
+  const n = M.length;
+  const A = M.map((row, i) => [...row, ...Array.from({length: n}, (_, j) => i === j ? 1 : 0)]);
+  for (let c = 0; c < n; c++) {
+    let mx = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[mx][c])) mx = r;
+    [A[c], A[mx]] = [A[mx], A[c]];
+    const pv = A[c][c];
+    if (Math.abs(pv) < 1e-12) return null;
+    for (let j = 0; j < 2 * n; j++) A[c][j] /= pv;
+    for (let r = 0; r < n; r++) {
+      if (r === c) continue;
+      const f = A[r][c];
+      for (let j = 0; j < 2 * n; j++) A[r][j] -= f * A[c][j];
+    }
+  }
+  return A.map(row => row.slice(n));
+}
+
+// ── Portfolio statistics ──────────────────────────────────────────────────────
+
+function pStats(w, means, cov, rf) {
+  const ret = vDot(w, means);
+  let variance = 0;
+  for (let i = 0; i < w.length; i++) for (let j = 0; j < w.length; j++) variance += w[i] * w[j] * cov[i][j];
+  const vol = Math.sqrt(Math.max(0, variance));
+  return { ret, vol, sharpe: vol > 0 ? (ret - rf) / vol : 0, weights: w };
+}
+
+// Long-only projection: clip negatives, renormalize
+function clipLO(w) {
+  const c = w.map(v => Math.max(0, v));
+  const s = c.reduce((a, b) => a + b, 0);
+  return s > 1e-10 ? c.map(v => v / s) : new Array(w.length).fill(1 / w.length);
+}
+
+// ── Build return matrix from STOCKS monthly price data ────────────────────────
+
+function buildRetMatrix(stocks) {
+  const T = IBOV_HIST.months.length;
+  const validIdxs = [];
+  for (let i = 1; i < T; i++) {
+    if (stocks.every(s => s.hist.monthlyPrices[i] != null && s.hist.monthlyPrices[i] > 0 &&
+                          s.hist.monthlyPrices[i - 1] != null && s.hist.monthlyPrices[i - 1] > 0)) {
+      validIdxs.push(i);
+    }
+  }
+  if (validIdxs.length < 6) return null;
+  return stocks.map(s => validIdxs.map(i => Math.log(s.hist.monthlyPrices[i] / s.hist.monthlyPrices[i - 1])));
+}
+
+// ── Build covariance matrix (annualized, Ledoit-Wolf shrinkage) ───────────────
+
+function buildCovMeans(retMatrix) {
+  const N = retMatrix.length, T = retMatrix[0].length;
+  const means = retMatrix.map(rets => rets.reduce((s, r) => s + r, 0) / T);
+  const cov = Array.from({length: N}, (_, i) => Array.from({length: N}, (_, j) => {
+    let s = 0;
+    for (let t = 0; t < T; t++) s += (retMatrix[i][t] - means[i]) * (retMatrix[j][t] - means[j]);
+    return s / (T - 1) * 12; // annualized
+  }));
+  // Ledoit-Wolf shrinkage: pull off-diagonal toward 0 by 5%
+  const lambda = 0.05;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (i !== j) cov[i][j] *= (1 - lambda);
+  // Ridge regularization: add small multiple of identity for numerical stability
+  const trace = cov.reduce((s, _, i) => s + cov[i][i], 0);
+  const eps = trace / N * 0.001;
+  for (let i = 0; i < N; i++) cov[i][i] += eps;
+  return { means: means.map(m => m * 12), cov };
+}
+
+// ── Minimum variance portfolio (analytical, long-only projected) ──────────────
+
+function findMinVar(cov) {
+  const N = cov.length;
+  const inv = mInv(cov);
+  if (!inv) return new Array(N).fill(1 / N);
+  const ones = new Array(N).fill(1);
+  const invOnes = mVec(inv, ones);
+  const denom = vDot(ones, invOnes);
+  return clipLO(invOnes.map(w => w / denom));
+}
+
+// ── Tangency (max Sharpe) portfolio (analytical, long-only projected) ─────────
+
+function findMaxSharpe(means, cov, rf) {
+  const N = cov.length;
+  const excess = means.map(m => m - rf);
+  const inv = mInv(cov);
+  if (!inv) return new Array(N).fill(1 / N);
+  const w = mVec(inv, excess);
+  const s = w.reduce((a, b) => a + b, 0);
+  if (Math.abs(s) < 1e-10) return new Array(N).fill(1 / N);
+  return clipLO(w.map(wi => wi / s));
+}
+
+// ── Monte Carlo: random portfolios via Dirichlet sampling ────────────────────
+
+function monteCarlo(means, cov, rf, n) {
+  const N = means.length;
+  const pts = [];
+  for (let t = 0; t < n; t++) {
+    const raw = Array.from({length: N}, () => -Math.log(Math.random() + 1e-10));
+    const s = raw.reduce((a, b) => a + b, 0);
+    pts.push(pStats(raw.map(v => v / s), means, cov, rf));
+  }
+  return pts;
+}
+
+// ── Correlation matrix from returns ──────────────────────────────────────────
+
+function corrMatrix(retMatrix) {
+  const N = retMatrix.length, T = retMatrix[0].length;
+  const means = retMatrix.map(rets => rets.reduce((s, r) => s + r, 0) / T);
+  const stds = retMatrix.map((rets, i) => Math.sqrt(rets.reduce((s, r) => s + (r - means[i]) ** 2, 0) / T));
+  return Array.from({length: N}, (_, i) => Array.from({length: N}, (_, j) => {
+    if (stds[i] === 0 || stds[j] === 0) return i === j ? 1 : 0;
+    let s = 0;
+    for (let t = 0; t < T; t++) s += (retMatrix[i][t] - means[i]) * (retMatrix[j][t] - means[j]);
+    return (s / T) / (stds[i] * stds[j]);
+  }));
+}
+
+// ── SVG: efficient frontier scatter chart ────────────────────────────────────
+
+function frontierSVG(mcPts, specials) {
+  const w = 320, h = 200, pad = {l: 40, r: 14, t: 22, b: 30};
+  const cw = w - pad.l - pad.r, ch = h - pad.t - pad.b;
+  const allV = mcPts.map(p => p.vol), allR = mcPts.map(p => p.ret);
+  const vMin = Math.min(...allV) * 0.92, vMax = Math.max(...allV) * 1.08;
+  const rMin = Math.min(...allR) * (Math.min(...allR) >= 0 ? 0.92 : 1.08);
+  const rMax = Math.max(...allR) * 1.08;
+  const xF = v => pad.l + ((v - vMin) / (vMax - vMin)) * cw;
+  const yF = v => pad.t + (1 - (v - rMin) / (rMax - rMin)) * ch;
+
+  const yTicks = Array.from({length: 4}, (_, i) => {
+    const v = rMin + (rMax - rMin) * i / 3, y = yF(v);
+    return `<line x1="${pad.l}" y1="${y.toFixed(0)}" x2="${w - pad.r}" y2="${y.toFixed(0)}" stroke="#2e2c29" stroke-width="0.5" stroke-dasharray="2,3"/>
+      <text x="${pad.l - 3}" y="${(y + 3).toFixed(0)}" text-anchor="end" font-size="9" fill="#8a8078" font-family="monospace">${(v * 100).toFixed(0)}%</text>`;
+  }).join('');
+
+  const xTicks = Array.from({length: 4}, (_, i) => {
+    const v = vMin + (vMax - vMin) * i / 3, x = xF(v);
+    return `<text x="${x.toFixed(0)}" y="${h - 6}" text-anchor="middle" font-size="9" fill="#8a8078" font-family="monospace">${(v * 100).toFixed(0)}%</text>`;
+  }).join('');
+
+  // Axis labels
+  const axisLbls = `<text x="${(pad.l + cw / 2).toFixed(0)}" y="${h - 0}" text-anchor="middle" font-size="8.5" fill="#5a5550">Volatilidade anual →</text>
+    <text x="8" y="${(pad.t + ch / 2).toFixed(0)}" text-anchor="middle" font-size="8.5" fill="#5a5550" transform="rotate(-90,8,${(pad.t + ch / 2).toFixed(0)})">Retorno →</text>`;
+
+  // Monte Carlo cloud (sample down to ~300 pts)
+  const step = Math.max(1, Math.floor(mcPts.length / 300));
+  const dots = mcPts.filter((_, i) => i % step === 0).map(p =>
+    `<circle cx="${xF(p.vol).toFixed(1)}" cy="${yF(p.ret).toFixed(1)}" r="1.8" fill="rgba(107,114,128,0.35)"/>`
+  ).join('');
+
+  // Special portfolio points
+  const SCOLS = ['#10b981', '#f59e0b', '#8b5cf6'];
+  const SLBLS = ['Min-V', 'MaxSh', 'Eq-W'];
+  const SDY = [-10, -10, 12];
+  const specSVG = specials.map((p, k) => {
+    const cx = xF(p.vol).toFixed(1), cy = yF(p.ret).toFixed(1);
+    return `<circle cx="${cx}" cy="${cy}" r="7" fill="${SCOLS[k]}" stroke="#0f0e0d" stroke-width="1.5"/>
+      <text x="${cx}" y="${(parseFloat(cy) + SDY[k]).toFixed(0)}" text-anchor="middle" font-size="8.5" fill="${SCOLS[k]}" font-weight="700">${SLBLS[k]}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" style="background:var(--surface2);border-radius:8px">
+    ${yTicks}${xTicks}${axisLbls}${dots}${specSVG}
+  </svg>`;
+}
+
+// ── Allocation stacked bar ────────────────────────────────────────────────────
+
+const OPT_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1'];
+
+function allocBarHTML(tickers, weights) {
+  const pairs = tickers.map((t, i) => ({t, w: weights[i] || 0})).filter(p => p.w > 0.005).sort((a, b) => b.w - a.w);
+  const bar = pairs.map((p, i) =>
+    `<div style="width:${(p.w * 100).toFixed(1)}%;background:${OPT_COLORS[i % 10]};height:100%"></div>`
+  ).join('');
+  const lgd = pairs.map((p, i) =>
+    `<span style="display:inline-flex;align-items:center;gap:3px;margin:2px 6px 2px 0">
+      <span style="width:8px;height:8px;border-radius:2px;background:${OPT_COLORS[i % 10]};flex-shrink:0;display:inline-block"></span>
+      <span style="font-size:10px;font-family:monospace;color:var(--muted)">${p.t}</span>
+      <span style="font-size:11px;font-weight:700">${(p.w * 100).toFixed(1)}%</span>
+    </span>`
+  ).join('');
+  return `<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;margin-bottom:8px">${bar}</div>
+    <div style="display:flex;flex-wrap:wrap">${lgd}</div>`;
+}
+
+// ── Correlation heatmap (inline SVG) ─────────────────────────────────────────
+
+function corrHeatmapSVG(tickers, retMatrix) {
+  const corr = corrMatrix(retMatrix);
+  const N = tickers.length;
+  const cell = Math.max(18, Math.min(28, Math.floor(256 / N)));
+  const lw = 30, tw = lw + N * cell, th = lw + N * cell;
+  let cells = '', rLbls = '', cLbls = '';
+  for (let i = 0; i < N; i++) {
+    const short = tickers[i].replace(/\d+$/, '');
+    rLbls += `<text x="${lw - 2}" y="${(lw + i * cell + cell * 0.65).toFixed(0)}" text-anchor="end" font-size="7.5" fill="#8a8078">${short}</text>`;
+    cLbls += `<text x="${(lw + i * cell + cell * 0.5).toFixed(0)}" y="${lw - 2}" text-anchor="middle" font-size="7.5" fill="#8a8078">${short}</text>`;
+    for (let j = 0; j < N; j++) {
+      const c = corr[i][j], abs = Math.abs(c);
+      const bg = c >= 0 ? `rgba(59,130,246,${(abs * 0.9).toFixed(2)})` : `rgba(220,38,38,${(abs * 0.9).toFixed(2)})`;
+      cells += `<rect x="${lw + j * cell}" y="${lw + i * cell}" width="${cell}" height="${cell}" fill="${bg}" rx="1"/>
+        <text x="${(lw + j * cell + cell * 0.5).toFixed(0)}" y="${(lw + i * cell + cell * 0.65).toFixed(0)}" text-anchor="middle" font-size="7" fill="${abs > 0.5 ? '#fff' : '#8a8078'}">${c.toFixed(1)}</text>`;
+    }
+  }
+  return `<svg viewBox="0 0 ${tw} ${th}" style="width:100%;max-width:320px;height:auto;display:block">${rLbls}${cLbls}${cells}</svg>`;
+}
+
+// ── Optimizer UI state ────────────────────────────────────────────────────────
+
+let optSelected = new Set();
+let optCurrentPort = 'maxSharpe';
+let optLastResult = null;
+
+function renderOptChips() {
+  const cont = document.getElementById('optStockChips');
+  cont.innerHTML = STOCKS.map(s => {
+    const sel = optSelected.has(s.ticker);
+    return `<div class="chip chip-mini ${sel ? 'chip-sel' : ''}" data-opt-ticker="${s.ticker}">${s.ticker}</div>`;
+  }).join('');
+  cont.querySelectorAll('[data-opt-ticker]').forEach(el => {
+    el.addEventListener('click', () => {
+      const t = el.dataset.optTicker;
+      if (optSelected.has(t)) { optSelected.delete(t); el.classList.remove('chip-sel'); }
+      else if (optSelected.size < 15) { optSelected.add(t); el.classList.add('chip-sel'); }
+      document.getElementById('optSelectedCount').textContent = optSelected.size;
+    });
+  });
+}
+
+function applyOptPreset(preset) {
+  if (preset === 'clear') optSelected.clear();
+  else optSelected = new Set(BT_PRESETS[preset] || []);
+  renderOptChips();
+  document.getElementById('optSelectedCount').textContent = optSelected.size;
+}
+
+function renderOptAlloc() {
+  if (!optLastResult) return;
+  const { tickers, minVar, maxSharpe, equalWeight } = optLastResult;
+  const port = optCurrentPort === 'minVar' ? minVar : optCurrentPort === 'equalWeight' ? equalWeight : maxSharpe;
+  document.getElementById('optAllocBody').innerHTML = allocBarHTML(tickers, port.weights);
+}
+
+function runOptimizer() {
+  const tickers = Array.from(optSelected);
+  const resultsEl = document.getElementById('optResults');
+  if (tickers.length < 2) {
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-ic">⚠️</div><div>Selecione ao menos 2 ações</div></div>';
+    resultsEl.classList.add('show');
+    return;
+  }
+  const btn = document.getElementById('optRun');
+  btn.disabled = true;
+  btn.textContent = '⏳ Calculando…';
+
+  setTimeout(() => {
+    try {
+      const stocks = tickers.map(t => STOCKS.find(s => s.ticker === t)).filter(Boolean);
+      const retMatrix = buildRetMatrix(stocks);
+      if (!retMatrix || retMatrix[0].length < 6) {
+        resultsEl.innerHTML = '<div class="empty"><div>Dados insuficientes para as ações selecionadas.</div></div>';
+        resultsEl.classList.add('show');
+        return;
+      }
+
+      const { means, cov } = buildCovMeans(retMatrix);
+      const rf = MACRO.selic / 100;
+      const N = tickers.length;
+
+      const wMinVar = findMinVar(cov);
+      const wMaxSharpe = findMaxSharpe(means, cov, rf);
+      const wEqW = new Array(N).fill(1 / N);
+
+      const minVar = pStats(wMinVar, means, cov, rf);
+      const maxSharpe = pStats(wMaxSharpe, means, cov, rf);
+      const equalWeight = pStats(wEqW, means, cov, rf);
+
+      const nSim = Math.min(800, Math.max(200, 800 - N * 20));
+      const mc = monteCarlo(means, cov, rf, nSim);
+      const specials = [minVar, maxSharpe, equalWeight];
+
+      optLastResult = { tickers, minVar, maxSharpe, equalWeight, mc, retMatrix };
+      optCurrentPort = 'maxSharpe';
+
+      const p = (v, d = 1) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(d)}%`;
+      const PLABELS = { minVar: 'Mín. Variância', maxSharpe: 'Máx. Sharpe', equalWeight: 'Equal-Weight' };
+
+      resultsEl.innerHTML = `
+        <div class="bt-section">
+          <div class="bt-section-title">📊 Fronteira Eficiente de Markowitz</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${nSim} portfólios simulados · ${retMatrix[0].length} meses de histórico · RF = ${(rf * 100).toFixed(2)}%</div>
+          ${frontierSVG(mc, specials)}
+          <div style="display:flex;gap:10px;margin-top:8px;font-size:10px">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;margin-right:3px;vertical-align:middle"></span>Min. Variância</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:3px;vertical-align:middle"></span>Máx. Sharpe</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8b5cf6;margin-right:3px;vertical-align:middle"></span>Equal-Weight</span>
+          </div>
+        </div>
+
+        <div class="bt-section">
+          <div class="bt-section-title">🏆 Comparação de Portfólios</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);color:var(--muted);font-size:10px">
+                <th style="text-align:left;padding:5px 6px;font-weight:500">Portfólio</th>
+                <th style="text-align:right;padding:5px 4px;font-weight:500">Ret. a.a.</th>
+                <th style="text-align:right;padding:5px 4px;font-weight:500">Vol. a.a.</th>
+                <th style="text-align:right;padding:5px 4px;font-weight:500">Sharpe</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${[['minVar', '#10b981', 'Mín. Variância', minVar],
+                 ['maxSharpe', '#f59e0b', 'Máx. Sharpe', maxSharpe],
+                 ['equalWeight', '#8b5cf6', 'Equal-Weight', equalWeight]].map(([id, col, lbl, pt]) => `
+              <tr data-opt-sel="${id}" style="border-bottom:1px solid var(--border);cursor:pointer;${id === 'maxSharpe' ? 'background:var(--surface3)' : ''}">
+                <td style="padding:8px 6px">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:5px;vertical-align:middle"></span>${lbl}
+                </td>
+                <td style="text-align:right;padding:8px 4px;color:var(--gain-light);font-family:monospace">${p(pt.ret)}</td>
+                <td style="text-align:right;padding:8px 4px;color:var(--muted);font-family:monospace">${(pt.vol * 100).toFixed(1)}%</td>
+                <td style="text-align:right;padding:8px 4px;font-weight:700;font-family:monospace">${pt.sharpe.toFixed(2)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="font-size:10px;color:var(--muted);margin-top:5px">Toque em uma linha para ver a alocação</div>
+        </div>
+
+        <div class="bt-section">
+          <div class="bt-section-title">💼 Alocação · <span id="optPortLabel" style="color:var(--warn-light)">Máx. Sharpe</span></div>
+          <div id="optAllocBody">${allocBarHTML(tickers, maxSharpe.weights)}</div>
+        </div>
+
+        <div class="bt-section">
+          <div class="bt-section-title">🔗 Correlação entre Retornos Mensais</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Azul = positiva · Vermelho = negativa · Diversifique evitando alto azul</div>
+          ${corrHeatmapSVG(tickers, retMatrix)}
+        </div>
+      `;
+      resultsEl.classList.add('show');
+
+      // Row click: switch selected portfolio
+      resultsEl.querySelectorAll('[data-opt-sel]').forEach(row => {
+        row.addEventListener('click', () => {
+          optCurrentPort = row.dataset.optSel;
+          resultsEl.querySelectorAll('[data-opt-sel]').forEach(r => {
+            r.style.background = r.dataset.optSel === optCurrentPort ? 'var(--surface3)' : '';
+          });
+          document.getElementById('optPortLabel').textContent = PLABELS[optCurrentPort];
+          renderOptAlloc();
+        });
+      });
+
+      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      console.error('Optimizer error:', e);
+      resultsEl.innerHTML = `<div class="empty"><div class="empty-ic">⚠️</div><div>Erro: ${e.message}</div></div>`;
+      resultsEl.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ Calcular Fronteira Eficiente';
+    }
+  }, 50);
+}
+
+// ═══════════════════════════════════════════════════════
 // BACKTEST ENGINE
 // ═══════════════════════════════════════════════════════
 const BT_PRESETS = {
@@ -1939,6 +2345,12 @@ document.querySelectorAll('.bt-quick').forEach(btn => {
 });
 document.getElementById('btRun').addEventListener('click', runBacktest);
 
+// Optimizer events
+document.querySelectorAll('[data-opt-preset]').forEach(btn => {
+  btn.addEventListener('click', () => applyOptPreset(btn.dataset.optPreset));
+});
+document.getElementById('optRun').addEventListener('click', runOptimizer);
+
 // Swipe to close sheet
 let startY = 0;
 const sheet = document.getElementById('sheet');
@@ -1955,8 +2367,10 @@ renderMacroStrip();
 renderMacroFull();
 renderStockList();
 renderBacktestUI();
-// Default backtest selection
+renderOptChips();
+// Default selections
 applyBtPreset('ibov-top5');
+applyOptPreset('ibov-top5');
 
 // Try live quotes (non-blocking)
 tryLiveQuotes();
