@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- v3.1.0 — Stooq.com (free, CORS) primary quotes, BCB macro, Yahoo fallback, mai/2026 -->
+<!-- v3.1.1 — Stooq.com (free, CORS) primary quotes, BCB macro, Yahoo fallback, mai/2026 -->
 <title>B3 Dashboard — Análise & Backtest</title>
 <style>
 :root{
@@ -1226,28 +1226,32 @@ async function initMacroLive() {
   if (ok(embi))  { MACRO.embi   = bcbNum(embi.value[0].valor);   changed = true; }
 
   // IBOV via Stooq (primário, free) → Yahoo (fallback com cookie)
+  // Chamadas separadas: Stooq trata índices (^) diferente de equities (.sa)
   let ibovUpdated = false;
   try {
-    // Stooq: ^bvsp para IBOV. SMAL11 é o ETF de small caps (proxy para SMLL).
-    const rows = await stooqQuote(['^BVSP', 'SMAL11']);
-    if (rows?.length) {
-      for (const r of rows) {
-        const sym = (r.Symbol ?? '').toUpperCase();
-        const close = parseFloat(r.Close);
-        const open  = parseFloat(r.Open);
-        if (!(close > 0)) continue;
-        const chg = (open > 0) ? ((close - open) / open) * 100 : 0;
-        if (sym === '^BVSP') {
-          MACRO.ibov = Math.round(close); MACRO.ibovChg = chg; changed = true;
-          IBOV_HIST    = buildIbovMonthly();
-          IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
-          ibovUpdated = true;
-        }
-        // SMAL11 × 10 ≈ SMLL (BOVA11 e SMAL11 são ETFs ~1/100 do índice)
-        if (sym === 'SMAL11.SA' || sym === 'SMAL11') {
-          MACRO.smll = Math.round(close * 10); MACRO.smllChg = chg; changed = true;
-        }
-      }
+    const [ibovRows, smalRows] = await Promise.all([
+      stooqQuote(['^BVSP']),
+      stooqQuote(['SMAL11']),
+    ]);
+    console.info('[Stooq IBOV raw]', ibovRows);
+    console.info('[Stooq SMAL11 raw]', smalRows);
+    for (const r of (ibovRows ?? [])) {
+      const close = parseFloat(r.Close);
+      const open  = parseFloat(r.Open);
+      if (!(close > 0)) { console.warn('[Stooq IBOV] N/D ou zero', r); continue; }
+      const chg = (open > 0) ? ((close - open) / open) * 100 : 0;
+      MACRO.ibov = Math.round(close); MACRO.ibovChg = chg; changed = true;
+      IBOV_HIST    = buildIbovMonthly();
+      IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+      ibovUpdated = true;
+      console.info(`[Stooq IBOV] ✓ ${MACRO.ibov} (${chg.toFixed(2)}%)`);
+    }
+    for (const r of (smalRows ?? [])) {
+      const close = parseFloat(r.Close);
+      const open  = parseFloat(r.Open);
+      if (!(close > 0)) continue;
+      const chg = (open > 0) ? ((close - open) / open) * 100 : 0;
+      MACRO.smll = Math.round(close * 10); MACRO.smllChg = chg; changed = true;
     }
   } catch(e) { console.warn('[Stooq indices]', e); }
 
