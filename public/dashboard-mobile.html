@@ -1160,17 +1160,32 @@ async function bcbFetch(series, n) {
 }
 
 // ── Yahoo Finance v8/chart — gratuito, sem autenticação ──────────────────────
+// corsDomain=finance.yahoo.com faz o Yahoo incluir Access-Control-Allow-Origin no response
 async function yahooFetch(symbol, interval, range) {
   const sym = /^[\^]/.test(symbol) ? symbol : `${symbol}.SA`;
   try {
     const r = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&range=${range}`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&range=${range}&corsDomain=finance.yahoo.com`,
       { signal: AbortSignal.timeout(9000) }
     );
     if (!r.ok) return null;
     const d = await r.json();
     return d?.chart?.result?.[0] ?? null;
   } catch(e) { console.warn('[Yahoo]', e); return null; }
+}
+
+// ── Yahoo Finance v7/quote — bulk, 1 request para N tickers ──────────────────
+async function yahooQuoteBulk(tickers) {
+  const symbols = tickers.map(t => `${t}.SA`).join(',');
+  try {
+    const r = await fetch(
+      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChangePercent&corsDomain=finance.yahoo.com`,
+      { signal: AbortSignal.timeout(12000) }
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d?.quoteResponse?.result ?? null;
+  } catch(e) { console.warn('[Yahoo bulk]', e); return null; }
 }
 
 // Converte string BCB "12,75" → 12.75
@@ -1297,62 +1312,93 @@ async function fetchAndAlignHistoricals(tickers, onProgress) {
   return { months: common, byTicker };
 }
 
-// ── Cotações atuais: Yahoo Finance → brapi → quote.cnpj.info ─────────────────
+// ── Cotações atuais: Yahoo bulk → Yahoo individual (batched) → brapi → cnpj.info ──
 async function tryLiveQuotes() {
   const dot    = document.getElementById('liveDot');
   const status = document.getElementById('liveStatus');
+  const tickers = STOCKS.map(s => s.ticker);
+  const now = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-  // Primário: Yahoo Finance (sem autenticação, gratuito)
-  try {
-    const results = await Promise.allSettled(STOCKS.map(s => yahooFetch(s.ticker, '1d', '5d')));
+  function applyQuotes(map) {
+    // map: { ticker → { price, chg } }
     let updated = 0;
-    results.forEach((res, i) => {
-      if (res.status !== 'fulfilled' || !res.value?.meta) return;
-      const { regularMarketPrice: p, regularMarketChangePercent: c } = res.value.meta;
-      if (p) { STOCKS[i].price = p; if (c != null) STOCKS[i].dailyChg = c; updated++; }
-    });
+    for (const st of STOCKS) {
+      const q = map[st.ticker];
+      if (q?.price > 0) { st.price = q.price; if (q.chg != null) st.dailyChg = q.chg; updated++; }
+    }
+    return updated;
+  }
+
+  // ── 1ª tentativa: Yahoo Finance v7/quote bulk (1 request para todos) ──────
+  try {
+    const quotes = await yahooQuoteBulk(tickers);
+    if (quotes?.length) {
+      const map = {};
+      for (const q of quotes) {
+        const tk = (q.symbol ?? '').replace(/\.SA$/i, '');
+        if (tk) map[tk] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent };
+      }
+      const updated = applyQuotes(map);
+      if (updated > 0) {
+        dot.className = 'live-dot online';
+        status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${now()}`;
+        renderStockList();
+        return true;
+      }
+    }
+  } catch(e) { console.warn('[Yahoo bulk]', e); }
+
+  // ── 2ª tentativa: Yahoo Finance v8/chart individual, em lotes de 8 ────────
+  try {
+    const BATCH = 8;
+    const map = {};
+    for (let i = 0; i < tickers.length; i += BATCH) {
+      const batch = tickers.slice(i, i + BATCH);
+      const results = await Promise.allSettled(batch.map(t => yahooFetch(t, '1d', '5d')));
+      results.forEach((res, j) => {
+        if (res.status !== 'fulfilled' || !res.value?.meta) return;
+        const { regularMarketPrice: p, regularMarketChangePercent: c } = res.value.meta;
+        if (p > 0) map[batch[j]] = { price: p, chg: c };
+      });
+      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 300));
+    }
+    const updated = applyQuotes(map);
     if (updated > 0) {
       dot.className = 'live-dot online';
-      status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${now()}`;
       renderStockList();
       return true;
     }
-  } catch(e) { console.warn('[Yahoo primary]', e); }
+  } catch(e) { console.warn('[Yahoo individual]', e); }
 
-  // Fallback: brapi.dev → quote.cnpj.info (separate AbortControllers to avoid reuse after abort)
+  // ── 3ª tentativa: brapi.dev → quote.cnpj.info ────────────────────────────
   try {
-    const tickers = STOCKS.map(s => s.ticker).join(',');
     const ctrl1 = new AbortController();
-    const t1 = setTimeout(() => ctrl1.abort(), 5000);
-    let res = await fetch(`https://brapi.dev/api/quote/${tickers}?range=1d`, { signal: ctrl1.signal }).catch(() => null);
+    const t1 = setTimeout(() => ctrl1.abort(), 7000);
+    let res = await fetch(`https://brapi.dev/api/quote/${tickers.join(',')}?range=1d`, { signal: ctrl1.signal }).catch(() => null);
     clearTimeout(t1);
     if (!res?.ok) {
       const ctrl2 = new AbortController();
-      const t2 = setTimeout(() => ctrl2.abort(), 5000);
-      res = await fetch(`https://quote.cnpj.info/?q=${STOCKS.map(s => s.ticker).join('|')}`, { signal: ctrl2.signal }).catch(() => null);
+      const t2 = setTimeout(() => ctrl2.abort(), 7000);
+      res = await fetch(`https://quote.cnpj.info/?q=${tickers.join('|')}`, { signal: ctrl2.signal }).catch(() => null);
       clearTimeout(t2);
     }
-    if (!res?.ok) throw new Error('all failed');
-
-    const data = await res.json();
-    let updated = 0;
-    const arr = data?.results;
-    if (Array.isArray(arr)) {
-      for (const q of arr) {
-        const st = STOCKS.find(s => s.ticker === q.symbol);
-        if (st && q.regularMarketPrice) { st.price = q.regularMarketPrice; st.dailyChg = q.regularMarketChangePercent ?? st.dailyChg; updated++; }
+    if (res?.ok) {
+      const data = await res.json();
+      const arr = data?.results;
+      const map = {};
+      if (Array.isArray(arr)) {
+        for (const q of arr) { if (q.symbol && q.regularMarketPrice) map[q.symbol] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent }; }
+      } else if (arr && typeof arr === 'object') {
+        for (const [tk, info] of Object.entries(arr)) { if (info.price) map[tk] = { price: parseFloat(info.price), chg: info.change ? parseFloat(info.change) : null }; }
       }
-    } else if (arr && typeof arr === 'object') {
-      for (const [tk, info] of Object.entries(arr)) {
-        const st = STOCKS.find(s => s.ticker === tk);
-        if (st && info.price) { st.price = parseFloat(info.price); if (info.change) st.dailyChg = parseFloat(info.change); updated++; }
+      const updated = applyQuotes(map);
+      if (updated > 0) {
+        dot.className = 'live-dot online';
+        status.textContent = `🟢 Live · ${updated} ações · ${now()}`;
+        renderStockList();
+        return true;
       }
-    }
-    if (updated > 0) {
-      dot.className = 'live-dot online';
-      status.textContent = `🟢 Live · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-      renderStockList();
-      return true;
     }
   } catch(e) { console.warn('[brapi/cnpj]', e); }
 
