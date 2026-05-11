@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- v3.0.0 — BCB + Yahoo live, IBOV/SMLL live, Markowitz MPT, Backtest real data, mai/2026 -->
+<!-- v3.1.0 — Stooq.com (free, CORS) primary quotes, BCB macro, Yahoo fallback, mai/2026 -->
 <title>B3 Dashboard — Análise & Backtest</title>
 <style>
 :root{
@@ -1174,18 +1174,35 @@ async function yahooFetch(symbol, interval, range) {
   } catch(e) { console.warn('[Yahoo]', e); return null; }
 }
 
-// ── Brapi.dev — cotações B3 com suporte a CORS, sem chave necessária ─────────
-async function brapiQuote(tickers) {
-  // tickers: array de códigos B3 (sem .SA)
+// ── Stooq.com — 100% grátis, sem chave, com CORS (Access-Control-Allow-Origin: *) ──
+// Suporta ações B3 (sufixo .sa) e índices (^bvsp, ^bvspsm)
+function parseStooqCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const cols = line.split(',');
+    const row = {};
+    headers.forEach((h, i) => row[h] = (cols[i] ?? '').trim());
+    return row;
+  });
+}
+
+async function stooqQuote(tickers) {
+  // tickers: B3 sem prefixo (PETR4) ou índice com ^ (^BVSP)
+  const symbols = tickers.map(t => {
+    const lower = t.toLowerCase();
+    return lower.startsWith('^') ? encodeURIComponent(lower) : `${lower}.sa`;
+  }).join(',');
   try {
     const r = await fetch(
-      `https://brapi.dev/api/quote/${tickers.map(encodeURIComponent).join(',')}?fundamental=false&interval=1d`,
-      { signal: AbortSignal.timeout(10000) }
+      `https://stooq.com/q/l/?s=${symbols}&f=sd2t2ohlcv&h&e=csv`,
+      { signal: AbortSignal.timeout(12000) }
     );
     if (!r.ok) return null;
-    const d = await r.json();
-    return d?.results ?? null;
-  } catch(e) { console.warn('[brapi]', e); return null; }
+    const text = await r.text();
+    return parseStooqCSV(text);
+  } catch(e) { console.warn('[Stooq]', e); return null; }
 }
 
 // Converte string BCB "12,75" → 12.75
@@ -1208,31 +1225,33 @@ async function initMacroLive() {
   if (ok(ptax))  { MACRO.usdBrl = bcbNum(ptax.value[0].valor);   changed = true; }
   if (ok(embi))  { MACRO.embi   = bcbNum(embi.value[0].valor);   changed = true; }
 
-  // IBOV via brapi (primário) → Yahoo (fallback com cookie)
+  // IBOV via Stooq (primário, free) → Yahoo (fallback com cookie)
   let ibovUpdated = false;
   try {
-    // brapi usa '^BVSP' para o IBOV. SMAL11 é o ETF de small caps.
-    const idxQuotes = await brapiQuote(['^BVSP', 'SMAL11']);
-    if (idxQuotes?.length) {
-      for (const q of idxQuotes) {
-        if ((q.symbol === '^BVSP' || q.symbol === '%5EBVSP') && q.regularMarketPrice > 0) {
-          MACRO.ibov = Math.round(q.regularMarketPrice);
-          if (q.regularMarketChangePercent != null) MACRO.ibovChg = q.regularMarketChangePercent;
+    // Stooq: ^bvsp para IBOV. SMAL11 é o ETF de small caps (proxy para SMLL).
+    const rows = await stooqQuote(['^BVSP', 'SMAL11']);
+    if (rows?.length) {
+      for (const r of rows) {
+        const sym = (r.Symbol ?? '').toUpperCase();
+        const close = parseFloat(r.Close);
+        const open  = parseFloat(r.Open);
+        if (!(close > 0)) continue;
+        const chg = (open > 0) ? ((close - open) / open) * 100 : 0;
+        if (sym === '^BVSP') {
+          MACRO.ibov = Math.round(close); MACRO.ibovChg = chg; changed = true;
           IBOV_HIST    = buildIbovMonthly();
           IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
-          ibovUpdated = true; changed = true;
+          ibovUpdated = true;
         }
-        // SMAL11 ≈ SMLL / 10 (ETF que rastreia SMLL)
-        if (q.symbol === 'SMAL11' && q.regularMarketPrice > 0) {
-          MACRO.smll = Math.round(q.regularMarketPrice * 10);
-          if (q.regularMarketChangePercent != null) MACRO.smllChg = q.regularMarketChangePercent;
-          changed = true;
+        // SMAL11 × 10 ≈ SMLL (BOVA11 e SMAL11 são ETFs ~1/100 do índice)
+        if (sym === 'SMAL11.SA' || sym === 'SMAL11') {
+          MACRO.smll = Math.round(close * 10); MACRO.smllChg = chg; changed = true;
         }
       }
     }
-  } catch(e) { console.warn('[brapi indices]', e); }
+  } catch(e) { console.warn('[Stooq indices]', e); }
 
-  // Yahoo fallback para IBOV/SMLL se brapi falhou
+  // Yahoo fallback para IBOV/SMLL se Stooq falhou
   if (!ibovUpdated) {
     const [ibov, smll] = await Promise.allSettled([
       yahooFetch('^BVSP',  '1d', '5d'),
@@ -1339,7 +1358,7 @@ async function fetchAndAlignHistoricals(tickers, onProgress) {
   return { months: common, byTicker };
 }
 
-// ── Cotações atuais: brapi.dev (primário) → Yahoo individual (fallback) ──────
+// ── Cotações atuais: Stooq.com (primário, free) → Yahoo (fallback com cookie) ─
 async function tryLiveQuotes() {
   const dot    = document.getElementById('liveDot');
   const status = document.getElementById('liveStatus');
@@ -1355,30 +1374,38 @@ async function tryLiveQuotes() {
     return updated;
   }
 
-  // ── 1ª tentativa: brapi.dev em lotes de 10 ───────────────────────────────
-  // brapi.dev tem CORS habilitado e é dedicado a ações brasileiras B3
+  // ── 1ª tentativa: Stooq.com (free, CORS-friendly, sem chave) ─────────────
+  // Stooq permite muitos tickers por request, mas vamos em lotes para segurança
   try {
-    const BATCH = 10;
+    const BATCH = 20;
     const map = {};
     for (let i = 0; i < tickers.length; i += BATCH) {
       const batch = tickers.slice(i, i + BATCH);
-      const quotes = await brapiQuote(batch);
-      if (quotes) {
-        for (const q of quotes) {
-          if (q.symbol && q.regularMarketPrice > 0)
-            map[q.symbol] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent ?? null };
+      const rows = await stooqQuote(batch);
+      if (rows) {
+        for (const r of rows) {
+          const sym = (r.Symbol ?? '').toUpperCase();
+          if (!sym || sym === 'N/D') continue;
+          const tk = sym.replace(/\.SA$/i, '');
+          const close = parseFloat(r.Close);
+          const open  = parseFloat(r.Open);
+          if (close > 0) {
+            // Stooq CSV não tem prev-close direto; usamos open→close (intraday) como proxy
+            const chg = (open > 0) ? ((close - open) / open) * 100 : null;
+            map[tk] = { price: close, chg };
+          }
         }
       }
-      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 500));
+      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 400));
     }
     const updated = applyQuotes(map);
     if (updated > 0) {
       dot.className = 'live-dot online';
-      status.textContent = `🟢 brapi.dev · ${updated} ações · ${nowStr()}`;
+      status.textContent = `🟢 Stooq.com · ${updated} ações · ${nowStr()}`;
       renderStockList();
       return true;
     }
-  } catch(e) { console.warn('[brapi primary]', e); }
+  } catch(e) { console.warn('[Stooq primary]', e); }
 
   // ── 2ª tentativa: Yahoo Finance individual (funciona se usuário tem cookie Yahoo) ──
   try {
