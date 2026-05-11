@@ -556,7 +556,7 @@ body{
 // ═══════════════════════════════════════════════════════
 // DATA: MACRO + IBOV HISTORY
 // ═══════════════════════════════════════════════════════
-const MACRO = {
+let MACRO = {
   selic: 12.75, ipca: 4.95, usdBrl: 5.72,
   ibov: 135420, ibovChg: 1.82, smll: 3184, smllChg: 0.94,
   embi: 255, bond10y: 13.95, erpUs: 5.5,
@@ -579,7 +579,7 @@ const IBOV_ANCHORS = [
 ];
 
 // Macro historical anchors (year-end values, real BCB data approximated)
-const MACRO_HIST = {
+let MACRO_HIST = {
   selic: [
     {year:2016,val:13.75},{year:2017,val:7.00},{year:2018,val:6.50},
     {year:2019,val:4.50},{year:2020,val:2.00},{year:2021,val:9.25},
@@ -1143,66 +1143,196 @@ function sparklineSVG(values, color='#8a8078'){
 }
 
 // ═══════════════════════════════════════════════════════
-// LIVE QUOTE FETCH (graceful fallback)
+// LIVE DATA — BCB (Banco Central) + YAHOO FINANCE
 // ═══════════════════════════════════════════════════════
-async function tryLiveQuotes(){
-  const dot = document.getElementById('liveDot');
-  const status = document.getElementById('liveStatus');
+
+// ── BCB SGS API — CORS habilitado, fonte oficial ──────────────────────────────
+async function bcbFetch(series, n) {
   try {
-    const tickers = STOCKS.map(s => s.ticker).join(',');
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4500);
+    const r = await fetch(
+      `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${series}/dados/ultimos/${n}?formato=json`,
+      { signal: AbortSignal.timeout(7000) }
+    );
+    if (!r.ok) return null;
+    return r.json();
+  } catch { return null; }
+}
 
-    // Try brapi.dev first (requires free token from brapi.dev, then pass as ?token=YOUR_TOKEN)
-    let res = await fetch(`https://brapi.dev/api/quote/${tickers}?range=1d`, { signal: ctrl.signal }).catch(() => null);
+// ── Yahoo Finance v8/chart — gratuito, sem autenticação ──────────────────────
+async function yahooFetch(symbol, interval, range) {
+  const sym = /^[\^]/.test(symbol) ? symbol : `${symbol}.SA`;
+  try {
+    const r = await fetch(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&range=${range}`,
+      { signal: AbortSignal.timeout(9000) }
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d?.chart?.result?.[0] ?? null;
+  } catch { return null; }
+}
 
-    // If brapi fails, try quote.cnpj.info as fallback (Brazilian public API)
-    if (!res || !res.ok) {
-      const tickerList = STOCKS.map(s => s.ticker).join('|');
-      res = await fetch(`https://quote.cnpj.info/?q=${tickerList}`, { signal: ctrl.signal }).catch(() => null);
+// Converte string BCB "12,75" → 12.75
+const bcbNum = (s) => parseFloat(String(s).replace(',', '.'));
+
+// ── Macro atual: BCB em tempo real ───────────────────────────────────────────
+async function initMacroLive() {
+  // Séries BCB: 4189=Meta SELIC %a.a. | 13522=IPCA 12m % | 3697=PTAX USD mensal | 4734=EMBI+
+  const [selic, ipca, ptax, embi] = await Promise.allSettled([
+    bcbFetch(4189,  1),
+    bcbFetch(13522, 1),
+    bcbFetch(3697,  1),
+    bcbFetch(4734,  1),
+  ]);
+
+  const ok = (r) => r.status === 'fulfilled' && r.value?.length;
+  let changed = false;
+
+  if (ok(selic)) { MACRO.selic  = bcbNum(selic.value[0].valor);  changed = true; }
+  if (ok(ipca))  { MACRO.ipca   = bcbNum(ipca.value[0].valor);   changed = true; }
+  if (ok(ptax))  { MACRO.usdBrl = bcbNum(ptax.value[0].valor);   changed = true; }
+  if (ok(embi))  { MACRO.embi   = bcbNum(embi.value[0].valor);   changed = true; }
+
+  if (changed) {
+    MACRO.asOf = new Date().toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    renderMacroStrip();
+    renderMacroFull();
+  }
+}
+
+// ── Macro histórico: BCB 10 anos para os gráficos ────────────────────────────
+async function initMacroHistLive() {
+  const [selic, ipca, ptax, embi] = await Promise.allSettled([
+    bcbFetch(4189,  120),  // Meta SELIC (por reunião COPOM)
+    bcbFetch(13522, 120),  // IPCA 12m acumulado mensal
+    bcbFetch(3697,  120),  // PTAX USD mensal
+    bcbFetch(4734,  120),  // EMBI+ (mensal/diário)
+  ]);
+
+  const py = (dt) => parseInt(String(dt).split('/')[2]);
+
+  function toYearEnd(settled) {
+    if (settled.status !== 'fulfilled' || !settled.value?.length) return null;
+    const by = {};
+    for (const { data: dt, valor } of settled.value) {
+      const y = py(dt);
+      if (y >= 2016 && y <= 2025) by[y] = bcbNum(valor);
     }
+    const arr = Object.keys(by).sort().map(y => ({ year: +y, val: by[y] }));
+    return arr.length >= 3 ? arr : null;
+  }
 
-    clearTimeout(timer);
-    if (!res || !res.ok) throw new Error('All APIs failed');
+  const s = toYearEnd(selic), i = toYearEnd(ipca),
+        p = toYearEnd(ptax), e = toYearEnd(embi);
 
-    const data = await res.json();
+  if (s) MACRO_HIST.selic  = s;
+  if (i) MACRO_HIST.ipca   = i;
+  if (p) MACRO_HIST.usdBrl = p;
+  if (e) MACRO_HIST.embi   = e;
+
+  if (s || i || p || e) renderMacroFull();
+}
+
+// ── Histórico de preços mensais (Yahoo Finance) ───────────────────────────────
+const realHistCache = {};  // ticker → [{month:'YYYY-MM', close:number}]
+
+async function fetchRealHist(ticker) {
+  if (realHistCache[ticker]) return realHistCache[ticker];
+  const result = await yahooFetch(ticker, '1mo', '10y');
+  if (!result) return null;
+  const ts  = result.timestamp || [];
+  const adj = result.indicators?.adjclose?.[0]?.adjclose;
+  const raw = result.indicators?.quote?.[0]?.close;
+  const closes = adj || raw || [];
+  const series = ts
+    .map((t, i) => ({ month: new Date(t * 1000).toISOString().slice(0, 7), close: closes[i] }))
+    .filter(d => d.close != null && d.close > 0);
+  if (series.length < 6) return null;
+  realHistCache[ticker] = series;
+  return series;
+}
+
+// Busca e alinha múltiplos tickers em array de meses comuns
+async function fetchAndAlignHistoricals(tickers, onProgress) {
+  const all = ['^BVSP', ...tickers];
+  const fetched = {};
+
+  for (let i = 0; i < all.length; i++) {
+    onProgress?.(`${i + 1}/${all.length} · ${all[i] === '^BVSP' ? 'IBOV' : all[i]}`);
+    const data = await fetchRealHist(all[i]);
+    if (data) fetched[all[i]] = data;
+    if (i < all.length - 1) await new Promise(r => setTimeout(r, 150));
+  }
+
+  const sets = Object.values(fetched).map(s => new Set(s.map(d => d.month)));
+  if (!sets.length) return null;
+  const common = [...sets[0]].filter(m => sets.every(s => s.has(m))).sort();
+  if (common.length < 6) return null;
+
+  const byTicker = {};
+  for (const [t, series] of Object.entries(fetched)) {
+    const map = Object.fromEntries(series.map(d => [d.month, d.close]));
+    byTicker[t] = common.map(m => map[m] ?? null);
+  }
+  return { months: common, byTicker };
+}
+
+// ── Cotações atuais: Yahoo Finance → brapi → quote.cnpj.info ─────────────────
+async function tryLiveQuotes() {
+  const dot    = document.getElementById('liveDot');
+  const status = document.getElementById('liveStatus');
+
+  // Primário: Yahoo Finance (sem autenticação, gratuito)
+  try {
+    const results = await Promise.allSettled(STOCKS.map(s => yahooFetch(s.ticker, '1d', '5d')));
     let updated = 0;
-
-    // Handle brapi.dev format
-    if (data.results && Array.isArray(data.results)) {
-      for (const q of data.results){
-        const stock = STOCKS.find(s => s.ticker === q.symbol);
-        if (stock && q.regularMarketPrice){
-          stock.price = q.regularMarketPrice;
-          stock.dailyChg = q.regularMarketChangePercent ?? stock.dailyChg;
-          updated++;
-        }
-      }
-    }
-    // Handle quote.cnpj.info format
-    else if (data.results && typeof data.results === 'object') {
-      for (const [ticker, info] of Object.entries(data.results)){
-        const stock = STOCKS.find(s => s.ticker === ticker);
-        if (stock && info.price){
-          stock.price = parseFloat(info.price);
-          if (info.change) stock.dailyChg = parseFloat(info.change);
-          updated++;
-        }
-      }
-    }
-
-    if (updated > 0){
+    results.forEach((res, i) => {
+      if (res.status !== 'fulfilled' || !res.value?.meta) return;
+      const { regularMarketPrice: p, regularMarketChangePercent: c } = res.value.meta;
+      if (p) { STOCKS[i].price = p; if (c != null) STOCKS[i].dailyChg = c; updated++; }
+    });
+    if (updated > 0) {
       dot.className = 'live-dot online';
-      status.textContent = `🟢 Live · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
+      status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
       renderStockList();
       return true;
     }
-    throw new Error('no updates');
-  } catch (e){
-    dot.className = 'live-dot offline';
-    status.textContent = `📁 Dados embarcados (${MACRO.asOf}) · sem conexão live`;
-    return false;
-  }
+  } catch { /* fallthrough */ }
+
+  // Fallback: brapi.dev → quote.cnpj.info
+  try {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 5000);
+    let res = await fetch(`https://brapi.dev/api/quote/${STOCKS.map(s => s.ticker).join(',')}?range=1d`, { signal: ctrl.signal }).catch(() => null);
+    if (!res?.ok) res = await fetch(`https://quote.cnpj.info/?q=${STOCKS.map(s => s.ticker).join('|')}`, { signal: ctrl.signal }).catch(() => null);
+    clearTimeout(timer);
+    if (!res?.ok) throw new Error('all failed');
+
+    const data = await res.json();
+    let updated = 0;
+    const arr = data?.results;
+    if (Array.isArray(arr)) {
+      for (const q of arr) {
+        const st = STOCKS.find(s => s.ticker === q.symbol);
+        if (st && q.regularMarketPrice) { st.price = q.regularMarketPrice; st.dailyChg = q.regularMarketChangePercent ?? st.dailyChg; updated++; }
+      }
+    } else if (arr && typeof arr === 'object') {
+      for (const [tk, info] of Object.entries(arr)) {
+        const st = STOCKS.find(s => s.ticker === tk);
+        if (st && info.price) { st.price = parseFloat(info.price); if (info.change) st.dailyChg = parseFloat(info.change); updated++; }
+      }
+    }
+    if (updated > 0) {
+      dot.className = 'live-dot online';
+      status.textContent = `🟢 Live · ${updated} ações · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      renderStockList();
+      return true;
+    }
+  } catch { /* ignore */ }
+
+  dot.className = 'live-dot offline';
+  status.textContent = `📁 Dados embarcados (${MACRO.asOf}) · sem conexão live`;
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1932,7 +2062,7 @@ function renderOptAlloc() {
   document.getElementById('optAllocBody').innerHTML = allocBarHTML(tickers, port.weights);
 }
 
-function runOptimizer() {
+async function runOptimizer() {
   const tickers = Array.from(optSelected);
   const resultsEl = document.getElementById('optResults');
   if (tickers.length < 2) {
@@ -1942,21 +2072,55 @@ function runOptimizer() {
   }
   const btn = document.getElementById('optRun');
   btn.disabled = true;
+  btn.textContent = '⏳ Buscando dados Yahoo Finance…';
+
+  // ── Try real Yahoo historical data first ────────────────────────────────────
+  let realData = null;
+  let dataSource = 'synthetic';
+  try {
+    realData = await fetchAndAlignHistoricals(tickers, (msg) => { btn.textContent = `⏳ ${msg}`; });
+    if (realData && realData.months.length >= 12) dataSource = 'real';
+    else realData = null;
+  } catch { realData = null; }
+
   btn.textContent = '⏳ Calculando…';
+
+  // Build return matrix from real data or synthetic fallback
+  function buildRetMatrixReal(aligned, selectedTickers) {
+    return selectedTickers.map(t => {
+      const prices = aligned.byTicker[t];
+      if (!prices) return null;
+      const returns = [];
+      for (let i = 1; i < prices.length; i++) {
+        const p0 = prices[i - 1], p1 = prices[i];
+        returns.push(p0 > 0 && p1 > 0 ? Math.log(p1 / p0) : 0);
+      }
+      return returns;
+    }).filter(Boolean);
+  }
 
   setTimeout(() => {
     try {
-      const stocks = tickers.map(t => STOCKS.find(s => s.ticker === t)).filter(Boolean);
-      const retMatrix = buildRetMatrix(stocks);
-      if (!retMatrix || retMatrix[0].length < 6) {
+      let retMatrix, usedTickers;
+      if (realData) {
+        usedTickers = tickers.filter(t => realData.byTicker[t]);
+        retMatrix = buildRetMatrixReal(realData, usedTickers);
+      } else {
+        usedTickers = tickers;
+        const stocks = tickers.map(t => STOCKS.find(s => s.ticker === t)).filter(Boolean);
+        retMatrix = buildRetMatrix(stocks);
+      }
+
+      if (!retMatrix || !retMatrix.length || retMatrix[0].length < 6) {
         resultsEl.innerHTML = '<div class="empty"><div>Dados insuficientes para as ações selecionadas.</div></div>';
         resultsEl.classList.add('show');
+        btn.disabled = false; btn.textContent = '⚡ Calcular Fronteira Eficiente';
         return;
       }
 
       const { means, cov } = buildCovMeans(retMatrix);
       const rf = MACRO.selic / 100;
-      const N = tickers.length;
+      const N = usedTickers.length;
 
       const wMinVar = findMinVar(cov);
       const wMaxSharpe = findMaxSharpe(means, cov, rf);
@@ -1970,15 +2134,19 @@ function runOptimizer() {
       const mc = monteCarlo(means, cov, rf, nSim);
       const specials = [minVar, maxSharpe, equalWeight];
 
-      optLastResult = { tickers, minVar, maxSharpe, equalWeight, mc, retMatrix };
+      optLastResult = { tickers: usedTickers, minVar, maxSharpe, equalWeight, mc, retMatrix };
       optCurrentPort = 'maxSharpe';
+
+      const srcBadge = dataSource === 'real'
+        ? '<span style="font-size:9px;background:rgba(22,163,74,.2);color:#4ade80;padding:2px 7px;border-radius:8px;margin-left:6px">Yahoo Finance</span>'
+        : '<span style="font-size:9px;background:rgba(217,119,6,.2);color:#fbbf24;padding:2px 7px;border-radius:8px;margin-left:6px">dados sintéticos</span>';
 
       const p = (v, d = 1) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(d)}%`;
       const PLABELS = { minVar: 'Mín. Variância', maxSharpe: 'Máx. Sharpe', equalWeight: 'Equal-Weight' };
 
       resultsEl.innerHTML = `
         <div class="bt-section">
-          <div class="bt-section-title">📊 Fronteira Eficiente de Markowitz</div>
+          <div class="bt-section-title">📊 Fronteira Eficiente de Markowitz${srcBadge}</div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${nSim} portfólios simulados · ${retMatrix[0].length} meses de histórico · RF = ${(rf * 100).toFixed(2)}%</div>
           ${frontierSVG(mc, specials)}
           <div style="display:flex;gap:10px;margin-top:8px;font-size:10px">
@@ -2018,13 +2186,13 @@ function runOptimizer() {
 
         <div class="bt-section">
           <div class="bt-section-title">💼 Alocação · <span id="optPortLabel" style="color:var(--warn-light)">Máx. Sharpe</span></div>
-          <div id="optAllocBody">${allocBarHTML(tickers, maxSharpe.weights)}</div>
+          <div id="optAllocBody">${allocBarHTML(usedTickers, maxSharpe.weights)}</div>
         </div>
 
         <div class="bt-section">
           <div class="bt-section-title">🔗 Correlação entre Retornos Mensais</div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Azul = positiva · Vermelho = negativa · Diversifique evitando alto azul</div>
-          ${corrHeatmapSVG(tickers, retMatrix)}
+          ${corrHeatmapSVG(usedTickers, retMatrix)}
         </div>
       `;
       resultsEl.classList.add('show');
@@ -2114,184 +2282,207 @@ function applyBtPreset(preset){
   renderBtStockChips();
 }
 
-function runBacktest(){
-  const startIdx = parseInt(document.getElementById('btStartDate').value);
-  const capital = parseFloat(document.getElementById('btCapital').value) || 10000;
-  const strategy = document.getElementById('btStrategy').value;
-  const benchmark = document.getElementById('btBenchmark').value;
-  const tickers = Array.from(btSelected);
-
-  if (tickers.length === 0){
-    document.getElementById('btResults').innerHTML = `
-      <div class="empty"><div class="empty-ic">⚠️</div><div>Selecione ao menos 1 ação</div></div>`;
-    document.getElementById('btResults').classList.add('show');
-    return;
-  }
-
-  const startYear = parseInt(IBOV_HIST.months[startIdx].split('-')[0]);
-  // Filter out unavailable
-  const available = tickers.filter(t => {
-    const s = STOCKS.find(x => x.ticker === t);
-    return s && s.ipoYear <= startYear;
-  });
-
-  if (available.length === 0){
-    document.getElementById('btResults').innerHTML = `<div class="empty"><div>Nenhuma ação tinha dados na data selecionada</div></div>`;
-    document.getElementById('btResults').classList.add('show');
-    return;
-  }
-
-  const endIdx = IBOV_HIST.months.length - 1;
-  const months = IBOV_HIST.months.slice(startIdx, endIdx + 1);
+// ── Render backtest results (shared by real + synthetic paths) ────────────────
+function renderBtResults(portfolioVals, benchVals, months, capital, strategy, benchmark, perStock, dataSource) {
   const nMonths = months.length;
-  const stocks = available.map(t => STOCKS.find(x => x.ticker === t));
-
-  // Equal weight initial allocation
-  let weights = stocks.map(() => 1 / stocks.length);
-  // Track number of "shares" per stock based on initial capital
-  let shares = stocks.map((s, i) => (capital * weights[i]) / s.hist.monthlyPrices[startIdx]);
-
-  // Portfolio value series
-  const portfolioVals = [capital];
-  const benchVals = [capital];
-  const benchStart = benchmark === 'ibov' ? IBOV_HIST.values[startIdx] : 1;
-  const monthlyCdiRate = Math.pow(1 + MACRO.selic/100, 1/12) - 1;
-
-  for (let i = 1; i < nMonths; i++){
-    const idx = startIdx + i;
-    let val = stocks.reduce((sum, s, k) => sum + shares[k] * s.hist.monthlyPrices[idx], 0);
-    portfolioVals.push(val);
-
-    // Rebalance check
-    if ((strategy === 'quarterly' && i % 3 === 0) || (strategy === 'annual' && i % 12 === 0)){
-      shares = stocks.map((s, k) => (val * (1/stocks.length)) / s.hist.monthlyPrices[idx]);
-    }
-
-    if (benchmark === 'ibov'){
-      benchVals.push(capital * IBOV_HIST.values[idx] / benchStart);
-    } else {
-      benchVals.push(benchVals[i-1] * (1 + monthlyCdiRate));
-    }
-  }
-
-  // Metrics
-  const finalVal = portfolioVals[portfolioVals.length-1];
+  const finalVal = portfolioVals[portfolioVals.length - 1];
   const totalRet = (finalVal / capital - 1) * 100;
   const years = nMonths / 12;
-  const cagr = (Math.pow(finalVal / capital, 1/years) - 1) * 100;
+  const cagr = years > 0 ? (Math.pow(finalVal / capital, 1 / years) - 1) * 100 : 0;
 
-  // Monthly returns of portfolio
-  const monthlyRets = [];
-  for (let i = 1; i < portfolioVals.length; i++){
-    monthlyRets.push(portfolioVals[i] / portfolioVals[i-1] - 1);
-  }
-  const meanMonthly = monthlyRets.reduce((a,b) => a+b, 0) / monthlyRets.length;
-  const varMonthly = monthlyRets.reduce((a,b) => a + (b-meanMonthly)**2, 0) / monthlyRets.length;
-  const annualVol = Math.sqrt(varMonthly * 12) * 100;
-  const annualRet = meanMonthly * 12 * 100;
-
-  // Sharpe (vs SELIC)
+  const monthlyRets = portfolioVals.slice(1).map((v, i) => v / portfolioVals[i] - 1);
+  const meanM = monthlyRets.reduce((a, b) => a + b, 0) / monthlyRets.length;
+  const varM = monthlyRets.reduce((a, b) => a + (b - meanM) ** 2, 0) / monthlyRets.length;
+  const annualVol = Math.sqrt(varM * 12) * 100;
+  const annualRet = meanM * 12 * 100;
   const sharpe = annualVol > 0 ? (annualRet - MACRO.selic) / annualVol : 0;
 
-  // Max Drawdown
   let peak = portfolioVals[0], maxDD = 0;
-  for (const v of portfolioVals){
+  for (const v of portfolioVals) {
     if (v > peak) peak = v;
     const dd = (v - peak) / peak * 100;
     if (dd < maxDD) maxDD = dd;
   }
 
-  // Benchmark final
-  const benchFinal = benchVals[benchVals.length-1];
+  const benchFinal = benchVals[benchVals.length - 1];
   const benchTotalRet = (benchFinal / capital - 1) * 100;
   const alpha = totalRet - benchTotalRet;
-
-  // Per-stock contributions
-  const perStock = stocks.map((s, k) => {
-    const startP = s.hist.monthlyPrices[startIdx];
-    const endP = s.hist.monthlyPrices[endIdx];
-    const ret = (endP / startP - 1) * 100;
-    return { ticker: s.ticker, name: s.name, ret };
-  }).sort((a,b) => b.ret - a.ret);
-
-  // Render
-  const sampleEvery = Math.max(1, Math.floor(nMonths / 50));
-  const chartPort = portfolioVals.filter((_,i) => i % sampleEvery === 0);
-  const chartBench = benchVals.filter((_,i) => i % sampleEvery === 0);
-  const chartLabels = months.filter((_,i) => i % sampleEvery === 0).map(m => m.slice(2,4)+'/'+m.slice(2));
-
   const benchLabel = benchmark === 'ibov' ? 'IBOV' : 'CDI';
 
+  const step = Math.max(1, Math.floor(nMonths / 50));
+  const chartPort  = portfolioVals.filter((_, i) => i % step === 0);
+  const chartBench = benchVals.filter((_, i) => i % step === 0);
+  const chartLbls  = months.filter((_, i) => i % step === 0).map(m => m.slice(5, 7) + '/' + m.slice(2, 4));
+
+  const srcTag = dataSource === 'real'
+    ? '<span style="font-size:9px;background:rgba(22,163,74,.2);color:#4ade80;padding:2px 7px;border-radius:8px;margin-left:6px">Yahoo Finance</span>'
+    : '<span style="font-size:9px;background:rgba(217,119,6,.2);color:#fbbf24;padding:2px 7px;border-radius:8px;margin-left:6px">dados sintéticos</span>';
+
   document.getElementById('btResults').innerHTML = `
-    <div class="bt-section" style="background:linear-gradient(135deg,${totalRet>=benchTotalRet?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)'},transparent)">
-      <div class="bt-section-title">📊 Resultados · ${months[0]} → ${months[nMonths-1]}</div>
+    <div class="bt-section" style="background:linear-gradient(135deg,${totalRet >= benchTotalRet ? 'rgba(22,163,74,.1)' : 'rgba(220,38,38,.1)'},transparent)">
+      <div class="bt-section-title">📊 Resultados · ${months[0]} → ${months[nMonths - 1]}${srcTag}</div>
       <div class="bt-metrics">
-        <div class="bt-met">
-          <div class="bt-met-lbl">Valor Final</div>
-          <div class="bt-met-val ${totalRet>=0?'c-gain':'c-loss'}">${fCompact(finalVal)}</div>
-          <div class="bt-met-sub">de ${fCompact(capital)}</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">Retorno Total</div>
-          <div class="bt-met-val ${totalRet>=0?'c-gain':'c-loss'}">${fPct(totalRet)}</div>
-          <div class="bt-met-sub">${years.toFixed(1)} anos</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">CAGR</div>
-          <div class="bt-met-val ${cagr>=0?'c-gain':'c-loss'}">${fPct(cagr)}</div>
-          <div class="bt-met-sub">ao ano</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">Volatilidade</div>
-          <div class="bt-met-val">${fNum(annualVol,1)}%</div>
-          <div class="bt-met-sub">anualizada</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">Sharpe</div>
-          <div class="bt-met-val ${sharpe>=1?'c-gain':sharpe>=0.5?'c-warn':'c-loss'}">${fNum(sharpe,2)}</div>
-          <div class="bt-met-sub">vs SELIC</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">Drawdown Máx</div>
-          <div class="bt-met-val c-loss">${fNum(maxDD,1)}%</div>
-          <div class="bt-met-sub">pior queda</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">vs ${benchLabel}</div>
-          <div class="bt-met-val ${alpha>=0?'c-gain':'c-loss'}">${fPct(alpha)}</div>
-          <div class="bt-met-sub">${benchLabel}: ${fPct(benchTotalRet)}</div>
-        </div>
-        <div class="bt-met">
-          <div class="bt-met-lbl">Ações</div>
-          <div class="bt-met-val">${stocks.length}</div>
-          <div class="bt-met-sub">peso igual</div>
-        </div>
+        <div class="bt-met"><div class="bt-met-lbl">Valor Final</div>
+          <div class="bt-met-val ${totalRet >= 0 ? 'c-gain' : 'c-loss'}">${fCompact(finalVal)}</div>
+          <div class="bt-met-sub">de ${fCompact(capital)}</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">Retorno Total</div>
+          <div class="bt-met-val ${totalRet >= 0 ? 'c-gain' : 'c-loss'}">${fPct(totalRet)}</div>
+          <div class="bt-met-sub">${years.toFixed(1)} anos</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">CAGR</div>
+          <div class="bt-met-val ${cagr >= 0 ? 'c-gain' : 'c-loss'}">${fPct(cagr)}</div>
+          <div class="bt-met-sub">ao ano</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">Volatilidade</div>
+          <div class="bt-met-val">${fNum(annualVol, 1)}%</div>
+          <div class="bt-met-sub">anualizada</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">Sharpe</div>
+          <div class="bt-met-val ${sharpe >= 1 ? 'c-gain' : sharpe >= 0.5 ? 'c-warn' : 'c-loss'}">${fNum(sharpe, 2)}</div>
+          <div class="bt-met-sub">vs SELIC ${MACRO.selic.toFixed(2)}%</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">Drawdown Máx</div>
+          <div class="bt-met-val c-loss">${fNum(maxDD, 1)}%</div>
+          <div class="bt-met-sub">pior queda</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">vs ${benchLabel}</div>
+          <div class="bt-met-val ${alpha >= 0 ? 'c-gain' : 'c-loss'}">${fPct(alpha)}</div>
+          <div class="bt-met-sub">${benchLabel}: ${fPct(benchTotalRet)}</div></div>
+        <div class="bt-met"><div class="bt-met-lbl">Ações</div>
+          <div class="bt-met-val">${perStock.length}</div>
+          <div class="bt-met-sub">peso igual</div></div>
       </div>
     </div>
     <div class="bt-section">
       <div class="bt-section-title">📈 Evolução do Portfólio vs ${benchLabel}</div>
       ${multiLineChart([
-        {label:'Portfólio', color:'#d97706', values: chartPort},
-        {label: benchLabel, color:'#3b82f6', values: chartBench},
-      ], chartLabels, {height: 180, yFormat: v => fCompact(v).replace('R$ ','')})}
+        { label: 'Portfólio', color: '#d97706', values: chartPort },
+        { label: benchLabel, color: '#3b82f6', values: chartBench },
+      ], chartLbls, { height: 180, yFormat: v => fCompact(v).replace('R$ ', '') })}
     </div>
     <div class="bt-section">
       <div class="bt-section-title">📋 Contribuição por Ação</div>
       <div class="bt-comp-tbl">
         ${perStock.map(p => {
           const maxAbs = Math.max(...perStock.map(x => Math.abs(x.ret)));
-          const w = (Math.abs(p.ret) / maxAbs) * 100;
+          const w = maxAbs > 0 ? (Math.abs(p.ret) / maxAbs) * 100 : 0;
           return `<div class="bt-comp-row">
             <div class="bt-comp-tk">${p.ticker}</div>
-            <div class="bt-comp-bar"><div class="bt-comp-bf" style="width:${w}%;background:${p.ret>=0?'#16a34a':'#dc2626'}"></div></div>
-            <div class="bt-comp-r ${p.ret>=0?'c-gain':'c-loss'}">${fPct(p.ret)}</div>
+            <div class="bt-comp-bar"><div class="bt-comp-bf" style="width:${w}%;background:${p.ret >= 0 ? '#16a34a' : '#dc2626'}"></div></div>
+            <div class="bt-comp-r ${p.ret >= 0 ? 'c-gain' : 'c-loss'}">${fPct(p.ret)}</div>
           </div>`;
         }).join('')}
       </div>
     </div>
   `;
   document.getElementById('btResults').classList.add('show');
-  document.getElementById('btResults').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('btResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function runBacktest() {
+  const startIdx   = parseInt(document.getElementById('btStartDate').value);
+  const capital    = parseFloat(document.getElementById('btCapital').value) || 10000;
+  const strategy   = document.getElementById('btStrategy').value;
+  const benchmark  = document.getElementById('btBenchmark').value;
+  const tickers    = Array.from(btSelected);
+  const btn        = document.getElementById('btRun');
+  const resultsEl  = document.getElementById('btResults');
+
+  if (tickers.length === 0) {
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-ic">⚠️</div><div>Selecione ao menos 1 ação</div></div>';
+    resultsEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Buscando dados Yahoo Finance…';
+
+  // ── Try real Yahoo Finance historical data ──────────────────────────────────
+  let realData = null;
+  try {
+    realData = await fetchAndAlignHistoricals(tickers, (msg) => { btn.textContent = `⏳ ${msg}`; });
+  } catch { /* fallthrough to synthetic */ }
+
+  btn.textContent = '⏳ Calculando…';
+
+  // ── Real data path ──────────────────────────────────────────────────────────
+  if (realData && realData.months.length >= 6) {
+    const startYM   = IBOV_HIST.months[startIdx];
+    const rsi       = Math.max(0, realData.months.findIndex(m => m >= startYM));
+    const rMonths   = realData.months.slice(rsi);
+    const nM        = rMonths.length;
+    const ibovReal  = realData.byTicker['^BVSP']?.slice(rsi) ?? [];
+    const ibovStart = ibovReal[0] || 1;
+    const monthlyCDI = Math.pow(1 + MACRO.selic / 100, 1 / 12) - 1;
+
+    // Filter to tickers actually in realData
+    const avail = tickers.filter(t => realData.byTicker[t]);
+    if (avail.length === 0) { btn.disabled = false; btn.textContent = '▶ Executar Backtest'; return; }
+
+    const rStocks = avail.map(t => ({
+      ticker: t,
+      name: STOCKS.find(s => s.ticker === t)?.name || t,
+      prices: realData.byTicker[t].slice(rsi),
+    }));
+
+    let rShares = rStocks.map(s => (capital / rStocks.length) / (s.prices[0] || 1));
+    const portVals  = [capital];
+    const benchVals = [capital];
+
+    for (let i = 1; i < nM; i++) {
+      const val = rStocks.reduce((sum, s, k) => sum + rShares[k] * (s.prices[i] ?? s.prices[i - 1] ?? 1), 0);
+      portVals.push(val);
+      if ((strategy === 'quarterly' && i % 3 === 0) || (strategy === 'annual' && i % 12 === 0)) {
+        rShares = rStocks.map(s => (val / rStocks.length) / (s.prices[i] || 1));
+      }
+      benchVals.push(benchmark === 'ibov'
+        ? capital * (ibovReal[i] ?? ibovReal[i - 1] ?? ibovStart) / ibovStart
+        : benchVals[i - 1] * (1 + monthlyCDI));
+    }
+
+    const perStock = rStocks.map(s => ({
+      ticker: s.ticker, name: s.name,
+      ret: s.prices[nM - 1] && s.prices[0] ? (s.prices[nM - 1] / s.prices[0] - 1) * 100 : 0,
+    })).sort((a, b) => b.ret - a.ret);
+
+    renderBtResults(portVals, benchVals, rMonths, capital, strategy, benchmark, perStock, 'real');
+    btn.disabled = false;
+    btn.textContent = '▶ Executar Backtest';
+    return;
+  }
+
+  // ── Synthetic fallback ──────────────────────────────────────────────────────
+  const startYear = parseInt(IBOV_HIST.months[startIdx].split('-')[0]);
+  const available = tickers.filter(t => { const s = STOCKS.find(x => x.ticker === t); return s && s.ipoYear <= startYear; });
+  if (available.length === 0) {
+    resultsEl.innerHTML = '<div class="empty"><div>Nenhuma ação tinha dados na data selecionada</div></div>';
+    resultsEl.classList.add('show');
+    btn.disabled = false; btn.textContent = '▶ Executar Backtest';
+    return;
+  }
+
+  const endIdx = IBOV_HIST.months.length - 1;
+  const months = IBOV_HIST.months.slice(startIdx, endIdx + 1);
+  const stocks = available.map(t => STOCKS.find(x => x.ticker === t));
+  let shares = stocks.map((s) => (capital / stocks.length) / s.hist.monthlyPrices[startIdx]);
+  const portfolioVals = [capital];
+  const benchValsS   = [capital];
+  const benchStart   = benchmark === 'ibov' ? IBOV_HIST.values[startIdx] : 1;
+  const monthlyCDI   = Math.pow(1 + MACRO.selic / 100, 1 / 12) - 1;
+
+  for (let i = 1; i < months.length; i++) {
+    const idx = startIdx + i;
+    const val = stocks.reduce((sum, s, k) => sum + shares[k] * s.hist.monthlyPrices[idx], 0);
+    portfolioVals.push(val);
+    if ((strategy === 'quarterly' && i % 3 === 0) || (strategy === 'annual' && i % 12 === 0)) {
+      shares = stocks.map((s) => (val / stocks.length) / s.hist.monthlyPrices[idx]);
+    }
+    benchValsS.push(benchmark === 'ibov' ? capital * IBOV_HIST.values[idx] / benchStart : benchValsS[i - 1] * (1 + monthlyCDI));
+  }
+
+  const perStock = stocks.map(s => ({
+    ticker: s.ticker, name: s.name,
+    ret: (s.hist.monthlyPrices[endIdx] / s.hist.monthlyPrices[startIdx] - 1) * 100,
+  })).sort((a, b) => b.ret - a.ret);
+
+  renderBtResults(portfolioVals, benchValsS, months, capital, strategy, benchmark, perStock, 'synthetic');
+  btn.disabled = false;
+  btn.textContent = '▶ Executar Backtest';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2368,12 +2559,17 @@ renderMacroFull();
 renderStockList();
 renderBacktestUI();
 renderOptChips();
-// Default selections
 applyBtPreset('ibov-top5');
 applyOptPreset('ibov-top5');
 
-// Try live quotes (non-blocking)
+// Fase 1 — cotações ao vivo (Yahoo Finance → brapi → cnpj.info)
 tryLiveQuotes();
+
+// Fase 2 — macro BCB em tempo real (SELIC, IPCA, PTAX, EMBI+)
+initMacroLive().then(() => {
+  // Fase 3 — histórico macro BCB para os gráficos (10 anos)
+  initMacroHistLive();
+});
 </script>
 </body>
 </html>
