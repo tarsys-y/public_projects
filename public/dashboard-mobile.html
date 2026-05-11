@@ -1159,14 +1159,14 @@ async function bcbFetch(series, n) {
   } catch(e) { console.warn('[BCB]', e); return null; }
 }
 
-// ── Yahoo Finance v8/chart — gratuito, sem autenticação ──────────────────────
-// corsDomain=finance.yahoo.com faz o Yahoo incluir Access-Control-Allow-Origin no response
+// ── Yahoo Finance v8/chart — fallback, usa cookies existentes do browser ─────
+// Nota: Yahoo exige crumb+cookie; só funciona se o usuário visitou finance.yahoo.com recentemente
 async function yahooFetch(symbol, interval, range) {
   const sym = /^[\^]/.test(symbol) ? symbol : `${symbol}.SA`;
   try {
     const r = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&range=${range}&corsDomain=finance.yahoo.com`,
-      { signal: AbortSignal.timeout(9000) }
+      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&range=${range}`,
+      { credentials: 'include', signal: AbortSignal.timeout(9000) }
     );
     if (!r.ok) return null;
     const d = await r.json();
@@ -1174,56 +1174,83 @@ async function yahooFetch(symbol, interval, range) {
   } catch(e) { console.warn('[Yahoo]', e); return null; }
 }
 
-// ── Yahoo Finance v7/quote — bulk, 1 request para N tickers ──────────────────
-async function yahooQuoteBulk(tickers) {
-  const symbols = tickers.map(t => `${t}.SA`).join(',');
+// ── Brapi.dev — cotações B3 com suporte a CORS, sem chave necessária ─────────
+async function brapiQuote(tickers) {
+  // tickers: array de códigos B3 (sem .SA)
   try {
     const r = await fetch(
-      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChangePercent&corsDomain=finance.yahoo.com`,
-      { signal: AbortSignal.timeout(12000) }
+      `https://brapi.dev/api/quote/${tickers.map(encodeURIComponent).join(',')}?fundamental=false&interval=1d`,
+      { signal: AbortSignal.timeout(10000) }
     );
     if (!r.ok) return null;
     const d = await r.json();
-    return d?.quoteResponse?.result ?? null;
-  } catch(e) { console.warn('[Yahoo bulk]', e); return null; }
+    return d?.results ?? null;
+  } catch(e) { console.warn('[brapi]', e); return null; }
 }
 
 // Converte string BCB "12,75" → 12.75
 const bcbNum = (s) => parseFloat(String(s).replace(',', '.'));
 
-// ── Macro atual: BCB + Yahoo Finance em tempo real ───────────────────────────
+// ── Macro atual: BCB (SELIC/IPCA/PTAX/EMBI) + brapi/Yahoo (IBOV/SMLL) ────────
 async function initMacroLive() {
-  // Séries BCB: 4189=Meta SELIC %a.a. | 13522=IPCA 12m % | 3697=PTAX USD mensal | 4734=EMBI+
-  // Yahoo: ^BVSP=IBOV | ^BVSPN=SMLL
-  const [selic, ipca, ptax, embi, ibov, smll] = await Promise.allSettled([
+  let changed = false;
+
+  // BCB: SELIC, IPCA, PTAX, EMBI (sempre funciona, tem CORS)
+  const [selic, ipca, ptax, embi] = await Promise.allSettled([
     bcbFetch(4189,  1),
     bcbFetch(13522, 1),
     bcbFetch(3697,  1),
     bcbFetch(4734,  1),
-    yahooFetch('^BVSP',  '1d', '5d'),
-    yahooFetch('^BVSPN', '1d', '5d'),
   ]);
-
-  const ok  = (r) => r.status === 'fulfilled' && r.value?.length;
-  const yOk = (r) => r.status === 'fulfilled' && r.value?.meta;
-  let changed = false;
-
+  const ok = (r) => r.status === 'fulfilled' && r.value?.length;
   if (ok(selic)) { MACRO.selic  = bcbNum(selic.value[0].valor);  changed = true; }
   if (ok(ipca))  { MACRO.ipca   = bcbNum(ipca.value[0].valor);   changed = true; }
   if (ok(ptax))  { MACRO.usdBrl = bcbNum(ptax.value[0].valor);   changed = true; }
   if (ok(embi))  { MACRO.embi   = bcbNum(embi.value[0].valor);   changed = true; }
 
-  if (yOk(ibov)) {
-    const { regularMarketPrice: p, regularMarketChangePercent: c } = ibov.value.meta;
-    if (p > 0) { MACRO.ibov = Math.round(p); if (c != null) MACRO.ibovChg = c; changed = true;
-      // Rebuild IBOV history with the live anchor value
-      IBOV_HIST    = buildIbovMonthly();
-      IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+  // IBOV via brapi (primário) → Yahoo (fallback com cookie)
+  let ibovUpdated = false;
+  try {
+    // brapi usa '^BVSP' para o IBOV. SMAL11 é o ETF de small caps.
+    const idxQuotes = await brapiQuote(['^BVSP', 'SMAL11']);
+    if (idxQuotes?.length) {
+      for (const q of idxQuotes) {
+        if ((q.symbol === '^BVSP' || q.symbol === '%5EBVSP') && q.regularMarketPrice > 0) {
+          MACRO.ibov = Math.round(q.regularMarketPrice);
+          if (q.regularMarketChangePercent != null) MACRO.ibovChg = q.regularMarketChangePercent;
+          IBOV_HIST    = buildIbovMonthly();
+          IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+          ibovUpdated = true; changed = true;
+        }
+        // SMAL11 ≈ SMLL / 10 (ETF que rastreia SMLL)
+        if (q.symbol === 'SMAL11' && q.regularMarketPrice > 0) {
+          MACRO.smll = Math.round(q.regularMarketPrice * 10);
+          if (q.regularMarketChangePercent != null) MACRO.smllChg = q.regularMarketChangePercent;
+          changed = true;
+        }
+      }
     }
-  }
-  if (yOk(smll)) {
-    const { regularMarketPrice: p, regularMarketChangePercent: c } = smll.value.meta;
-    if (p > 0) { MACRO.smll = Math.round(p); if (c != null) MACRO.smllChg = c; changed = true; }
+  } catch(e) { console.warn('[brapi indices]', e); }
+
+  // Yahoo fallback para IBOV/SMLL se brapi falhou
+  if (!ibovUpdated) {
+    const [ibov, smll] = await Promise.allSettled([
+      yahooFetch('^BVSP',  '1d', '5d'),
+      yahooFetch('^BVSPN', '1d', '5d'),
+    ]);
+    const yOk = (r) => r.status === 'fulfilled' && r.value?.meta;
+    if (yOk(ibov)) {
+      const { regularMarketPrice: p, regularMarketChangePercent: c } = ibov.value.meta;
+      if (p > 0) {
+        MACRO.ibov = Math.round(p); if (c != null) MACRO.ibovChg = c; changed = true;
+        IBOV_HIST    = buildIbovMonthly();
+        IBOV_RETURNS = computeReturns(IBOV_HIST.values, 0);
+      }
+    }
+    if (yOk(smll)) {
+      const { regularMarketPrice: p, regularMarketChangePercent: c } = smll.value.meta;
+      if (p > 0) { MACRO.smll = Math.round(p); if (c != null) MACRO.smllChg = c; changed = true; }
+    }
   }
 
   if (changed) {
@@ -1312,15 +1339,14 @@ async function fetchAndAlignHistoricals(tickers, onProgress) {
   return { months: common, byTicker };
 }
 
-// ── Cotações atuais: Yahoo bulk → Yahoo individual (batched) → brapi → cnpj.info ──
+// ── Cotações atuais: brapi.dev (primário) → Yahoo individual (fallback) ──────
 async function tryLiveQuotes() {
   const dot    = document.getElementById('liveDot');
   const status = document.getElementById('liveStatus');
   const tickers = STOCKS.map(s => s.ticker);
-  const now = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const nowStr = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
   function applyQuotes(map) {
-    // map: { ticker → { price, chg } }
     let updated = 0;
     for (const st of STOCKS) {
       const q = map[st.ticker];
@@ -1329,26 +1355,32 @@ async function tryLiveQuotes() {
     return updated;
   }
 
-  // ── 1ª tentativa: Yahoo Finance v7/quote bulk (1 request para todos) ──────
+  // ── 1ª tentativa: brapi.dev em lotes de 10 ───────────────────────────────
+  // brapi.dev tem CORS habilitado e é dedicado a ações brasileiras B3
   try {
-    const quotes = await yahooQuoteBulk(tickers);
-    if (quotes?.length) {
-      const map = {};
-      for (const q of quotes) {
-        const tk = (q.symbol ?? '').replace(/\.SA$/i, '');
-        if (tk) map[tk] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent };
+    const BATCH = 10;
+    const map = {};
+    for (let i = 0; i < tickers.length; i += BATCH) {
+      const batch = tickers.slice(i, i + BATCH);
+      const quotes = await brapiQuote(batch);
+      if (quotes) {
+        for (const q of quotes) {
+          if (q.symbol && q.regularMarketPrice > 0)
+            map[q.symbol] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent ?? null };
+        }
       }
-      const updated = applyQuotes(map);
-      if (updated > 0) {
-        dot.className = 'live-dot online';
-        status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${now()}`;
-        renderStockList();
-        return true;
-      }
+      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 500));
     }
-  } catch(e) { console.warn('[Yahoo bulk]', e); }
+    const updated = applyQuotes(map);
+    if (updated > 0) {
+      dot.className = 'live-dot online';
+      status.textContent = `🟢 brapi.dev · ${updated} ações · ${nowStr()}`;
+      renderStockList();
+      return true;
+    }
+  } catch(e) { console.warn('[brapi primary]', e); }
 
-  // ── 2ª tentativa: Yahoo Finance v8/chart individual, em lotes de 8 ────────
+  // ── 2ª tentativa: Yahoo Finance individual (funciona se usuário tem cookie Yahoo) ──
   try {
     const BATCH = 8;
     const map = {};
@@ -1358,49 +1390,18 @@ async function tryLiveQuotes() {
       results.forEach((res, j) => {
         if (res.status !== 'fulfilled' || !res.value?.meta) return;
         const { regularMarketPrice: p, regularMarketChangePercent: c } = res.value.meta;
-        if (p > 0) map[batch[j]] = { price: p, chg: c };
+        if (p > 0) map[batch[j]] = { price: p, chg: c ?? null };
       });
-      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 300));
+      if (i + BATCH < tickers.length) await new Promise(r => setTimeout(r, 400));
     }
     const updated = applyQuotes(map);
     if (updated > 0) {
       dot.className = 'live-dot online';
-      status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${now()}`;
+      status.textContent = `🟢 Yahoo Finance · ${updated} ações · ${nowStr()}`;
       renderStockList();
       return true;
     }
   } catch(e) { console.warn('[Yahoo individual]', e); }
-
-  // ── 3ª tentativa: brapi.dev → quote.cnpj.info ────────────────────────────
-  try {
-    const ctrl1 = new AbortController();
-    const t1 = setTimeout(() => ctrl1.abort(), 7000);
-    let res = await fetch(`https://brapi.dev/api/quote/${tickers.join(',')}?range=1d`, { signal: ctrl1.signal }).catch(() => null);
-    clearTimeout(t1);
-    if (!res?.ok) {
-      const ctrl2 = new AbortController();
-      const t2 = setTimeout(() => ctrl2.abort(), 7000);
-      res = await fetch(`https://quote.cnpj.info/?q=${tickers.join('|')}`, { signal: ctrl2.signal }).catch(() => null);
-      clearTimeout(t2);
-    }
-    if (res?.ok) {
-      const data = await res.json();
-      const arr = data?.results;
-      const map = {};
-      if (Array.isArray(arr)) {
-        for (const q of arr) { if (q.symbol && q.regularMarketPrice) map[q.symbol] = { price: q.regularMarketPrice, chg: q.regularMarketChangePercent }; }
-      } else if (arr && typeof arr === 'object') {
-        for (const [tk, info] of Object.entries(arr)) { if (info.price) map[tk] = { price: parseFloat(info.price), chg: info.change ? parseFloat(info.change) : null }; }
-      }
-      const updated = applyQuotes(map);
-      if (updated > 0) {
-        dot.className = 'live-dot online';
-        status.textContent = `🟢 Live · ${updated} ações · ${now()}`;
-        renderStockList();
-        return true;
-      }
-    }
-  } catch(e) { console.warn('[brapi/cnpj]', e); }
 
   dot.className = 'live-dot offline';
   status.textContent = `📁 Dados embarcados (${MACRO.asOf}) · sem conexão live`;
