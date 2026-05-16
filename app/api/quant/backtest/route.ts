@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     const portfolioValues: TimeSeriesPoint[] = []
     const benchmarkValues: TimeSeriesPoint[] = []
     let benchmarkCapital = initialCapitalBRL
-    const cdiMonthlyRate = monthlyReturnFromCAGR(0.105)  // approx CDI
+    const cdiMonthlyRate = monthlyReturnFromCAGR(0.1475)  // SELIC Copom mar/2026
 
     // Track shares for each holding (equal-weight allocation)
     let shares: Record<string, number> = {}

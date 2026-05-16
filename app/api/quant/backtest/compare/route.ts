@@ -52,7 +52,7 @@ function runSimulation(
   config: BacktestConfig,
 ): BacktestResult {
   const { rebalancePeriod, topN, initialCapitalBRL, benchmark } = config
-  const cdiMonthlyRate = Math.pow(1.105, 1 / 12) - 1
+  const cdiMonthlyRate = Math.pow(1.1475, 1 / 12) - 1  // SELIC Copom mar/2026
 
   let capital = initialCapitalBRL
   let benchmarkCapital = initialCapitalBRL

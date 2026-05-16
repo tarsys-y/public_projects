@@ -51,16 +51,16 @@ export async function GET(
       currentPrice: quote.price,
       history: seeded.history,
       hasDividendHistory20y: seeded.hasDividendHistory20y,
-      aaBondYield: 0.12,
+      aaBondYield: 0.1475,  // SELIC Copom mar/2026
       expectedGrowthRate: seeded.expectedGrowthRate,
     })
 
-    const wacc = selic / 100 + seeded.beta * (0.05 + embi / 10000)
+    const wacc = selic / 100 + seeded.beta * (0.0423 + embi / 10000)
     const damodaranInputs = {
       ticker,
       riskFreeRate: selic / 100,
       beta: seeded.beta,
-      erp: 0.05,
+      erp: 0.0423,  // Damodaran mature-market ERP jan/2026 (was 0.05)
       countryRiskPremium: embi / 10000,
       costOfDebt: seeded.costOfDebt,
       taxRate: 0.34,
@@ -74,7 +74,7 @@ export async function GET(
       nwcPctRevenue: seeded.nwcPctRevenue,
       projectionYears: 10,
       wacc,
-      costOfEquity: selic / 100 + seeded.beta * (0.05 + embi / 10000),
+      costOfEquity: selic / 100 + seeded.beta * (0.0423 + embi / 10000),
     }
 
     const damodaran = computeDamodaranAnalysis({
