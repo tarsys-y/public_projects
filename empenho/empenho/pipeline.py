@@ -38,32 +38,27 @@ def _para_linha(c: Contratacao, score, escopo) -> LinhaOportunidade:
     )
 
 
-def buscar(cfg: Config, *, client: PNCPClient | None = None,
-           enriquecer_itens: bool = True) -> dict:
-    """Executa a busca completa e devolve um resumo (contadores + novas)."""
-    client = client or PNCPClient()
-    agora = agora_brasilia()
-    data_final = hoje_brasilia()
+def processar(
+    contratacoes: list[Contratacao],
+    cfg: Config,
+    *,
+    agora,
+    client: PNCPClient | None = None,
+    enriquecer_itens: bool = True,
+    exigir_em_aberto: bool = True,
+) -> tuple[list[LinhaOportunidade], int]:
+    """Filtra, enriquece e pontua uma lista de contratações.
 
-    ufs = cfg.busca.ufs or [None]  # None = busca nacional
-    contratacoes: list[Contratacao] = []
-    for uf in ufs:
-        contratacoes.extend(
-            client.contratacoes_proposta(
-                data_final=data_final,
-                modalidade=cfg.busca.modalidade,
-                uf=uf,
-                tamanho_pagina=cfg.busca.tamanho_pagina,
-            )
-        )
-
+    Devolve ``(aprovadas, descartadas)``. Compartilhado por ``buscar`` (só
+    propostas em aberto) e ``backfill`` (histórico, ``exigir_em_aberto=False``).
+    """
     blocklist = set(cfg.orgaos.blocklist)
     aprovadas: list[LinhaOportunidade] = []
     descartadas = 0
 
     for c in contratacoes:
         # Garante "ainda em aberto": encerramento >= agora (Brasília).
-        if c.dataEncerramentoProposta:
+        if exigir_em_aberto and c.dataEncerramentoProposta:
             fim = c.dataEncerramentoProposta.replace(tzinfo=None)
             if fim < agora.replace(tzinfo=None):
                 descartadas += 1
@@ -81,8 +76,8 @@ def buscar(cfg: Config, *, client: PNCPClient | None = None,
 
         # Enriquecimento lazy: só busca itens de quem passou no objeto.
         itens = None
-        if enriquecer_itens and c.orgaoEntidade.cnpj and c.anoCompra \
-                and c.sequencialCompra:
+        if client and enriquecer_itens and c.orgaoEntidade.cnpj \
+                and c.anoCompra and c.sequencialCompra:
             try:
                 itens = client.itens(
                     c.orgaoEntidade.cnpj, c.anoCompra, c.sequencialCompra
@@ -108,22 +103,32 @@ def buscar(cfg: Config, *, client: PNCPClient | None = None,
         )
         aprovadas.append(_para_linha(c, sc, esc))
 
-    # Persistência idempotente + identificação das NOVAS.
+    return aprovadas, descartadas
+
+
+def _persistir_e_notificar(
+    aprovadas: list[LinhaOportunidade], cfg: Config, descartadas: int,
+    consultadas: int, *, notificadores=None,
+) -> dict:
+    """Grava (idempotente), exporta CSV e dispara as notificações das NOVAS."""
     novas: list[LinhaOportunidade] = []
     with Store(cfg.db_path) as store:
         for linha in aprovadas:
             if store.upsert(linha):
                 novas.append(linha)
         total_db = store.contar()
+        if novas:
+            store.marcar_notificadas([l.numero_controle for l in novas])
 
-    # Saída: CSV datado + notificação no console.
     csv_path: Path | None = None
     if aprovadas:
         csv_path = exportar_csv(aprovadas, cfg.saida.csv_prefix, RAIZ)
-    ConsoleNotifier(cfg.saida.top_n_console).enviar(novas)
+
+    for notificador in (notificadores or [ConsoleNotifier(cfg.saida.top_n_console)]):
+        notificador.enviar(novas)
 
     return {
-        "consultadas": len(contratacoes),
+        "consultadas": consultadas,
         "aprovadas": len(aprovadas),
         "descartadas": descartadas,
         "novas": len(novas),
@@ -131,3 +136,66 @@ def buscar(cfg: Config, *, client: PNCPClient | None = None,
         "csv": str(csv_path) if csv_path else None,
         "data": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
+
+
+def buscar(cfg: Config, *, client: PNCPClient | None = None,
+           enriquecer_itens: bool = True, notificadores=None) -> dict:
+    """Executa a busca completa e devolve um resumo (contadores + novas)."""
+    client = client or PNCPClient()
+    agora = agora_brasilia()
+    data_final = hoje_brasilia()
+
+    ufs = cfg.busca.ufs or [None]  # None = busca nacional
+    contratacoes: list[Contratacao] = []
+    for uf in ufs:
+        contratacoes.extend(
+            client.contratacoes_proposta(
+                data_final=data_final,
+                modalidade=cfg.busca.modalidade,
+                uf=uf,
+                tamanho_pagina=cfg.busca.tamanho_pagina,
+            )
+        )
+
+    aprovadas, descartadas = processar(
+        contratacoes, cfg, agora=agora, client=client,
+        enriquecer_itens=enriquecer_itens, exigir_em_aberto=True,
+    )
+    return _persistir_e_notificar(
+        aprovadas, cfg, descartadas, len(contratacoes),
+        notificadores=notificadores,
+    )
+
+
+def backfill(cfg: Config, data_inicial: str, data_final: str, *,
+             client: PNCPClient | None = None,
+             enriquecer_itens: bool = False, notificadores=None) -> dict:
+    """Backfill histórico por data de PUBLICAÇÃO (/v1/contratacoes/publicacao).
+
+    Inclui também propostas já encerradas (``exigir_em_aberto=False``), úteis
+    para calibrar o escopo/score com base no histórico. Datas em AAAAMMDD.
+    """
+    client = client or PNCPClient()
+    agora = agora_brasilia()
+
+    ufs = cfg.busca.ufs or [None]
+    contratacoes: list[Contratacao] = []
+    for uf in ufs:
+        contratacoes.extend(
+            client.contratacoes_publicacao(
+                data_inicial=data_inicial,
+                data_final=data_final,
+                modalidade=cfg.busca.modalidade,
+                uf=uf,
+                tamanho_pagina=cfg.busca.tamanho_pagina,
+            )
+        )
+
+    aprovadas, descartadas = processar(
+        contratacoes, cfg, agora=agora, client=client,
+        enriquecer_itens=enriquecer_itens, exigir_em_aberto=False,
+    )
+    return _persistir_e_notificar(
+        aprovadas, cfg, descartadas, len(contratacoes),
+        notificadores=notificadores,
+    )

@@ -42,6 +42,10 @@ cp .env.example .env        # só necessário p/ notificação (Fase 2)
 ```bash
 # Puxa, filtra, ranqueia e salva no SQLite + exporta CSV das melhores
 python -m empenho buscar
+python -m empenho buscar --telegram          # também notifica no Telegram
+
+# Backfill histórico por data de PUBLICAÇÃO (inclui já encerradas)
+python -m empenho backfill --de 20260101 --ate 20260131
 
 # Motor de margem para uma oportunidade (id = numeroControlePNCP)
 python -m empenho viabilidade <id> --custo 12000 --frete 300 --dias 45
@@ -50,6 +54,9 @@ python -m empenho viabilidade x --custo 12000 --valor-ref 18000
 
 # Move uma oportunidade no pipeline
 python -m empenho status <id> Cotando
+
+# Painel visual (Streamlit)
+python -m empenho painel                     # = streamlit run empenho/ui/app.py
 ```
 
 `buscar` gera `oportunidades_AAAA-MM-DD.csv` (ordenado por score) e grava em
@@ -72,6 +79,31 @@ VIÁVEL  ⟺  L_min ≤ R         Folga (headroom) = R − L_min
 
 Onde `m` é a margem mínima. Como a margem cresce com o lance, basta o lance
 mínimo que entrega `m`; acima dele (até o teto `R`) a margem só melhora.
+
+## Painel (Streamlit)
+
+`python -m empenho painel` (ou `streamlit run empenho/ui/app.py`) abre um painel
+que lê o **mesmo** `empenho.db` e `config.yaml`:
+
+- **Quadro do pipeline** — contagem por estágio (Triagem → Pago).
+- **Lista ranqueada** com filtros (UF, status, score mínimo, busca textual, só
+  com proposta em aberto) e link direto para o edital no PNCP.
+- **Detalhe** da oportunidade (objeto, órgão, prazo, breakdown do score).
+- **Calculadora de margem interativa** — ajusta custo, frete, dias, imposto e
+  margem e mostra na hora lance mínimo viável, folga e lucro no teto.
+- **Mover no pipeline** — muda o status direto pela interface.
+
+## Notificação (Telegram)
+
+Implementa a interface `notify/base.py`. Configure no `.env` (nunca no código):
+
+```env
+telegram_bot_token=123456:ABC-...     # token do @BotFather
+telegram_chat_id=987654321            # seu chat id
+```
+
+Depois rode `python -m empenho buscar --telegram`. Sem credenciais, o comando
+avisa e segue só com o console (não quebra).
 
 ## Configuração (`config.yaml`)
 
@@ -115,19 +147,29 @@ empenho/
     filters/scope.py     # inclusão/exclusão (objeto + itens)
     filters/score.py     # fit 0–100 com breakdown
     finance/viability.py # motor de margem (forma fechada)
-    store/db.py          # SQLite idempotente + pipeline de status
-    notify/console.py    # CSV + tabela rich (canal atual)
-    pipeline.py          # orquestra o comando `buscar`
+    store/db.py          # SQLite idempotente + filtros + pipeline de status
+    notify/console.py    # CSV + tabela rich
+    notify/telegram.py   # canal Telegram (Fase 2)
+    ui/app.py            # painel Streamlit (Fase 2)
+    pipeline.py          # orquestra `buscar` e `backfill`
     __main__.py          # CLI
   tests/                 # pytest + fixtures
 ```
 
-## Status / próximos passos (Fase 2)
+## Status / próximos passos
 
-- Painel **Streamlit**: lista ranqueada com filtros, detalhe/link do edital,
-  calculadora de margem interativa e quadro do pipeline.
-- **Notificação** Telegram/e-mail (interface `notify/base.py` já pronta).
-- Backfill histórico via `/v1/contratacoes/publicacao`.
+**Fase 2 — concluída** ✅
+
+- Painel **Streamlit** (`ui/app.py`): lista ranqueada com filtros, detalhe/link
+  do edital, calculadora de margem interativa e quadro do pipeline.
+- **Notificação Telegram** (`notify/telegram.py`), plugável via `notify/base.py`.
+- **Backfill** histórico via `/v1/contratacoes/publicacao` (`backfill`).
+
+**Fase 3 — ideias**
+
+- Canal de e-mail (SMTP — segredos já previstos em `config.Secrets`).
+- Histórico de preços por item (média de homologações) p/ calibrar o lance.
+- Alerta de prazo curto (encerramento em < 24h) das que já estão no pipeline.
 
 ## Notas
 

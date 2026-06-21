@@ -12,17 +12,37 @@ import sys
 
 from rich.console import Console
 
-from .config import carregar_config
+from .config import Secrets, carregar_config
 from .finance import viability
-from .pipeline import buscar
+from .notify.console import ConsoleNotifier
+from .notify.telegram import TelegramNotifier
+from .pipeline import backfill, buscar
 from .store.db import STATUS, Store
 
 console = Console()
 
 
-def _cmd_buscar(_args: argparse.Namespace) -> int:
-    cfg = carregar_config()
-    resumo = buscar(cfg)
+def _montar_notificadores(cfg, usar_telegram: bool) -> list:
+    """Console sempre; Telegram quando pedido e com credenciais no .env."""
+    notificadores = [ConsoleNotifier(cfg.saida.top_n_console)]
+    if usar_telegram:
+        s = Secrets()
+        if s.telegram_bot_token and s.telegram_chat_id:
+            notificadores.append(
+                TelegramNotifier(
+                    s.telegram_bot_token, s.telegram_chat_id,
+                    top_n=cfg.saida.top_n_console,
+                )
+            )
+        else:
+            console.print(
+                "[yellow]--telegram pedido, mas telegram_bot_token/"
+                "telegram_chat_id não estão no .env. Pulando Telegram.[/yellow]"
+            )
+    return notificadores
+
+
+def _imprimir_resumo(resumo: dict) -> None:
     console.print(
         f"\n[bold]Resumo[/bold] {resumo['data']}: "
         f"consultadas={resumo['consultadas']} "
@@ -33,7 +53,39 @@ def _cmd_buscar(_args: argparse.Namespace) -> int:
     )
     if resumo["csv"]:
         console.print(f"CSV: [cyan]{resumo['csv']}[/cyan]")
+
+
+def _cmd_buscar(args: argparse.Namespace) -> int:
+    cfg = carregar_config()
+    resumo = buscar(cfg, notificadores=_montar_notificadores(cfg, args.telegram))
+    _imprimir_resumo(resumo)
     return 0
+
+
+def _cmd_backfill(args: argparse.Namespace) -> int:
+    cfg = carregar_config()
+    resumo = backfill(
+        cfg, args.de, args.ate,
+        notificadores=_montar_notificadores(cfg, args.telegram),
+    )
+    _imprimir_resumo(resumo)
+    return 0
+
+
+def _cmd_painel(_args: argparse.Namespace) -> int:
+    """Atalho para abrir o painel Streamlit."""
+    import subprocess
+    from pathlib import Path
+
+    app = Path(__file__).resolve().parent / "ui" / "app.py"
+    try:
+        return subprocess.call(["streamlit", "run", str(app)])
+    except FileNotFoundError:
+        console.print(
+            "[red]Streamlit não instalado.[/red] Rode: "
+            "[cyan]pip install streamlit[/cyan] (ou descomente em requirements.txt)."
+        )
+        return 1
 
 
 def _cmd_viabilidade(args: argparse.Namespace) -> int:
@@ -76,8 +128,20 @@ def construir_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="empenho", description="Radar de Licitações PNCP")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("buscar", help="puxa, filtra, ranqueia e salva").set_defaults(
-        func=_cmd_buscar
+    pb = sub.add_parser("buscar", help="puxa, filtra, ranqueia e salva")
+    pb.add_argument("--telegram", action="store_true",
+                    help="também notifica via Telegram (precisa de .env)")
+    pb.set_defaults(func=_cmd_buscar)
+
+    pbf = sub.add_parser("backfill", help="histórico por data de publicação")
+    pbf.add_argument("--de", required=True, help="data inicial AAAAMMDD")
+    pbf.add_argument("--ate", required=True, help="data final AAAAMMDD")
+    pbf.add_argument("--telegram", action="store_true",
+                     help="também notifica via Telegram (precisa de .env)")
+    pbf.set_defaults(func=_cmd_backfill)
+
+    sub.add_parser("painel", help="abre o painel Streamlit").set_defaults(
+        func=_cmd_painel
     )
 
     pv = sub.add_parser("viabilidade", help="motor de margem para uma oportunidade")

@@ -7,8 +7,8 @@ pandas>=2.1
 rich>=13.7
 python-dotenv>=1.0
 
+# Fase 2 (painel)
+streamlit>=1.33
+
 # Testes
 pytest>=8.0
-
-# Fase 2 (painel) — descomente quando for usar
-# streamlit>=1.33

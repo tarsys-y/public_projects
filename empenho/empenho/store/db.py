@@ -156,6 +156,79 @@ class Store:
         )
         return cur.fetchall()
 
+    def listar(
+        self,
+        *,
+        status: str | None = None,
+        uf: str | None = None,
+        score_minimo: float | None = None,
+        busca: str | None = None,
+        somente_abertas: bool = False,
+        agora_iso: str | None = None,
+        ordenar_por: str = "score",
+        limite: int | None = None,
+    ) -> list[sqlite3.Row]:
+        """Lista oportunidades com filtros combináveis (usado pelo painel).
+
+        ``somente_abertas`` mantém só as que ainda têm proposta em aberto
+        (encerramento >= ``agora_iso``); ``busca`` casa em objeto/órgão/UF.
+        """
+        clausulas: list[str] = []
+        params: list[object] = []
+        if status:
+            clausulas.append("status = ?")
+            params.append(status)
+        if uf:
+            clausulas.append("uf = ?")
+            params.append(uf)
+        if score_minimo is not None:
+            clausulas.append("score >= ?")
+            params.append(score_minimo)
+        if busca:
+            termo = f"%{busca.lower()}%"
+            clausulas.append(
+                "(LOWER(objeto) LIKE ? OR LOWER(orgao_nome) LIKE ? "
+                "OR LOWER(municipio) LIKE ?)"
+            )
+            params.extend([termo, termo, termo])
+        if somente_abertas:
+            ref = agora_iso or datetime.now().isoformat(timespec="seconds")
+            clausulas.append("(encerramento IS NULL OR encerramento >= ?)")
+            params.append(ref)
+
+        ordem = {
+            "score": "score DESC, last_seen DESC",
+            "encerramento": "encerramento ASC",
+            "valor": "valor_lote_ref DESC",
+            "recentes": "first_seen DESC",
+        }.get(ordenar_por, "score DESC, last_seen DESC")
+
+        sql = "SELECT * FROM oportunidades"
+        if clausulas:
+            sql += " WHERE " + " AND ".join(clausulas)
+        sql += f" ORDER BY {ordem}"
+        if limite is not None:
+            sql += " LIMIT ?"
+            params.append(limite)
+        return self.conn.execute(sql, params).fetchall()
+
+    def ufs_distintas(self) -> list[str]:
+        cur = self.conn.execute(
+            "SELECT DISTINCT uf FROM oportunidades WHERE uf IS NOT NULL "
+            "ORDER BY uf"
+        )
+        return [r[0] for r in cur.fetchall()]
+
+    def contagem_por_status(self) -> dict[str, int]:
+        """Quantas oportunidades em cada estágio do pipeline (para o quadro)."""
+        cur = self.conn.execute(
+            "SELECT status, COUNT(*) FROM oportunidades GROUP BY status"
+        )
+        contagem = {s: 0 for s in STATUS}
+        for status, n in cur.fetchall():
+            contagem[status or "Triagem"] = n
+        return contagem
+
     def contar(self) -> int:
         return self.conn.execute(
             "SELECT COUNT(*) FROM oportunidades"
