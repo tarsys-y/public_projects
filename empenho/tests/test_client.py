@@ -1,10 +1,17 @@
-"""Testes do cliente PNCP: 204 (vazio), 422 (erro) e paginação."""
+"""Testes do cliente PNCP: 204 (vazio), 422 (erro), paginação e datas."""
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 from conftest import FIXTURES
 
-from empenho.client.pncp import PNCPClient, PNCPError
+from empenho.client.pncp import (
+    PNCPClient,
+    PNCPError,
+    data_horizonte_brasilia,
+    hoje_brasilia,
+)
 
 
 class FakeResponse:
@@ -72,3 +79,12 @@ def test_remove_params_none():
     client.contratacoes_proposta(data_final="20260621", uf=None)
     # uf=None não deve ir na query.
     assert "uf" not in sess.chamadas[0][1]
+
+
+def test_data_horizonte_e_futura_e_formatada():
+    # dataFinal do PNCP é o TETO do encerramento: precisa ser >= hoje.
+    hoje = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d")
+    h90 = data_horizonte_brasilia(90)
+    assert len(h90) == 8 and h90.isdigit()
+    assert h90 > hoje                       # estritamente no futuro
+    assert data_horizonte_brasilia(0) == hoje_brasilia()

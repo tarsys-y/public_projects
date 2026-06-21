@@ -10,6 +10,7 @@ busca:
   municipios_ibge: []     # opcional: códigos IBGE p/ restringir municípios
   tamanho_pagina: 50      # máx. 50 (acima disso o PNCP retorna 422)
   dias_minimos_proposta: 2 # prazo mínimo até o encerramento p/ valer a pena
+  dias_horizonte: 90      # teto (hoje + N dias) p/ o dataFinal do PNCP
 
 # --- Filtro de escopo (palavras-chave) ---
 escopo:

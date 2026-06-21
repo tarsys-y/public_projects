@@ -10,7 +10,7 @@ Trata as armadilhas reais da API:
 from __future__ import annotations
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
@@ -154,6 +154,16 @@ class PNCPClient:
 def hoje_brasilia() -> str:
     """Data de hoje (Brasília) no formato AAAAMMDD exigido pela API."""
     return datetime.now(TZ_BRASILIA).strftime("%Y%m%d")
+
+
+def data_horizonte_brasilia(dias: int) -> str:
+    """Data de hoje + ``dias`` (Brasília) em AAAAMMDD.
+
+    Usada como ``dataFinal`` em /contratacoes/proposta: a API trata esse
+    parâmetro como o TETO da data de encerramento das propostas em aberto, então
+    hoje + horizonte varre tudo que está aberto agora e encerra dentro da janela.
+    """
+    return (datetime.now(TZ_BRASILIA) + timedelta(days=dias)).strftime("%Y%m%d")
 
 
 def agora_brasilia() -> datetime:

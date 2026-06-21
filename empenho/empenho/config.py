@@ -21,6 +21,9 @@ class BuscaCfg(BaseModel):
     municipios_ibge: list[str] = Field(default_factory=list)
     tamanho_pagina: int = 50
     dias_minimos_proposta: int = 2
+    # dataFinal do PNCP é o teto da data de encerramento das propostas em aberto.
+    # Usamos hoje + este horizonte para varrer tudo que está aberto agora.
+    dias_horizonte: int = 90
 
 
 class EscopoCfg(BaseModel):

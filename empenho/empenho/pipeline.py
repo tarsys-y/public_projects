@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .client.models import Contratacao
-from .client.pncp import PNCPClient, agora_brasilia, hoje_brasilia
+from .client.pncp import PNCPClient, agora_brasilia, data_horizonte_brasilia
 from .config import Config, RAIZ
 from .filters.scope import avaliar_escopo
 from .filters.score import pontuar
@@ -143,7 +143,9 @@ def buscar(cfg: Config, *, client: PNCPClient | None = None,
     """Executa a busca completa e devolve um resumo (contadores + novas)."""
     client = client or PNCPClient()
     agora = agora_brasilia()
-    data_final = hoje_brasilia()
+    # dataFinal = hoje + horizonte (teto do encerramento). O filtro de "em
+    # aberto" (encerramento >= agora) é aplicado depois, em processar().
+    data_final = data_horizonte_brasilia(cfg.busca.dias_horizonte)
 
     ufs = cfg.busca.ufs or [None]  # None = busca nacional
     contratacoes: list[Contratacao] = []
