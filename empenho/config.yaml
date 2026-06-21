@@ -1,0 +1,78 @@
+# =============================================================================
+# Empenho · Radar de Licitações — configuração
+# Todos os parâmetros 🔧 ajustáveis ficam aqui. Edite à vontade.
+# =============================================================================
+
+# --- Busca na API do PNCP ---
+busca:
+  modalidade: 6            # 6 = Pregão Eletrônico (não alterar sem motivo)
+  ufs: ["AL"]             # UFs alvo. [] = busca nacional (sem filtro de UF)
+  municipios_ibge: []     # opcional: códigos IBGE p/ restringir municípios
+  tamanho_pagina: 50      # máx. 50 (acima disso o PNCP retorna 422)
+  dias_minimos_proposta: 2 # prazo mínimo até o encerramento p/ valer a pena
+
+# --- Filtro de escopo (palavras-chave) ---
+escopo:
+  # Inclusão: ao menos uma destas precisa bater no objeto OU nos itens.
+  inclusao:
+    - "material de construção"
+    - "material de expediente"
+    - "material de escritório"
+    - "papel a4"
+    - "toner"
+    - "cartucho"
+    - "caneta"
+    - "ferragens"
+    - "tinta"
+    - "cimento"
+    - "argamassa"
+    - "epi"
+    - "ferramentas"
+    - "material elétrico"
+    - "material hidráulico"
+  # Exclusão: se QUALQUER uma bater no objeto, descarta na hora (eliminatória).
+  exclusao:
+    - "serviço"
+    - "execução"
+    - "engenharia"
+    - "obra"
+    - "reforma"
+    - "pavimentação"
+    - "mão de obra"
+    - "dedicação exclusiva"
+    - "manutenção"
+    - "locação"
+    - "especializada"
+    - "credenciamento"
+    - "concessão"
+    - "construção de"
+    - "elaboração de projeto"
+
+# --- Pontuação de fit (0–100). Pesos relativos; normalizados no cálculo. ---
+score:
+  peso_inclusao_objeto: 30   # bateu palavra de inclusão no objetoCompra
+  peso_inclusao_item: 25     # bateu palavra de inclusão em algum item
+  peso_srp: 10               # é Registro de Preços (entrega parcelada)
+  peso_valor_no_teto: 15     # valor por item/lote dentro do teto de capital
+  peso_uf_alvo: 5            # UF está na lista de UFs alvo
+  peso_prazo_confortavel: 10 # encerra com folga (>= dias_minimos_proposta)
+  peso_allowlist: 5          # órgão na allowlist (bônus)
+
+# --- Listas de órgãos (CNPJ só dígitos, 14 caracteres) ---
+orgaos:
+  allowlist: []   # bons pagadores → bônus
+  blocklist: []   # maus pagadores → eliminado
+
+# --- Motor de viabilidade financeira ---
+financeiro:
+  teto_lote: 80000.0       # 🔧 teto de capital por lote (R$). Casa c/ LC123 art.48
+  margem_minima: 0.10      # 🔧 10%
+  imposto_pct: 0.07        # 🔧 7% (Simples Nacional, Anexo I — comércio)
+  taxa_capital_dia: 0.0008 # custo de capital ao dia (~2,4% a.m.) p/ antecipação
+  dias_recebimento: 45     # prazo estimado até o órgão pagar (dias)
+
+# --- Saída ---
+saida:
+  top_n_console: 15        # quantas linhas mostrar no terminal
+  db_path: "empenho.db"    # caminho do SQLite
+  csv_prefix: "oportunidades"

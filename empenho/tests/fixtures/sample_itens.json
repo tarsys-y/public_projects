@@ -1,0 +1,44 @@
+[
+  {
+    "numeroItem": 1,
+    "descricao": "Papel A4 75g, resma com 500 folhas, branco",
+    "materialOuServico": "M",
+    "materialOuServicoNome": "Material",
+    "quantidade": 500,
+    "unidadeMedida": "Resma",
+    "valorUnitarioEstimado": 22.0,
+    "valorTotal": 11000.0,
+    "itemCategoriaNome": "Material de Expediente",
+    "criterioJulgamentoNome": "Menor preço",
+    "situacaoCompraItemNome": "Em Andamento",
+    "temResultado": false
+  },
+  {
+    "numeroItem": 2,
+    "descricao": "Toner para impressora laser, compatível, preto",
+    "materialOuServico": "M",
+    "materialOuServicoNome": "Material",
+    "quantidade": 200,
+    "unidadeMedida": "Unidade",
+    "valorUnitarioEstimado": 95.0,
+    "valorTotal": 19000.0,
+    "itemCategoriaNome": "Material de Expediente",
+    "criterioJulgamentoNome": "Menor preço",
+    "situacaoCompraItemNome": "Em Andamento",
+    "temResultado": false
+  },
+  {
+    "numeroItem": 3,
+    "descricao": "Caneta esferográfica azul, caixa com 50 unidades",
+    "materialOuServico": "M",
+    "materialOuServicoNome": "Material",
+    "quantidade": 300,
+    "unidadeMedida": "Caixa",
+    "valorUnitarioEstimado": 38.0,
+    "valorTotal": 11400.0,
+    "itemCategoriaNome": "Material de Expediente",
+    "criterioJulgamentoNome": "Menor preço",
+    "situacaoCompraItemNome": "Em Andamento",
+    "temResultado": false
+  }
+]

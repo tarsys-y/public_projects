@@ -1,0 +1,114 @@
+{
+  "data": [
+    {
+      "numeroControlePNCP": "12345678000190-1-000045/2026",
+      "numeroCompra": "00045",
+      "anoCompra": 2026,
+      "sequencialCompra": 45,
+      "processo": "2026.000045",
+      "objetoCompra": "Aquisição de material de expediente (papel A4, toner, cartucho e caneta) para abastecimento das secretarias municipais.",
+      "valorTotalEstimado": 64000.0,
+      "valorTotalHomologado": null,
+      "srp": true,
+      "dataAberturaProposta": "2026-06-18T08:00:00",
+      "dataEncerramentoProposta": "2026-06-30T09:00:00",
+      "dataPublicacaoPncp": "2026-06-18T10:00:00",
+      "modalidadeId": 6,
+      "modalidadeNome": "Pregão - Eletrônico",
+      "modoDisputaId": 4,
+      "modoDisputaNome": "Aberto",
+      "situacaoCompraId": 1,
+      "situacaoCompraNome": "Divulgada no PNCP",
+      "linkSistemaOrigem": "https://www.comprasnet.gov.br/...",
+      "orgaoEntidade": {
+        "cnpj": "12345678000190",
+        "razaoSocial": "Prefeitura Municipal de Maceió",
+        "poderId": "E",
+        "esferaId": "M"
+      },
+      "unidadeOrgao": {
+        "ufNome": "Alagoas",
+        "ufSigla": "AL",
+        "municipioNome": "Maceió",
+        "codigoIbge": "2704302",
+        "codigoUnidade": "001",
+        "nomeUnidade": "Secretaria Municipal de Administração"
+      }
+    },
+    {
+      "numeroControlePNCP": "98765432000110-1-000012/2026",
+      "numeroCompra": "00012",
+      "anoCompra": 2026,
+      "sequencialCompra": 12,
+      "processo": "2026.000012",
+      "objetoCompra": "Aquisição de material de construção (cimento, argamassa, ferragens e tinta) para pequenos reparos.",
+      "valorTotalEstimado": 145000.0,
+      "valorTotalHomologado": null,
+      "srp": false,
+      "dataAberturaProposta": "2026-06-19T08:00:00",
+      "dataEncerramentoProposta": "2026-06-22T14:00:00",
+      "dataPublicacaoPncp": "2026-06-19T11:00:00",
+      "modalidadeId": 6,
+      "modalidadeNome": "Pregão - Eletrônico",
+      "modoDisputaId": 4,
+      "modoDisputaNome": "Aberto",
+      "situacaoCompraId": 1,
+      "situacaoCompraNome": "Divulgada no PNCP",
+      "linkSistemaOrigem": "https://www.comprasnet.gov.br/...",
+      "orgaoEntidade": {
+        "cnpj": "98765432000110",
+        "razaoSocial": "Prefeitura Municipal de Arapiraca",
+        "poderId": "E",
+        "esferaId": "M"
+      },
+      "unidadeOrgao": {
+        "ufNome": "Alagoas",
+        "ufSigla": "AL",
+        "municipioNome": "Arapiraca",
+        "codigoIbge": "2700300",
+        "codigoUnidade": "002",
+        "nomeUnidade": "Secretaria de Infraestrutura"
+      }
+    },
+    {
+      "numeroControlePNCP": "11222333000144-1-000007/2026",
+      "numeroCompra": "00007",
+      "anoCompra": 2026,
+      "sequencialCompra": 7,
+      "processo": "2026.000007",
+      "objetoCompra": "Contratação de empresa especializada para execução de obra de pavimentação asfáltica e reforma de praça pública.",
+      "valorTotalEstimado": 980000.0,
+      "valorTotalHomologado": null,
+      "srp": false,
+      "dataAberturaProposta": "2026-06-17T08:00:00",
+      "dataEncerramentoProposta": "2026-06-28T09:00:00",
+      "dataPublicacaoPncp": "2026-06-17T09:00:00",
+      "modalidadeId": 6,
+      "modalidadeNome": "Pregão - Eletrônico",
+      "modoDisputaId": 4,
+      "modoDisputaNome": "Aberto",
+      "situacaoCompraId": 1,
+      "situacaoCompraNome": "Divulgada no PNCP",
+      "linkSistemaOrigem": "https://www.comprasnet.gov.br/...",
+      "orgaoEntidade": {
+        "cnpj": "11222333000144",
+        "razaoSocial": "Prefeitura Municipal de Palmeira dos Índios",
+        "poderId": "E",
+        "esferaId": "M"
+      },
+      "unidadeOrgao": {
+        "ufNome": "Alagoas",
+        "ufSigla": "AL",
+        "municipioNome": "Palmeira dos Índios",
+        "codigoIbge": "2706505",
+        "codigoUnidade": "003",
+        "nomeUnidade": "Secretaria de Obras"
+      }
+    }
+  ],
+  "totalRegistros": 3,
+  "totalPaginas": 1,
+  "numeroPagina": 1,
+  "paginasRestantes": 0,
+  "empty": false
+}

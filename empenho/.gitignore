@@ -1,0 +1,13 @@
+# Segredos
+.env
+
+# Banco e saídas geradas
+*.db
+oportunidades_*.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/

@@ -1,0 +1,14 @@
+# Núcleo (Fase 1)
+requests>=2.31
+pydantic>=2.6
+pydantic-settings>=2.2
+PyYAML>=6.0
+pandas>=2.1
+rich>=13.7
+python-dotenv>=1.0
+
+# Testes
+pytest>=8.0
+
+# Fase 2 (painel) — descomente quando for usar
+# streamlit>=1.33
