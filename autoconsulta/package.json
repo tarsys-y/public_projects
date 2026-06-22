@@ -1,0 +1,31 @@
+{
+  "name": "autoconsulta",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ferramentas independentes de autoconsulta: validação de CPF/CNPJ, dados públicos de empresa (QSA), situação cadastral do próprio titular e checagem de vazamentos do próprio e-mail.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "check:validation": "tsx scripts/check-validation.ts"
+  },
+  "dependencies": {
+    "@radix-ui/react-tabs": "^1.0.4",
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
+}
