@@ -6,6 +6,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import Animated, { FadeIn, FlipInYRight } from 'react-native-reanimated';
 import { CONFIG, type CardDefinition, type Rarity } from '@squad-dynasty/engine';
 import { CardView } from '../components/CardView';
+import { CARD_DIMENSIONS } from '../services/cardTheme';
 import { colors, rarityColors, rarityLabel } from '../constants/theme';
 import { cardOverall, playerById } from '../services/catalog';
 import { useEconomyStore } from '../stores/economyStore';
@@ -235,8 +236,8 @@ const styles = StyleSheet.create({
   cardsArea: { minHeight: 140 },
   cardsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   cardBack: {
-    width: 84,
-    minHeight: 100,
+    width: CARD_DIMENSIONS.sm.width,
+    minHeight: CARD_DIMENSIONS.sm.height,
     borderRadius: 10,
     borderWidth: 2,
     backgroundColor: colors.bgCard,

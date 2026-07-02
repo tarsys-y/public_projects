@@ -94,7 +94,7 @@ export default function CardDetailScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <CardView card={card} player={basePlayer} overall={resolved.overall} />
+        <CardView card={card} player={basePlayer} overall={resolved.overall} size="lg" animateSheen />
         <View style={styles.heroInfo}>
           <Text style={styles.playerName}>{basePlayer.name}</Text>
           <Text style={styles.meta}>
