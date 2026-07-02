@@ -11,6 +11,21 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Partida ao Vivo (M4)
+
+- **Playback sobre resultado pronto**: a partida inteira é simulada no início;
+  a UI só reproduz eventos até `playbackMinute`. Decisões, tática ao vivo e
+  substituições viram `interventions` e re-simulam com a MESMA seed — o
+  prefixo idêntico (garantido por teste no engine e no app) faz a troca de
+  resultado ser invisível para o jogador.
+- **Banco automático no amistoso**: se o usuário não montou banco no Meu Time,
+  o app completa com as melhores cartas não escaladas (1 GK + 6 linha).
+- **Adversário da IA**: `buildAutoSquad` sobre as cartas base do clube
+  escolhido (elencos completos graças aos fillers), sempre em 4-3-3.
+- **Modo rápido** muda apenas a velocidade do relógio de playback (3 min de
+  jogo/tick vs 0,375) e esconde o campo — o resultado é o mesmo.
+- **matchStore sem persistência**: amistoso é efêmero; sair da tela descarta.
+
 ## 2026-07-02 — Meu Time + Cartas (M3)
 
 - **Tap-to-select em vez de drag & drop** na escalação: tocar no slot abre a

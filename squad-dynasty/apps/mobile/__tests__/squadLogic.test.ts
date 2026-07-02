@@ -1,12 +1,7 @@
 // Aceite M3: montar um 4-3-3 completo e ver overall/química do time
 // atualizando em tempo real — verificado sobre a lógica pura dos stores.
-import {
-  FORMATIONS,
-  isGkAttributes,
-  type OwnedCard,
-  type Position,
-} from '@squad-dynasty/engine';
-import { CARDS, CATALOG, playerById } from '../src/services/catalog';
+import { DEFAULT_TACTICS, isGkAttributes, type OwnedCard } from '@squad-dynasty/engine';
+import { CATALOG } from '../src/services/catalog';
 import {
   assignCard,
   changeFormation,
@@ -17,70 +12,10 @@ import {
   toSquad,
   type DraftSquad,
 } from '../src/stores/squadLogic';
-import { DEFAULT_TACTICS } from '@squad-dynasty/engine';
+import { demoCollection, fillDraft as fillFromCollection } from './helpers';
 
-let nextId = 1;
-function own(cardDefId: string): OwnedCard {
-  return {
-    id: `owned-${nextId++}`,
-    ownerId: 'test',
-    cardDefId,
-    age: 25,
-    attributeDeltas: {},
-    evolutionLevel: 0,
-    starterStreak: 0,
-    acquiredAt: 0,
-  };
-}
-
-/** Coleção demo: cartas base do Flamengo + Palmeiras (como no app). */
-function demoCollection(): Map<string, OwnedCard> {
-  const cards = CARDS.filter((c) => {
-    const player = playerById.get(c.basePlayerId);
-    return c.version === 'base' && ['flamengo', 'palmeiras'].includes(player?.clubId ?? '');
-  });
-  const map = new Map<string, OwnedCard>();
-  for (const card of cards) {
-    const owned = own(card.id);
-    map.set(owned.id, owned);
-  }
-  return map;
-}
-
-function pickForPosition(
-  collection: Map<string, OwnedCard>,
-  position: Position,
-  used: Set<string>,
-): string {
-  for (const [id, owned] of collection) {
-    if (used.has(id)) continue;
-    const card = CATALOG.cards.get(owned.cardDefId)!;
-    const player = CATALOG.players.get(card.basePlayerId)!;
-    const gkCard = isGkAttributes(card.attributes);
-    if (position === 'GK' ? gkCard : !gkCard && player.positions.includes(position)) return id;
-  }
-  // fallback: qualquer carta de linha livre
-  for (const [id, owned] of collection) {
-    if (used.has(id)) continue;
-    const card = CATALOG.cards.get(owned.cardDefId)!;
-    if (position === 'GK' ? isGkAttributes(card.attributes) : !isGkAttributes(card.attributes)) {
-      return id;
-    }
-  }
-  throw new Error(`sem carta para ${position}`);
-}
-
-function fillDraft(draft: DraftSquad, collection: Map<string, OwnedCard>): DraftSquad {
-  const formation = FORMATIONS[draft.formation]!;
-  const used = new Set<string>();
-  let current = draft;
-  formation.slots.forEach((slot, i) => {
-    const id = pickForPosition(collection, slot.position, used);
-    used.add(id);
-    current = assignCard(current, i, id);
-  });
-  return current;
-}
+const fillDraft = (_draft: DraftSquad, collection: Map<string, OwnedCard>) =>
+  fillFromCollection(collection);
 
 describe('montagem do 4-3-3 (aceite M3)', () => {
   const collection = demoCollection();

@@ -684,6 +684,7 @@ export function simulateMatch(input: MatchInput, options: SimOptions = {}): Matc
       playerId: p.id,
       name: p.name,
       side,
+      slotIndex: p.slotIndex,
       position: p.position,
       role: p.role,
       started: p.started,

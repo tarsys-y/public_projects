@@ -122,6 +122,7 @@ export interface PlayerParticipation {
   playerId: string; // ownedCardId
   name: string;
   side: Side;
+  slotIndex: number; // slot da formação ocupado (sub herda o slot de quem saiu)
   position: Position;
   role: RoleId;
   started: boolean;
