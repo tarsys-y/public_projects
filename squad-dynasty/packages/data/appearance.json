@@ -1,1 +1,136 @@
-[]
+[
+  {
+    "playerId": "cristiano-ronaldo",
+    "skinTone": 1,
+    "faceShape": "square",
+    "hair": { "style": "crew", "color": "black" },
+    "beard": "stubble",
+    "eyes": { "shape": "sharp", "color": "brown" },
+    "mouth": "smile"
+  },
+  {
+    "playerId": "e-haaland",
+    "skinTone": 0,
+    "faceShape": "square",
+    "hair": { "style": "samurai-bun", "color": "blonde" },
+    "beard": "none",
+    "eyes": { "shape": "narrow", "color": "blue" },
+    "nose": "medium",
+    "mouth": "smile"
+  },
+  {
+    "playerId": "j-bellingham",
+    "skinTone": 4,
+    "faceShape": "oval",
+    "hair": { "style": "buzz-fade", "color": "black" },
+    "beard": "stubble",
+    "eyes": { "shape": "round", "color": "dark" },
+    "mouth": "smile"
+  },
+  {
+    "playerId": "k-de-bruyne",
+    "skinTone": 0,
+    "faceShape": "round",
+    "hair": { "style": "short-straight", "color": "red" },
+    "beard": "stubble",
+    "eyes": { "shape": "round", "color": "blue" },
+    "mouth": "neutral"
+  },
+  {
+    "playerId": "k-kvaratskhelia",
+    "skinTone": 1,
+    "faceShape": "oval",
+    "hair": { "style": "wavy-medium", "color": "dark-brown" },
+    "beard": "full-short",
+    "eyes": { "shape": "sharp", "color": "dark" },
+    "mouth": "neutral"
+  },
+  {
+    "playerId": "k-mbappe",
+    "skinTone": 3,
+    "faceShape": "round",
+    "hair": { "style": "buzz-fade", "color": "black" },
+    "beard": "none",
+    "eyes": { "shape": "round", "color": "dark" },
+    "nose": "medium",
+    "mouth": "smile"
+  },
+  {
+    "playerId": "l-messi",
+    "skinTone": 1,
+    "faceShape": "oval",
+    "hair": { "style": "short-straight", "color": "brown" },
+    "beard": "circle",
+    "eyes": { "shape": "round", "color": "brown" },
+    "nose": "medium",
+    "mouth": "neutral"
+  },
+  {
+    "playerId": "l-modric",
+    "skinTone": 0,
+    "faceShape": "oval",
+    "hair": { "style": "long-straight", "color": "light-brown" },
+    "beard": "stubble",
+    "eyes": { "shape": "narrow", "color": "brown" },
+    "nose": "medium",
+    "mouth": "neutral"
+  },
+  {
+    "playerId": "lamine-yamal",
+    "skinTone": 3,
+    "faceShape": "oval",
+    "hair": { "style": "curly-low", "color": "black" },
+    "beard": "none",
+    "eyes": { "shape": "round", "color": "dark" },
+    "mouth": "grin"
+  },
+  {
+    "playerId": "m-salah",
+    "skinTone": 3,
+    "faceShape": "round",
+    "hair": { "style": "curly-high", "color": "black" },
+    "beard": "full-short",
+    "eyes": { "shape": "round", "color": "dark" },
+    "mouth": "grin"
+  },
+  {
+    "playerId": "neymar",
+    "skinTone": 2,
+    "faceShape": "oval",
+    "hair": { "style": "wavy-medium", "color": "dark-brown" },
+    "beard": "goatee",
+    "eyes": { "shape": "sharp", "color": "brown" },
+    "mouth": "smile",
+    "accessories": ["earrings"]
+  },
+  {
+    "playerId": "ronaldinho",
+    "skinTone": 4,
+    "faceShape": "oval",
+    "hair": { "style": "long-straight", "color": "dark-brown" },
+    "beard": "goatee",
+    "eyes": { "shape": "round", "color": "dark" },
+    "nose": "wide",
+    "mouth": "grin",
+    "accessories": ["headband"]
+  },
+  {
+    "playerId": "vini-jr",
+    "skinTone": 4,
+    "faceShape": "oval",
+    "hair": { "style": "braids", "color": "black" },
+    "beard": "stubble",
+    "eyes": { "shape": "round", "color": "dark" },
+    "mouth": "grin",
+    "accessories": ["earring-left"]
+  },
+  {
+    "playerId": "alisson",
+    "skinTone": 1,
+    "faceShape": "square",
+    "hair": { "style": "wavy-medium", "color": "dark-brown" },
+    "beard": "full-long",
+    "eyes": { "shape": "round", "color": "brown" },
+    "mouth": "neutral"
+  }
+]

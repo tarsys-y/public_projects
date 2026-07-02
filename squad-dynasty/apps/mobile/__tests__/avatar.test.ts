@@ -8,6 +8,7 @@ import {
   resolveAppearance,
   ICON_KIT,
 } from '../src/services/avatar';
+import { buildAvatarTree, svgTreeToString } from '../src/services/avatarTree';
 import {
   BEARDS,
   EYE_COLORS,
@@ -92,6 +93,30 @@ describe('avatar (artes das cartas)', () => {
       proceduralAppearance('neymar-jr').hair.color,
     ]);
     expect(typeof b.hair.style).toBe('string');
+  });
+
+  it('builder: árvore determinística, nós dentro do orçamento, serializável', () => {
+    const kit = { primary: '#c52613', secondary: '#000000' };
+    for (const id of ['vini-jr', 'e-haaland', 'm-salah', 'random-1', 'random-2']) {
+      const tree = buildAvatarTree(resolveAppearance(id), kit);
+      expect(buildAvatarTree(resolveAppearance(id), kit)).toEqual(tree);
+      expect(tree.length).toBeGreaterThan(15);
+      expect(tree.length).toBeLessThanOrEqual(45);
+      const svg = svgTreeToString(tree, 100);
+      expect(svg).toContain('viewBox="0 0 100 100"');
+      expect(svg).toContain('stroke-width'); // camelCase → kebab no serializador
+      expect(svg).not.toContain('strokeWidth');
+    }
+  });
+
+  it('curadoria real dá identidade: Haaland tem coque loiro, Salah cachos+barba', () => {
+    const haaland = resolveAppearance('e-haaland');
+    expect(haaland.hair.style).toBe('samurai-bun');
+    expect(haaland.hair.color).toBe('blonde');
+    const salah = resolveAppearance('m-salah');
+    expect(salah.hair.style).toBe('curly-high');
+    expect(salah.beard).toBe('full-short');
+    expect(salah.mouth).toBe('grin');
   });
 
   it('camisa usa as cores reais do clube; ícones vestem o kit dourado', () => {
