@@ -80,6 +80,7 @@ describe('avatar (artes das cartas)', () => {
     expect(merged.beard).toBe('none');
     expect(merged.eyes).toEqual(base.eyes);
     expect(merged.faceShape).toBe(base.faceShape);
+    expect(merged.accessories).toEqual([]); // curado sem accessories = sem sorteio
   });
 
   it('invariante de salt: as famílias legadas (pele/cor/estilo) se preservam', () => {

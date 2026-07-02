@@ -183,7 +183,9 @@ export function applyCurated(base: ResolvedAppearance, curated: Appearance): Res
     },
     nose: curated.nose ?? base.nose,
     mouth: curated.mouth ?? base.mouth,
-    accessories: curated.accessories ?? base.accessories,
+    // curado sem accessories = SEM acessórios: brinco/faixa sorteados são
+    // traço forte demais para cair por acaso num rosto famoso
+    accessories: curated.accessories ?? [],
   };
 }
 
