@@ -4,3 +4,7 @@ dist/
 coverage/
 *.tsbuildinfo
 .DS_Store
+
+# M7
+apps/mobile/.env
+functions/lib/

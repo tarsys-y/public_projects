@@ -97,6 +97,7 @@ export default function RootLayout() {
         <Tabs.Screen name="sbc" options={{ href: null, title: 'DESAFIOS' }} />
         <Tabs.Screen name="profile" options={{ href: null, title: 'PERFIL' }} />
         <Tabs.Screen name="draft" options={{ href: null, title: 'DRAFT' }} />
+        <Tabs.Screen name="friends-league" options={{ href: null, title: 'LIGA DE AMIGOS' }} />
       </Tabs>
       <Onboarding />
       <StatusBar style="light" />

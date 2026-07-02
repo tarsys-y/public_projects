@@ -1,7 +1,7 @@
 // Liga / Carreira PvE (M6): escolha do clube, calendário, tabela com escudos,
 // jogar/simular rodada e resumo da virada de temporada (premiação + envelhecimento).
 import { useMemo, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ClubCrest } from '../components/ClubCrest';
 import { colors } from '../constants/theme';
@@ -28,6 +28,9 @@ export default function LeagueScreen() {
     const clubs = CLUBS.filter((c) => c.leagueId === pickLeague);
     return (
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <Link href="/friends-league" style={styles.friendsLink}>
+          <Text style={styles.friendsLinkText}>🌐 Liga de Amigos (online) →</Text>
+        </Link>
         <Text style={styles.h1}>Modo Carreira</Text>
         <Text style={styles.meta}>
           Assuma um clube e dispute a liga contra a IA. Ao fim da temporada suas cartas envelhecem
@@ -210,6 +213,15 @@ const styles = StyleSheet.create({
   content: { padding: 14, gap: 12, paddingBottom: 40 },
   h1: { color: colors.text, fontSize: 20, fontWeight: '900' },
   meta: { color: colors.textDim, fontSize: 12 },
+  friendsLink: {
+    backgroundColor: '#1d2a3a',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#2e4a6b',
+    overflow: 'hidden',
+  },
+  friendsLinkText: { color: colors.text, fontWeight: '800', fontSize: 13 },
   derby: { color: colors.warning, fontSize: 12, fontWeight: '900' },
   agingLine: { color: colors.textDim, fontSize: 11, paddingLeft: 4 },
   warn: { color: colors.warning, fontSize: 12, fontWeight: '700' },

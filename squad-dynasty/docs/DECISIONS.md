@@ -26,6 +26,23 @@ mais simples que preserva a diversão (SPEC seção 10.8).
 - **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
   (MLS com 30 clubes → 58 rodadas).
 
+## 2026-07-02 — M8 polish + M7 preparado
+
+- **Sons sintetizados por script** (WAVs de apito/gol/flip/sting/vitória):
+  sem fonte externa acessível; qualidade básica, substituível por patch de
+  assets. Sempre atrás do serviço feedback com toggles persistidos.
+- **Online 100% opcional**: firebase.ts só inicializa com
+  EXPO_PUBLIC_FIREBASE_* no .env; sem config o app é idêntico ao offline.
+- **M7 "lite" sem Blaze**: sorteios/liquidações no cliente com regras de
+  segurança e confiança entre amigos (desvio consciente da SPEC 10.4); as
+  Cloud Functions anti-fraude estão prontas em functions/ para quando o
+  usuário ativar o Blaze (EXPO_PUBLIC_USE_FUNCTIONS=1).
+- **Liga de amigos determinística**: calendário derivado de membros+seed
+  (nunca persistido) e seed de confronto por hash — quem joga primeiro grava
+  o resultado imutável; o outro reproduz a mesma partida.
+- **Mercado com liquidação no refresh**: moedas são locais por aparelho, então
+  créditos/reembolsos/resgates acontecem quando cada um abre o mercado.
+
 ## 2026-07-02 — Lendas, Eventos, FM e SBC/Draft
 
 - **Eventos semanais offline**: a semana ISO do relógio escolhe o evento do
