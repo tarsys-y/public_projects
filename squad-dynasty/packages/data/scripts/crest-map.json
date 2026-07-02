@@ -579,17 +579,9 @@
     "format": "svg",
     "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/bahia.svg"
   },
-  "fortaleza": {
-    "format": "svg",
-    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/fortaleza.svg"
-  },
   "bragantino": {
     "format": "svg",
     "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/bragantino.svg"
-  },
-  "ceara": {
-    "format": "svg",
-    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/ceara.svg"
   },
   "vitoria": {
     "format": "svg",
@@ -602,5 +594,13 @@
   "athletico-pr": {
     "format": "svg",
     "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/athletico-pr.svg"
+  },
+  "chapecoense": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/chapecoense.svg"
+  },
+  "remo": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/remo.svg"
   }
 }

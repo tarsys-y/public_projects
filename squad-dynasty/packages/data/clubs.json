@@ -1737,13 +1737,13 @@
     "secondaryColor": "#DA291C"
   },
   {
-    "id": "fortaleza",
-    "name": "Fortaleza",
-    "shortName": "FOR",
+    "id": "remo",
+    "name": "Remo",
+    "shortName": "REM",
     "leagueId": "brasileirao",
     "country": "BR",
-    "primaryColor": "#D40019",
-    "secondaryColor": "#0033A0"
+    "primaryColor": "#002D62",
+    "secondaryColor": "#FFFFFF"
   },
   {
     "id": "bragantino",
@@ -1755,12 +1755,12 @@
     "secondaryColor": "#E30613"
   },
   {
-    "id": "ceara",
-    "name": "Ceará",
-    "shortName": "CEA",
+    "id": "chapecoense",
+    "name": "Chapecoense",
+    "shortName": "CHA",
     "leagueId": "brasileirao",
     "country": "BR",
-    "primaryColor": "#000000",
+    "primaryColor": "#009846",
     "secondaryColor": "#FFFFFF"
   },
   {

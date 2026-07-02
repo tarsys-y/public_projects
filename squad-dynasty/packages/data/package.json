@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "validate": "tsx scripts/validate.ts",
-    "generate": "tsx scripts/import-fc26.ts && tsx scripts/generate-filler.ts && tsx scripts/generate-cards.ts",
+    "generate": "tsx scripts/import-fc26.ts && tsx scripts/apply-patches.ts && tsx scripts/generate-filler.ts && tsx scripts/generate-cards.ts",
     "crests": "tsx scripts/fetch-crests.ts && tsx scripts/generate-crest-index.ts",
     "typecheck": "tsc --noEmit"
   },

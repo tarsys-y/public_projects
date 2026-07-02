@@ -3744,6 +3744,42 @@
     }
   },
   {
+    "id": "goncalo-ramos",
+    "name": "Gonçalo Ramos",
+    "nationality": "PT",
+    "clubId": "ac-milan",
+    "leagueId": "serie-a-it",
+    "birthYear": 2001,
+    "positions": [
+      "ST"
+    ],
+    "attributes": {
+      "acceleration": 73,
+      "sprintSpeed": 73,
+      "finishing": 82,
+      "shotPower": 82,
+      "heading": 83,
+      "offPositioning": 85,
+      "shortPass": 72,
+      "longPass": 63,
+      "crossing": 58,
+      "vision": 63,
+      "dribbling": 76,
+      "ballControl": 78,
+      "agility": 77,
+      "marking": 43,
+      "tackling": 43,
+      "interceptions": 44,
+      "defPositioning": 44,
+      "strength": 79,
+      "stamina": 79,
+      "jumping": 89,
+      "composure": 75,
+      "consistency": 81,
+      "bigGame": 72
+    }
+  },
+  {
     "id": "k-de-winter",
     "name": "K. De Winter",
     "nationality": "BE",
@@ -4284,44 +4320,6 @@
       "composure": 73,
       "consistency": 73,
       "bigGame": 68
-    }
-  },
-  {
-    "id": "a-semenyo",
-    "name": "A. Semenyo",
-    "nationality": "GH",
-    "clubId": "afc-bournemouth",
-    "leagueId": "premier-league",
-    "birthYear": 2000,
-    "positions": [
-      "RM",
-      "LM",
-      "RW"
-    ],
-    "attributes": {
-      "acceleration": 78,
-      "sprintSpeed": 82,
-      "finishing": 83,
-      "shotPower": 81,
-      "heading": 64,
-      "offPositioning": 81,
-      "shortPass": 74,
-      "longPass": 69,
-      "crossing": 74,
-      "vision": 76,
-      "dribbling": 82,
-      "ballControl": 81,
-      "agility": 79,
-      "marking": 34,
-      "tackling": 40,
-      "interceptions": 34,
-      "defPositioning": 34,
-      "strength": 79,
-      "stamina": 84,
-      "jumping": 81,
-      "composure": 79,
-      "consistency": 79,
-      "bigGame": 81
     }
   },
   {
@@ -12181,6 +12179,43 @@
     }
   },
   {
+    "id": "k-benzema",
+    "name": "K. Benzema",
+    "nationality": "FR",
+    "clubId": "al-hilal",
+    "leagueId": "saudi-pro-league",
+    "birthYear": 1987,
+    "positions": [
+      "ST",
+      "CAM"
+    ],
+    "attributes": {
+      "acceleration": 74,
+      "sprintSpeed": 76,
+      "finishing": 86,
+      "shotPower": 85,
+      "heading": 86,
+      "offPositioning": 88,
+      "shortPass": 86,
+      "longPass": 76,
+      "crossing": 75,
+      "vision": 86,
+      "dribbling": 84,
+      "ballControl": 86,
+      "agility": 77,
+      "marking": 43,
+      "tackling": 22,
+      "interceptions": 39,
+      "defPositioning": 41,
+      "strength": 81,
+      "stamina": 78,
+      "jumping": 83,
+      "composure": 84,
+      "consistency": 84,
+      "bigGame": 89
+    }
+  },
+  {
     "id": "k-koulibaly",
     "name": "K. Koulibaly",
     "nationality": "SN",
@@ -12499,43 +12534,6 @@
       "composure": 66,
       "consistency": 63,
       "bigGame": 62
-    }
-  },
-  {
-    "id": "renan-lodi",
-    "name": "Renan Lodi",
-    "nationality": "BR",
-    "clubId": "al-hilal",
-    "leagueId": "saudi-pro-league",
-    "birthYear": 1998,
-    "positions": [
-      "LB",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 74,
-      "sprintSpeed": 75,
-      "finishing": 69,
-      "shotPower": 75,
-      "heading": 69,
-      "offPositioning": 76,
-      "shortPass": 77,
-      "longPass": 74,
-      "crossing": 82,
-      "vision": 75,
-      "dribbling": 76,
-      "ballControl": 77,
-      "agility": 79,
-      "marking": 71,
-      "tackling": 75,
-      "interceptions": 72,
-      "defPositioning": 72,
-      "strength": 65,
-      "stamina": 81,
-      "jumping": 75,
-      "composure": 74,
-      "consistency": 75,
-      "bigGame": 70
     }
   },
   {
@@ -13078,6 +13076,42 @@
     }
   },
   {
+    "id": "g-ilenikhena",
+    "name": "G. Ilenikhena",
+    "nationality": "NG",
+    "clubId": "al-ittihad",
+    "leagueId": "saudi-pro-league",
+    "birthYear": 2006,
+    "positions": [
+      "ST"
+    ],
+    "attributes": {
+      "acceleration": 76,
+      "sprintSpeed": 81,
+      "finishing": 74,
+      "shotPower": 72,
+      "heading": 70,
+      "offPositioning": 73,
+      "shortPass": 66,
+      "longPass": 54,
+      "crossing": 42,
+      "vision": 55,
+      "dribbling": 70,
+      "ballControl": 71,
+      "agility": 76,
+      "marking": 16,
+      "tackling": 27,
+      "interceptions": 17,
+      "defPositioning": 17,
+      "strength": 73,
+      "stamina": 62,
+      "jumping": 81,
+      "composure": 70,
+      "consistency": 68,
+      "bigGame": 65
+    }
+  },
+  {
     "id": "h-al-shanqeeti",
     "name": "H. Al Shanqeeti",
     "nationality": "SA",
@@ -13206,43 +13240,6 @@
       "composure": 50,
       "consistency": 67,
       "bigGame": 55
-    }
-  },
-  {
-    "id": "k-benzema",
-    "name": "K. Benzema",
-    "nationality": "FR",
-    "clubId": "al-ittihad",
-    "leagueId": "saudi-pro-league",
-    "birthYear": 1987,
-    "positions": [
-      "ST",
-      "CAM"
-    ],
-    "attributes": {
-      "acceleration": 74,
-      "sprintSpeed": 76,
-      "finishing": 86,
-      "shotPower": 85,
-      "heading": 86,
-      "offPositioning": 88,
-      "shortPass": 86,
-      "longPass": 76,
-      "crossing": 75,
-      "vision": 86,
-      "dribbling": 84,
-      "ballControl": 86,
-      "agility": 77,
-      "marking": 43,
-      "tackling": 22,
-      "interceptions": 39,
-      "defPositioning": 41,
-      "strength": 81,
-      "stamina": 78,
-      "jumping": 83,
-      "composure": 84,
-      "consistency": 84,
-      "bigGame": 89
     }
   },
   {
@@ -22797,44 +22794,6 @@
     }
   },
   {
-    "id": "p-hincapie",
-    "name": "P. Hincapié",
-    "nationality": "EC",
-    "clubId": "arsenal",
-    "leagueId": "premier-league",
-    "birthYear": 2002,
-    "positions": [
-      "CB",
-      "LB",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 80,
-      "sprintSpeed": 88,
-      "finishing": 41,
-      "shotPower": 50,
-      "heading": 79,
-      "offPositioning": 60,
-      "shortPass": 78,
-      "longPass": 74,
-      "crossing": 55,
-      "vision": 57,
-      "dribbling": 70,
-      "ballControl": 74,
-      "agility": 74,
-      "marking": 83,
-      "tackling": 86,
-      "interceptions": 83,
-      "defPositioning": 83,
-      "strength": 77,
-      "stamina": 85,
-      "jumping": 88,
-      "composure": 76,
-      "consistency": 82,
-      "bigGame": 81
-    }
-  },
-  {
     "id": "r-calafiori",
     "name": "R. Calafiori",
     "nationality": "IT",
@@ -23275,42 +23234,6 @@
       "composure": 77,
       "consistency": 76,
       "bigGame": 71
-    }
-  },
-  {
-    "id": "g-ilenikhena",
-    "name": "G. Ilenikhena",
-    "nationality": "NG",
-    "clubId": "as-monaco",
-    "leagueId": "ligue-1",
-    "birthYear": 2006,
-    "positions": [
-      "ST"
-    ],
-    "attributes": {
-      "acceleration": 76,
-      "sprintSpeed": 81,
-      "finishing": 74,
-      "shotPower": 72,
-      "heading": 70,
-      "offPositioning": 73,
-      "shortPass": 66,
-      "longPass": 54,
-      "crossing": 42,
-      "vision": 55,
-      "dribbling": 70,
-      "ballControl": 71,
-      "agility": 76,
-      "marking": 16,
-      "tackling": 27,
-      "interceptions": 17,
-      "defPositioning": 17,
-      "strength": 73,
-      "stamina": 62,
-      "jumping": 81,
-      "composure": 70,
-      "consistency": 68,
-      "bigGame": 65
     }
   },
   {
@@ -24021,6 +23944,43 @@
       "composure": 79,
       "consistency": 78,
       "bigGame": 81
+    }
+  },
+  {
+    "id": "douglas-luiz",
+    "name": "Douglas Luiz",
+    "nationality": "BR",
+    "clubId": "aston-villa",
+    "leagueId": "premier-league",
+    "birthYear": 1998,
+    "positions": [
+      "CM",
+      "CDM"
+    ],
+    "attributes": {
+      "acceleration": 69,
+      "sprintSpeed": 66,
+      "finishing": 70,
+      "shotPower": 79,
+      "heading": 62,
+      "offPositioning": 76,
+      "shortPass": 81,
+      "longPass": 81,
+      "crossing": 81,
+      "vision": 84,
+      "dribbling": 79,
+      "ballControl": 84,
+      "agility": 74,
+      "marking": 76,
+      "tackling": 76,
+      "interceptions": 76,
+      "defPositioning": 76,
+      "strength": 65,
+      "stamina": 75,
+      "jumping": 70,
+      "composure": 84,
+      "consistency": 77,
+      "bigGame": 83
     }
   },
   {
@@ -27390,44 +27350,6 @@
     }
   },
   {
-    "id": "c-gallagher",
-    "name": "C. Gallagher",
-    "nationality": "EN",
-    "clubId": "atletico-madrid",
-    "leagueId": "la-liga",
-    "birthYear": 2000,
-    "positions": [
-      "CM",
-      "CAM",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 72,
-      "sprintSpeed": 77,
-      "finishing": 74,
-      "shotPower": 81,
-      "heading": 66,
-      "offPositioning": 82,
-      "shortPass": 83,
-      "longPass": 81,
-      "crossing": 75,
-      "vision": 80,
-      "dribbling": 78,
-      "ballControl": 80,
-      "agility": 73,
-      "marking": 79,
-      "tackling": 80,
-      "interceptions": 80,
-      "defPositioning": 80,
-      "strength": 78,
-      "stamina": 93,
-      "jumping": 79,
-      "composure": 81,
-      "consistency": 82,
-      "bigGame": 83
-    }
-  },
-  {
     "id": "c-lenglet",
     "name": "C. Lenglet",
     "nationality": "FR",
@@ -28135,6 +28057,43 @@
       "composure": 80,
       "consistency": 74,
       "bigGame": 80
+    }
+  },
+  {
+    "id": "renan-lodi",
+    "name": "Renan Lodi",
+    "nationality": "BR",
+    "clubId": "atletico-mg",
+    "leagueId": "brasileirao",
+    "birthYear": 1998,
+    "positions": [
+      "LB",
+      "LM"
+    ],
+    "attributes": {
+      "acceleration": 74,
+      "sprintSpeed": 75,
+      "finishing": 69,
+      "shotPower": 75,
+      "heading": 69,
+      "offPositioning": 76,
+      "shortPass": 77,
+      "longPass": 74,
+      "crossing": 82,
+      "vision": 75,
+      "dribbling": 76,
+      "ballControl": 77,
+      "agility": 79,
+      "marking": 71,
+      "tackling": 75,
+      "interceptions": 72,
+      "defPositioning": 72,
+      "strength": 65,
+      "stamina": 81,
+      "jumping": 75,
+      "composure": 74,
+      "consistency": 75,
+      "bigGame": 70
     }
   },
   {
@@ -31445,6 +31404,44 @@
       "composure": 73,
       "consistency": 66,
       "bigGame": 66
+    }
+  },
+  {
+    "id": "p-hincapie",
+    "name": "P. Hincapié",
+    "nationality": "EC",
+    "clubId": "bayer-04-leverkusen",
+    "leagueId": "bundesliga",
+    "birthYear": 2002,
+    "positions": [
+      "CB",
+      "LB",
+      "LM"
+    ],
+    "attributes": {
+      "acceleration": 80,
+      "sprintSpeed": 88,
+      "finishing": 41,
+      "shotPower": 50,
+      "heading": 79,
+      "offPositioning": 60,
+      "shortPass": 78,
+      "longPass": 74,
+      "crossing": 55,
+      "vision": 57,
+      "dribbling": 70,
+      "ballControl": 74,
+      "agility": 74,
+      "marking": 83,
+      "tackling": 86,
+      "interceptions": 83,
+      "defPositioning": 83,
+      "strength": 77,
+      "stamina": 85,
+      "jumping": 88,
+      "composure": 76,
+      "consistency": 82,
+      "bigGame": 81
     }
   },
   {
@@ -37458,44 +37455,6 @@
     }
   },
   {
-    "id": "victor-munoz",
-    "name": "Víctor Muñoz",
-    "nationality": "ES",
-    "clubId": "ca-osasuna",
-    "leagueId": "la-liga",
-    "birthYear": 2003,
-    "positions": [
-      "LW",
-      "CAM",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 74,
-      "sprintSpeed": 70,
-      "finishing": 63,
-      "shotPower": 64,
-      "heading": 40,
-      "offPositioning": 63,
-      "shortPass": 63,
-      "longPass": 55,
-      "crossing": 63,
-      "vision": 61,
-      "dribbling": 69,
-      "ballControl": 66,
-      "agility": 54,
-      "marking": 20,
-      "tackling": 29,
-      "interceptions": 21,
-      "defPositioning": 21,
-      "strength": 34,
-      "stamina": 47,
-      "jumping": 42,
-      "composure": 58,
-      "consistency": 60,
-      "bigGame": 57
-    }
-  },
-  {
     "id": "a-belotti",
     "name": "A. Belotti",
     "nationality": "IT",
@@ -37979,43 +37938,6 @@
       "composure": 74,
       "consistency": 76,
       "bigGame": 70
-    }
-  },
-  {
-    "id": "m-palestra",
-    "name": "M. Palestra",
-    "nationality": "IT",
-    "clubId": "cagliari",
-    "leagueId": "serie-a-it",
-    "birthYear": 2005,
-    "positions": [
-      "RM",
-      "RB"
-    ],
-    "attributes": {
-      "acceleration": 67,
-      "sprintSpeed": 66,
-      "finishing": 61,
-      "shotPower": 60,
-      "heading": 56,
-      "offPositioning": 65,
-      "shortPass": 69,
-      "longPass": 62,
-      "crossing": 59,
-      "vision": 59,
-      "dribbling": 65,
-      "ballControl": 68,
-      "agility": 56,
-      "marking": 59,
-      "tackling": 64,
-      "interceptions": 62,
-      "defPositioning": 61,
-      "strength": 60,
-      "stamina": 51,
-      "jumping": 65,
-      "composure": 61,
-      "consistency": 65,
-      "bigGame": 60
     }
   },
   {
@@ -40099,44 +40021,6 @@
       "composure": 62,
       "consistency": 60,
       "bigGame": 59
-    }
-  },
-  {
-    "id": "bebeto",
-    "name": "Bebeto",
-    "nationality": "BR",
-    "clubId": "cd-tondela",
-    "leagueId": "primeira-liga",
-    "birthYear": 1990,
-    "positions": [
-      "RB",
-      "CM",
-      "RM"
-    ],
-    "attributes": {
-      "acceleration": 70,
-      "sprintSpeed": 70,
-      "finishing": 41,
-      "shotPower": 58,
-      "heading": 58,
-      "offPositioning": 57,
-      "shortPass": 66,
-      "longPass": 55,
-      "crossing": 67,
-      "vision": 52,
-      "dribbling": 67,
-      "ballControl": 65,
-      "agility": 78,
-      "marking": 68,
-      "tackling": 67,
-      "interceptions": 68,
-      "defPositioning": 68,
-      "strength": 57,
-      "stamina": 77,
-      "jumping": 64,
-      "composure": 64,
-      "consistency": 69,
-      "bigGame": 63
     }
   },
   {
@@ -42749,6 +42633,42 @@
     }
   },
   {
+    "id": "e-emegha",
+    "name": "E. Emegha",
+    "nationality": "NL",
+    "clubId": "chelsea",
+    "leagueId": "premier-league",
+    "birthYear": 2003,
+    "positions": [
+      "ST"
+    ],
+    "attributes": {
+      "acceleration": 81,
+      "sprintSpeed": 95,
+      "finishing": 79,
+      "shotPower": 78,
+      "heading": 77,
+      "offPositioning": 82,
+      "shortPass": 65,
+      "longPass": 49,
+      "crossing": 47,
+      "vision": 64,
+      "dribbling": 69,
+      "ballControl": 76,
+      "agility": 69,
+      "marking": 26,
+      "tackling": 22,
+      "interceptions": 35,
+      "defPositioning": 31,
+      "strength": 82,
+      "stamina": 84,
+      "jumping": 92,
+      "composure": 75,
+      "consistency": 77,
+      "bigGame": 71
+    }
+  },
+  {
     "id": "e-fernandez",
     "name": "E. Fernández",
     "nationality": "AR",
@@ -42843,6 +42763,44 @@
       "composure": 55,
       "consistency": 74,
       "bigGame": 60
+    }
+  },
+  {
+    "id": "geovany-quenda",
+    "name": "Geovany Quenda",
+    "nationality": "PT",
+    "clubId": "chelsea",
+    "leagueId": "premier-league",
+    "birthYear": 2007,
+    "positions": [
+      "RM",
+      "LM",
+      "LW"
+    ],
+    "attributes": {
+      "acceleration": 87,
+      "sprintSpeed": 83,
+      "finishing": 63,
+      "shotPower": 63,
+      "heading": 35,
+      "offPositioning": 72,
+      "shortPass": 74,
+      "longPass": 70,
+      "crossing": 71,
+      "vision": 70,
+      "dribbling": 80,
+      "ballControl": 81,
+      "agility": 84,
+      "marking": 46,
+      "tackling": 39,
+      "interceptions": 40,
+      "defPositioning": 43,
+      "strength": 68,
+      "stamina": 75,
+      "jumping": 66,
+      "composure": 70,
+      "consistency": 64,
+      "bigGame": 64
     }
   },
   {
@@ -43103,39 +43061,40 @@
     }
   },
   {
-    "id": "marc-cucurella",
-    "name": "Marc Cucurella",
-    "nationality": "ES",
+    "id": "m-palestra",
+    "name": "M. Palestra",
+    "nationality": "IT",
     "clubId": "chelsea",
     "leagueId": "premier-league",
-    "birthYear": 1998,
+    "birthYear": 2005,
     "positions": [
-      "LB"
+      "RM",
+      "RB"
     ],
     "attributes": {
-      "acceleration": 77,
-      "sprintSpeed": 74,
+      "acceleration": 67,
+      "sprintSpeed": 66,
       "finishing": 61,
-      "shotPower": 73,
-      "heading": 72,
-      "offPositioning": 76,
-      "shortPass": 82,
-      "longPass": 79,
-      "crossing": 81,
-      "vision": 77,
-      "dribbling": 78,
-      "ballControl": 80,
-      "agility": 82,
-      "marking": 83,
-      "tackling": 83,
-      "interceptions": 82,
-      "defPositioning": 83,
-      "strength": 70,
-      "stamina": 89,
-      "jumping": 86,
-      "composure": 79,
-      "consistency": 84,
-      "bigGame": 83
+      "shotPower": 60,
+      "heading": 56,
+      "offPositioning": 65,
+      "shortPass": 69,
+      "longPass": 62,
+      "crossing": 59,
+      "vision": 59,
+      "dribbling": 65,
+      "ballControl": 68,
+      "agility": 56,
+      "marking": 59,
+      "tackling": 64,
+      "interceptions": 62,
+      "defPositioning": 61,
+      "strength": 60,
+      "stamina": 51,
+      "jumping": 65,
+      "composure": 61,
+      "consistency": 65,
+      "bigGame": 60
     }
   },
   {
@@ -47710,6 +47669,44 @@
       "composure": 82,
       "consistency": 78,
       "bigGame": 74
+    }
+  },
+  {
+    "id": "b-johnson",
+    "name": "B. Johnson",
+    "nationality": "WL",
+    "clubId": "crystal-palace",
+    "leagueId": "premier-league",
+    "birthYear": 2001,
+    "positions": [
+      "RW",
+      "RM",
+      "LW"
+    ],
+    "attributes": {
+      "acceleration": 87,
+      "sprintSpeed": 85,
+      "finishing": 82,
+      "shotPower": 74,
+      "heading": 58,
+      "offPositioning": 83,
+      "shortPass": 74,
+      "longPass": 63,
+      "crossing": 78,
+      "vision": 78,
+      "dribbling": 78,
+      "ballControl": 78,
+      "agility": 81,
+      "marking": 45,
+      "tackling": 48,
+      "interceptions": 23,
+      "defPositioning": 34,
+      "strength": 52,
+      "stamina": 78,
+      "jumping": 70,
+      "composure": 79,
+      "consistency": 78,
+      "bigGame": 73
     }
   },
   {
@@ -57913,6 +57910,44 @@
     }
   },
   {
+    "id": "a-gordon",
+    "name": "A. Gordon",
+    "nationality": "EN",
+    "clubId": "fc-barcelona",
+    "leagueId": "la-liga",
+    "birthYear": 2001,
+    "positions": [
+      "LW",
+      "RW",
+      "LM"
+    ],
+    "attributes": {
+      "acceleration": 89,
+      "sprintSpeed": 92,
+      "finishing": 81,
+      "shotPower": 78,
+      "heading": 59,
+      "offPositioning": 82,
+      "shortPass": 79,
+      "longPass": 66,
+      "crossing": 81,
+      "vision": 81,
+      "dribbling": 85,
+      "ballControl": 83,
+      "agility": 78,
+      "marking": 49,
+      "tackling": 53,
+      "interceptions": 40,
+      "defPositioning": 45,
+      "strength": 61,
+      "stamina": 87,
+      "jumping": 75,
+      "composure": 81,
+      "consistency": 83,
+      "bigGame": 83
+    }
+  },
+  {
     "id": "balde",
     "name": "Balde",
     "nationality": "ES",
@@ -58943,6 +58978,43 @@
     }
   },
   {
+    "id": "i-saibari",
+    "name": "I. Saibari",
+    "nationality": "MA",
+    "clubId": "fc-bayern-munchen",
+    "leagueId": "bundesliga",
+    "birthYear": 2001,
+    "positions": [
+      "CAM",
+      "CM"
+    ],
+    "attributes": {
+      "acceleration": 81,
+      "sprintSpeed": 76,
+      "finishing": 75,
+      "shotPower": 79,
+      "heading": 57,
+      "offPositioning": 78,
+      "shortPass": 78,
+      "longPass": 71,
+      "crossing": 71,
+      "vision": 78,
+      "dribbling": 83,
+      "ballControl": 84,
+      "agility": 77,
+      "marking": 50,
+      "tackling": 50,
+      "interceptions": 51,
+      "defPositioning": 51,
+      "strength": 83,
+      "stamina": 79,
+      "jumping": 81,
+      "composure": 74,
+      "consistency": 80,
+      "bigGame": 71
+    }
+  },
+  {
     "id": "j-kimmich",
     "name": "J. Kimmich",
     "nationality": "DE",
@@ -59697,44 +59769,6 @@
       "composure": 61,
       "consistency": 61,
       "bigGame": 59
-    }
-  },
-  {
-    "id": "brenner",
-    "name": "Brenner",
-    "nationality": "BR",
-    "clubId": "fc-cincinnati",
-    "leagueId": "mls",
-    "birthYear": 2000,
-    "positions": [
-      "ST",
-      "CAM",
-      "CM"
-    ],
-    "attributes": {
-      "acceleration": 75,
-      "sprintSpeed": 76,
-      "finishing": 74,
-      "shotPower": 70,
-      "heading": 65,
-      "offPositioning": 74,
-      "shortPass": 68,
-      "longPass": 59,
-      "crossing": 57,
-      "vision": 63,
-      "dribbling": 77,
-      "ballControl": 77,
-      "agility": 78,
-      "marking": 29,
-      "tackling": 29,
-      "interceptions": 24,
-      "defPositioning": 27,
-      "strength": 52,
-      "stamina": 60,
-      "jumping": 67,
-      "composure": 70,
-      "consistency": 70,
-      "bigGame": 66
     }
   },
   {
@@ -65358,44 +65392,6 @@
     }
   },
   {
-    "id": "stephen-eustaquio",
-    "name": "Stephen Eustáquio",
-    "nationality": "CA",
-    "clubId": "fc-porto",
-    "leagueId": "primeira-liga",
-    "birthYear": 1996,
-    "positions": [
-      "CDM",
-      "CM",
-      "CB"
-    ],
-    "attributes": {
-      "acceleration": 67,
-      "sprintSpeed": 65,
-      "finishing": 64,
-      "shotPower": 72,
-      "heading": 56,
-      "offPositioning": 68,
-      "shortPass": 78,
-      "longPass": 77,
-      "crossing": 72,
-      "vision": 77,
-      "dribbling": 71,
-      "ballControl": 77,
-      "agility": 72,
-      "marking": 74,
-      "tackling": 74,
-      "interceptions": 75,
-      "defPositioning": 75,
-      "strength": 70,
-      "stamina": 79,
-      "jumping": 76,
-      "composure": 76,
-      "consistency": 75,
-      "bigGame": 71
-    }
-  },
-  {
     "id": "v-froholdt",
     "name": "V. Froholdt",
     "nationality": "DK",
@@ -70624,6 +70620,44 @@
     }
   },
   {
+    "id": "lucas-paqueta",
+    "name": "Lucas Paquetá",
+    "nationality": "BR",
+    "clubId": "flamengo",
+    "leagueId": "brasileirao",
+    "birthYear": 1997,
+    "positions": [
+      "CM",
+      "LM",
+      "CAM"
+    ],
+    "attributes": {
+      "acceleration": 69,
+      "sprintSpeed": 67,
+      "finishing": 78,
+      "shotPower": 77,
+      "heading": 68,
+      "offPositioning": 77,
+      "shortPass": 80,
+      "longPass": 80,
+      "crossing": 74,
+      "vision": 80,
+      "dribbling": 86,
+      "ballControl": 85,
+      "agility": 75,
+      "marking": 67,
+      "tackling": 70,
+      "interceptions": 71,
+      "defPositioning": 69,
+      "strength": 73,
+      "stamina": 76,
+      "jumping": 75,
+      "composure": 86,
+      "consistency": 79,
+      "bigGame": 85
+    }
+  },
+  {
     "id": "a-halilovic",
     "name": "A. Halilović",
     "nationality": "HR",
@@ -72821,43 +72855,6 @@
       "composure": 62,
       "consistency": 64,
       "bigGame": 60
-    }
-  },
-  {
-    "id": "patrick-de-paula",
-    "name": "Patrick de Paula",
-    "nationality": "BR",
-    "clubId": "gd-estoril-praia",
-    "leagueId": "primeira-liga",
-    "birthYear": 1999,
-    "positions": [
-      "CDM",
-      "CM"
-    ],
-    "attributes": {
-      "acceleration": 73,
-      "sprintSpeed": 68,
-      "finishing": 49,
-      "shotPower": 65,
-      "heading": 58,
-      "offPositioning": 48,
-      "shortPass": 76,
-      "longPass": 73,
-      "crossing": 50,
-      "vision": 54,
-      "dribbling": 73,
-      "ballControl": 78,
-      "agility": 65,
-      "marking": 68,
-      "tackling": 73,
-      "interceptions": 61,
-      "defPositioning": 65,
-      "strength": 62,
-      "stamina": 79,
-      "jumping": 69,
-      "composure": 53,
-      "consistency": 64,
-      "bigGame": 56
     }
   },
   {
@@ -89905,6 +89902,42 @@
     }
   },
   {
+    "id": "j-jacquet",
+    "name": "J. Jacquet",
+    "nationality": "FR",
+    "clubId": "liverpool",
+    "leagueId": "premier-league",
+    "birthYear": 2005,
+    "positions": [
+      "CB"
+    ],
+    "attributes": {
+      "acceleration": 57,
+      "sprintSpeed": 70,
+      "finishing": 36,
+      "shotPower": 44,
+      "heading": 75,
+      "offPositioning": 41,
+      "shortPass": 68,
+      "longPass": 63,
+      "crossing": 45,
+      "vision": 53,
+      "dribbling": 57,
+      "ballControl": 67,
+      "agility": 52,
+      "marking": 73,
+      "tackling": 77,
+      "interceptions": 71,
+      "defPositioning": 72,
+      "strength": 81,
+      "stamina": 64,
+      "jumping": 80,
+      "composure": 68,
+      "consistency": 70,
+      "bigGame": 65
+    }
+  },
+  {
     "id": "m-kerkez",
     "name": "M. Kerkez",
     "nationality": "HU",
@@ -90124,6 +90157,44 @@
       "composure": 90,
       "consistency": 90,
       "bigGame": 98
+    }
+  },
+  {
+    "id": "victor-munoz",
+    "name": "Víctor Muñoz",
+    "nationality": "ES",
+    "clubId": "liverpool",
+    "leagueId": "premier-league",
+    "birthYear": 2003,
+    "positions": [
+      "LW",
+      "CAM",
+      "LM"
+    ],
+    "attributes": {
+      "acceleration": 74,
+      "sprintSpeed": 70,
+      "finishing": 63,
+      "shotPower": 64,
+      "heading": 40,
+      "offPositioning": 63,
+      "shortPass": 63,
+      "longPass": 55,
+      "crossing": 63,
+      "vision": 61,
+      "dribbling": 69,
+      "ballControl": 66,
+      "agility": 54,
+      "marking": 20,
+      "tackling": 29,
+      "interceptions": 21,
+      "defPositioning": 21,
+      "strength": 34,
+      "stamina": 47,
+      "jumping": 42,
+      "composure": 58,
+      "consistency": 60,
+      "bigGame": 57
     }
   },
   {
@@ -90913,6 +90984,44 @@
     }
   },
   {
+    "id": "stephen-eustaquio",
+    "name": "Stephen Eustáquio",
+    "nationality": "CA",
+    "clubId": "los-angeles-fc",
+    "leagueId": "mls",
+    "birthYear": 1996,
+    "positions": [
+      "CDM",
+      "CM",
+      "CB"
+    ],
+    "attributes": {
+      "acceleration": 67,
+      "sprintSpeed": 65,
+      "finishing": 64,
+      "shotPower": 72,
+      "heading": 56,
+      "offPositioning": 68,
+      "shortPass": 78,
+      "longPass": 77,
+      "crossing": 72,
+      "vision": 77,
+      "dribbling": 71,
+      "ballControl": 77,
+      "agility": 72,
+      "marking": 74,
+      "tackling": 74,
+      "interceptions": 75,
+      "defPositioning": 75,
+      "strength": 70,
+      "stamina": 79,
+      "jumping": 76,
+      "composure": 76,
+      "consistency": 75,
+      "bigGame": 71
+    }
+  },
+  {
     "id": "t-hasal",
     "name": "T. Hasal",
     "nationality": "CA",
@@ -91045,41 +91154,41 @@
     }
   },
   {
-    "id": "bernardo-silva",
-    "name": "Bernardo Silva",
-    "nationality": "PT",
+    "id": "a-semenyo",
+    "name": "A. Semenyo",
+    "nationality": "GH",
     "clubId": "manchester-city",
     "leagueId": "premier-league",
-    "birthYear": 1994,
+    "birthYear": 2000,
     "positions": [
-      "CM",
       "RM",
-      "CDM"
+      "LM",
+      "RW"
     ],
     "attributes": {
-      "acceleration": 68,
-      "sprintSpeed": 55,
-      "finishing": 78,
-      "shotPower": 79,
-      "heading": 54,
-      "offPositioning": 80,
-      "shortPass": 86,
-      "longPass": 82,
-      "crossing": 82,
-      "vision": 85,
-      "dribbling": 88,
-      "ballControl": 88,
-      "agility": 93,
-      "marking": 70,
-      "tackling": 73,
-      "interceptions": 73,
-      "defPositioning": 72,
-      "strength": 47,
-      "stamina": 90,
-      "jumping": 58,
-      "composure": 86,
-      "consistency": 87,
-      "bigGame": 87
+      "acceleration": 78,
+      "sprintSpeed": 82,
+      "finishing": 83,
+      "shotPower": 81,
+      "heading": 64,
+      "offPositioning": 81,
+      "shortPass": 74,
+      "longPass": 69,
+      "crossing": 74,
+      "vision": 76,
+      "dribbling": 82,
+      "ballControl": 81,
+      "agility": 79,
+      "marking": 34,
+      "tackling": 40,
+      "interceptions": 34,
+      "defPositioning": 34,
+      "strength": 79,
+      "stamina": 84,
+      "jumping": 81,
+      "composure": 79,
+      "consistency": 79,
+      "bigGame": 81
     }
   },
   {
@@ -101124,44 +101233,6 @@
     }
   },
   {
-    "id": "a-gordon",
-    "name": "A. Gordon",
-    "nationality": "EN",
-    "clubId": "newcastle-united",
-    "leagueId": "premier-league",
-    "birthYear": 2001,
-    "positions": [
-      "LW",
-      "RW",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 89,
-      "sprintSpeed": 92,
-      "finishing": 81,
-      "shotPower": 78,
-      "heading": 59,
-      "offPositioning": 82,
-      "shortPass": 79,
-      "longPass": 66,
-      "crossing": 81,
-      "vision": 81,
-      "dribbling": 85,
-      "ballControl": 83,
-      "agility": 78,
-      "marking": 49,
-      "tackling": 53,
-      "interceptions": 40,
-      "defPositioning": 45,
-      "strength": 61,
-      "stamina": 87,
-      "jumping": 75,
-      "composure": 81,
-      "consistency": 83,
-      "bigGame": 83
-    }
-  },
-  {
     "id": "a-ramsdale",
     "name": "A. Ramsdale",
     "nationality": "EN",
@@ -102140,43 +102211,6 @@
       "composure": 74,
       "consistency": 75,
       "bigGame": 70
-    }
-  },
-  {
-    "id": "douglas-luiz",
-    "name": "Douglas Luiz",
-    "nationality": "BR",
-    "clubId": "nottingham-forest",
-    "leagueId": "premier-league",
-    "birthYear": 1998,
-    "positions": [
-      "CM",
-      "CDM"
-    ],
-    "attributes": {
-      "acceleration": 69,
-      "sprintSpeed": 66,
-      "finishing": 70,
-      "shotPower": 79,
-      "heading": 62,
-      "offPositioning": 76,
-      "shortPass": 81,
-      "longPass": 81,
-      "crossing": 81,
-      "vision": 84,
-      "dribbling": 79,
-      "ballControl": 84,
-      "agility": 74,
-      "marking": 76,
-      "tackling": 76,
-      "interceptions": 76,
-      "defPositioning": 76,
-      "strength": 65,
-      "stamina": 75,
-      "jumping": 70,
-      "composure": 84,
-      "consistency": 77,
-      "bigGame": 83
     }
   },
   {
@@ -106183,6 +106217,44 @@
     }
   },
   {
+    "id": "j-arias",
+    "name": "J. Arias",
+    "nationality": "CO",
+    "clubId": "palmeiras",
+    "leagueId": "brasileirao",
+    "birthYear": 1997,
+    "positions": [
+      "RW",
+      "CAM",
+      "LW"
+    ],
+    "attributes": {
+      "acceleration": 86,
+      "sprintSpeed": 85,
+      "finishing": 75,
+      "shotPower": 79,
+      "heading": 48,
+      "offPositioning": 75,
+      "shortPass": 76,
+      "longPass": 69,
+      "crossing": 76,
+      "vision": 77,
+      "dribbling": 78,
+      "ballControl": 76,
+      "agility": 90,
+      "marking": 45,
+      "tackling": 32,
+      "interceptions": 55,
+      "defPositioning": 50,
+      "strength": 72,
+      "stamina": 78,
+      "jumping": 74,
+      "composure": 76,
+      "consistency": 76,
+      "bigGame": 71
+    }
+  },
+  {
     "id": "a-camara",
     "name": "A. Camara",
     "nationality": "FR",
@@ -107188,42 +107260,6 @@
       "composure": 82,
       "consistency": 85,
       "bigGame": 85
-    }
-  },
-  {
-    "id": "goncalo-ramos",
-    "name": "Gonçalo Ramos",
-    "nationality": "PT",
-    "clubId": "paris-saint-germain",
-    "leagueId": "ligue-1",
-    "birthYear": 2001,
-    "positions": [
-      "ST"
-    ],
-    "attributes": {
-      "acceleration": 73,
-      "sprintSpeed": 73,
-      "finishing": 82,
-      "shotPower": 82,
-      "heading": 83,
-      "offPositioning": 85,
-      "shortPass": 72,
-      "longPass": 63,
-      "crossing": 58,
-      "vision": 63,
-      "dribbling": 76,
-      "ballControl": 78,
-      "agility": 77,
-      "marking": 43,
-      "tackling": 43,
-      "interceptions": 44,
-      "defPositioning": 44,
-      "strength": 79,
-      "stamina": 79,
-      "jumping": 89,
-      "composure": 75,
-      "consistency": 81,
-      "bigGame": 72
     }
   },
   {
@@ -112454,43 +112490,6 @@
     }
   },
   {
-    "id": "i-saibari",
-    "name": "I. Saibari",
-    "nationality": "MA",
-    "clubId": "psv",
-    "leagueId": "eredivisie",
-    "birthYear": 2001,
-    "positions": [
-      "CAM",
-      "CM"
-    ],
-    "attributes": {
-      "acceleration": 81,
-      "sprintSpeed": 76,
-      "finishing": 75,
-      "shotPower": 79,
-      "heading": 57,
-      "offPositioning": 78,
-      "shortPass": 78,
-      "longPass": 71,
-      "crossing": 71,
-      "vision": 78,
-      "dribbling": 83,
-      "ballControl": 84,
-      "agility": 77,
-      "marking": 50,
-      "tackling": 50,
-      "interceptions": 51,
-      "defPositioning": 51,
-      "strength": 83,
-      "stamina": 79,
-      "jumping": 81,
-      "composure": 74,
-      "consistency": 80,
-      "bigGame": 71
-    }
-  },
-  {
     "id": "j-schouten",
     "name": "J. Schouten",
     "nationality": "NL",
@@ -114574,44 +114573,6 @@
     }
   },
   {
-    "id": "t-werner",
-    "name": "T. Werner",
-    "nationality": "DE",
-    "clubId": "rb-leipzig",
-    "leagueId": "bundesliga",
-    "birthYear": 1996,
-    "positions": [
-      "LW",
-      "ST",
-      "LM"
-    ],
-    "attributes": {
-      "acceleration": 94,
-      "sprintSpeed": 89,
-      "finishing": 72,
-      "shotPower": 80,
-      "heading": 72,
-      "offPositioning": 79,
-      "shortPass": 74,
-      "longPass": 55,
-      "crossing": 68,
-      "vision": 68,
-      "dribbling": 79,
-      "ballControl": 76,
-      "agility": 78,
-      "marking": 39,
-      "tackling": 21,
-      "interceptions": 37,
-      "defPositioning": 38,
-      "strength": 64,
-      "stamina": 70,
-      "jumping": 85,
-      "composure": 72,
-      "consistency": 73,
-      "bigGame": 76
-    }
-  },
-  {
     "id": "w-orban",
     "name": "W. Orban",
     "nationality": "HU",
@@ -116540,42 +116501,6 @@
       "composure": 76,
       "consistency": 74,
       "bigGame": 70
-    }
-  },
-  {
-    "id": "e-emegha",
-    "name": "E. Emegha",
-    "nationality": "NL",
-    "clubId": "rc-strasbourg-alsace",
-    "leagueId": "ligue-1",
-    "birthYear": 2003,
-    "positions": [
-      "ST"
-    ],
-    "attributes": {
-      "acceleration": 81,
-      "sprintSpeed": 95,
-      "finishing": 79,
-      "shotPower": 78,
-      "heading": 77,
-      "offPositioning": 82,
-      "shortPass": 65,
-      "longPass": 49,
-      "crossing": 47,
-      "vision": 64,
-      "dribbling": 69,
-      "ballControl": 76,
-      "agility": 69,
-      "marking": 26,
-      "tackling": 22,
-      "interceptions": 35,
-      "defPositioning": 31,
-      "strength": 82,
-      "stamina": 84,
-      "jumping": 92,
-      "composure": 75,
-      "consistency": 77,
-      "bigGame": 71
     }
   },
   {
@@ -120010,6 +119935,44 @@
     }
   },
   {
+    "id": "bernardo-silva",
+    "name": "Bernardo Silva",
+    "nationality": "PT",
+    "clubId": "real-madrid",
+    "leagueId": "la-liga",
+    "birthYear": 1994,
+    "positions": [
+      "CM",
+      "RM",
+      "CDM"
+    ],
+    "attributes": {
+      "acceleration": 68,
+      "sprintSpeed": 55,
+      "finishing": 78,
+      "shotPower": 79,
+      "heading": 54,
+      "offPositioning": 80,
+      "shortPass": 86,
+      "longPass": 82,
+      "crossing": 82,
+      "vision": 85,
+      "dribbling": 88,
+      "ballControl": 88,
+      "agility": 93,
+      "marking": 70,
+      "tackling": 73,
+      "interceptions": 73,
+      "defPositioning": 72,
+      "strength": 47,
+      "stamina": 90,
+      "jumping": 58,
+      "composure": 86,
+      "consistency": 87,
+      "bigGame": 87
+    }
+  },
+  {
     "id": "brahim",
     "name": "Brahim",
     "nationality": "MA",
@@ -120529,6 +120492,42 @@
       "composure": 88,
       "consistency": 91,
       "bigGame": 97
+    }
+  },
+  {
+    "id": "marc-cucurella",
+    "name": "Marc Cucurella",
+    "nationality": "ES",
+    "clubId": "real-madrid",
+    "leagueId": "la-liga",
+    "birthYear": 1998,
+    "positions": [
+      "LB"
+    ],
+    "attributes": {
+      "acceleration": 77,
+      "sprintSpeed": 74,
+      "finishing": 61,
+      "shotPower": 73,
+      "heading": 72,
+      "offPositioning": 76,
+      "shortPass": 82,
+      "longPass": 79,
+      "crossing": 81,
+      "vision": 77,
+      "dribbling": 78,
+      "ballControl": 80,
+      "agility": 82,
+      "marking": 83,
+      "tackling": 83,
+      "interceptions": 82,
+      "defPositioning": 83,
+      "strength": 70,
+      "stamina": 89,
+      "jumping": 86,
+      "composure": 79,
+      "consistency": 84,
+      "bigGame": 83
     }
   },
   {
@@ -123217,6 +123216,43 @@
       "composure": 73,
       "consistency": 79,
       "bigGame": 70
+    }
+  },
+  {
+    "id": "patrick-de-paula",
+    "name": "Patrick de Paula",
+    "nationality": "BR",
+    "clubId": "remo",
+    "leagueId": "brasileirao",
+    "birthYear": 1999,
+    "positions": [
+      "CDM",
+      "CM"
+    ],
+    "attributes": {
+      "acceleration": 73,
+      "sprintSpeed": 68,
+      "finishing": 49,
+      "shotPower": 65,
+      "heading": 58,
+      "offPositioning": 48,
+      "shortPass": 76,
+      "longPass": 73,
+      "crossing": 50,
+      "vision": 54,
+      "dribbling": 73,
+      "ballControl": 78,
+      "agility": 65,
+      "marking": 68,
+      "tackling": 73,
+      "interceptions": 61,
+      "defPositioning": 65,
+      "strength": 62,
+      "stamina": 79,
+      "jumping": 69,
+      "composure": 53,
+      "consistency": 64,
+      "bigGame": 56
     }
   },
   {
@@ -126575,6 +126611,44 @@
       "composure": 70,
       "consistency": 68,
       "bigGame": 65
+    }
+  },
+  {
+    "id": "t-werner",
+    "name": "T. Werner",
+    "nationality": "DE",
+    "clubId": "san-jose-earthquakes",
+    "leagueId": "mls",
+    "birthYear": 1996,
+    "positions": [
+      "LW",
+      "ST",
+      "LM"
+    ],
+    "attributes": {
+      "acceleration": 94,
+      "sprintSpeed": 89,
+      "finishing": 72,
+      "shotPower": 80,
+      "heading": 72,
+      "offPositioning": 79,
+      "shortPass": 74,
+      "longPass": 55,
+      "crossing": 68,
+      "vision": 68,
+      "dribbling": 79,
+      "ballControl": 76,
+      "agility": 78,
+      "marking": 39,
+      "tackling": 21,
+      "interceptions": 37,
+      "defPositioning": 38,
+      "strength": 64,
+      "stamina": 70,
+      "jumping": 85,
+      "composure": 72,
+      "consistency": 73,
+      "bigGame": 76
     }
   },
   {
@@ -134559,44 +134633,6 @@
     }
   },
   {
-    "id": "geovany-quenda",
-    "name": "Geovany Quenda",
-    "nationality": "PT",
-    "clubId": "sporting-cp",
-    "leagueId": "primeira-liga",
-    "birthYear": 2007,
-    "positions": [
-      "RM",
-      "LM",
-      "LW"
-    ],
-    "attributes": {
-      "acceleration": 87,
-      "sprintSpeed": 83,
-      "finishing": 63,
-      "shotPower": 63,
-      "heading": 35,
-      "offPositioning": 72,
-      "shortPass": 74,
-      "longPass": 70,
-      "crossing": 71,
-      "vision": 70,
-      "dribbling": 80,
-      "ballControl": 81,
-      "agility": 84,
-      "marking": 46,
-      "tackling": 39,
-      "interceptions": 40,
-      "defPositioning": 43,
-      "strength": 68,
-      "stamina": 75,
-      "jumping": 66,
-      "composure": 70,
-      "consistency": 64,
-      "bigGame": 64
-    }
-  },
-  {
     "id": "goncalo-inacio",
     "name": "Gonçalo Inácio",
     "nationality": "PT",
@@ -138062,42 +138098,6 @@
       "composure": 74,
       "consistency": 75,
       "bigGame": 78
-    }
-  },
-  {
-    "id": "j-jacquet",
-    "name": "J. Jacquet",
-    "nationality": "FR",
-    "clubId": "stade-rennais-fc",
-    "leagueId": "ligue-1",
-    "birthYear": 2005,
-    "positions": [
-      "CB"
-    ],
-    "attributes": {
-      "acceleration": 57,
-      "sprintSpeed": 70,
-      "finishing": 36,
-      "shotPower": 44,
-      "heading": 75,
-      "offPositioning": 41,
-      "shortPass": 68,
-      "longPass": 63,
-      "crossing": 45,
-      "vision": 53,
-      "dribbling": 57,
-      "ballControl": 67,
-      "agility": 52,
-      "marking": 73,
-      "tackling": 77,
-      "interceptions": 71,
-      "defPositioning": 72,
-      "strength": 81,
-      "stamina": 64,
-      "jumping": 80,
-      "composure": 68,
-      "consistency": 70,
-      "bigGame": 65
     }
   },
   {
@@ -142824,41 +142824,41 @@
     }
   },
   {
-    "id": "b-johnson",
-    "name": "B. Johnson",
-    "nationality": "WL",
+    "id": "c-gallagher",
+    "name": "C. Gallagher",
+    "nationality": "EN",
     "clubId": "tottenham-hotspur",
     "leagueId": "premier-league",
-    "birthYear": 2001,
+    "birthYear": 2000,
     "positions": [
-      "RW",
-      "RM",
-      "LW"
+      "CM",
+      "CAM",
+      "LM"
     ],
     "attributes": {
-      "acceleration": 87,
-      "sprintSpeed": 85,
-      "finishing": 82,
-      "shotPower": 74,
-      "heading": 58,
-      "offPositioning": 83,
-      "shortPass": 74,
-      "longPass": 63,
-      "crossing": 78,
-      "vision": 78,
+      "acceleration": 72,
+      "sprintSpeed": 77,
+      "finishing": 74,
+      "shotPower": 81,
+      "heading": 66,
+      "offPositioning": 82,
+      "shortPass": 83,
+      "longPass": 81,
+      "crossing": 75,
+      "vision": 80,
       "dribbling": 78,
-      "ballControl": 78,
-      "agility": 81,
-      "marking": 45,
-      "tackling": 48,
-      "interceptions": 23,
-      "defPositioning": 34,
-      "strength": 52,
-      "stamina": 78,
-      "jumping": 70,
-      "composure": 79,
-      "consistency": 78,
-      "bigGame": 73
+      "ballControl": 80,
+      "agility": 73,
+      "marking": 79,
+      "tackling": 80,
+      "interceptions": 80,
+      "defPositioning": 80,
+      "strength": 78,
+      "stamina": 93,
+      "jumping": 79,
+      "composure": 81,
+      "consistency": 82,
+      "bigGame": 83
     }
   },
   {
@@ -147829,6 +147829,44 @@
     }
   },
   {
+    "id": "brenner",
+    "name": "Brenner",
+    "nationality": "BR",
+    "clubId": "vasco",
+    "leagueId": "brasileirao",
+    "birthYear": 2000,
+    "positions": [
+      "ST",
+      "CAM",
+      "CM"
+    ],
+    "attributes": {
+      "acceleration": 75,
+      "sprintSpeed": 76,
+      "finishing": 74,
+      "shotPower": 70,
+      "heading": 65,
+      "offPositioning": 74,
+      "shortPass": 68,
+      "longPass": 59,
+      "crossing": 57,
+      "vision": 63,
+      "dribbling": 77,
+      "ballControl": 77,
+      "agility": 78,
+      "marking": 29,
+      "tackling": 29,
+      "interceptions": 24,
+      "defPositioning": 27,
+      "strength": 52,
+      "stamina": 60,
+      "jumping": 67,
+      "composure": 70,
+      "consistency": 70,
+      "bigGame": 66
+    }
+  },
+  {
     "id": "a-al-dakhil",
     "name": "A. Al Dakhil",
     "nationality": "BE",
@@ -151761,44 +151799,6 @@
     }
   },
   {
-    "id": "lucas-paqueta",
-    "name": "Lucas Paquetá",
-    "nationality": "BR",
-    "clubId": "west-ham-united",
-    "leagueId": "premier-league",
-    "birthYear": 1997,
-    "positions": [
-      "CM",
-      "LM",
-      "CAM"
-    ],
-    "attributes": {
-      "acceleration": 69,
-      "sprintSpeed": 67,
-      "finishing": 78,
-      "shotPower": 77,
-      "heading": 68,
-      "offPositioning": 77,
-      "shortPass": 80,
-      "longPass": 80,
-      "crossing": 74,
-      "vision": 80,
-      "dribbling": 86,
-      "ballControl": 85,
-      "agility": 75,
-      "marking": 67,
-      "tackling": 70,
-      "interceptions": 71,
-      "defPositioning": 69,
-      "strength": 73,
-      "stamina": 76,
-      "jumping": 75,
-      "composure": 86,
-      "consistency": 79,
-      "bigGame": 85
-    }
-  },
-  {
     "id": "luis-guilherme",
     "name": "Luis Guilherme",
     "nationality": "BR",
@@ -152319,44 +152319,6 @@
       "composure": 79,
       "consistency": 75,
       "bigGame": 72
-    }
-  },
-  {
-    "id": "j-arias",
-    "name": "J. Arias",
-    "nationality": "CO",
-    "clubId": "wolverhampton-wanderers",
-    "leagueId": "premier-league",
-    "birthYear": 1997,
-    "positions": [
-      "RW",
-      "CAM",
-      "LW"
-    ],
-    "attributes": {
-      "acceleration": 86,
-      "sprintSpeed": 85,
-      "finishing": 75,
-      "shotPower": 79,
-      "heading": 48,
-      "offPositioning": 75,
-      "shortPass": 76,
-      "longPass": 69,
-      "crossing": 76,
-      "vision": 77,
-      "dribbling": 78,
-      "ballControl": 76,
-      "agility": 90,
-      "marking": 45,
-      "tackling": 32,
-      "interceptions": 55,
-      "defPositioning": 50,
-      "strength": 72,
-      "stamina": 78,
-      "jumping": 74,
-      "composure": 76,
-      "consistency": 76,
-      "bigGame": 71
     }
   },
   {

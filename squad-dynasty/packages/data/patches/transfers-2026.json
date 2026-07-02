@@ -1,0 +1,154 @@
+{
+  "description": "Transferências jan–jun/2026 (fontes verificadas)",
+  "ops": [
+    {
+      "op": "move",
+      "playerId": "a-semenyo",
+      "toClubId": "manchester-city",
+      "note": "Jan/26: Antoine Semenyo trocou o Bournemouth pelo Manchester City por £62,5m (ESPN)"
+    },
+    {
+      "op": "move",
+      "playerId": "c-gallagher",
+      "toClubId": "tottenham-hotspur",
+      "note": "Jan/26: Conor Gallagher trocou o Atlético de Madrid pelo Tottenham por ~£35m (Sky Sports/Spurs Web)"
+    },
+    {
+      "op": "move",
+      "playerId": "b-johnson",
+      "toClubId": "crystal-palace",
+      "note": "Jan/26: Brennan Johnson trocou o Tottenham pelo Crystal Palace por £35m (Spurs Web/Sports Mole)"
+    },
+    {
+      "op": "move",
+      "playerId": "douglas-luiz",
+      "toClubId": "aston-villa",
+      "note": "Jan/26: Douglas Luiz deixou o empréstimo no Nottingham Forest e foi emprestado pela Juventus ao Aston Villa (ESPN)"
+    },
+    {
+      "op": "move",
+      "playerId": "k-benzema",
+      "toClubId": "al-hilal",
+      "note": "Jan/26 (deadline day 02/02): Karim Benzema trocou o Al-Ittihad pelo Al-Hilal em transferência livre (ESPN/Goal/beIN)"
+    },
+    {
+      "op": "move",
+      "playerId": "g-ilenikhena",
+      "toClubId": "al-ittihad",
+      "note": "Fev/26 (janela saudita): George Ilenikhena trocou o Monaco pelo Al-Ittihad por €33m, substituto de Benzema (AS Monaco oficial/GFFN)"
+    },
+    {
+      "op": "move",
+      "playerId": "t-werner",
+      "toClubId": "san-jose-earthquakes",
+      "note": "Jan/26 (offseason MLS): Timo Werner trocou o RB Leipzig pelo San Jose Earthquakes em transferência livre (GiveMeSport/SI)"
+    },
+    {
+      "op": "move",
+      "playerId": "stephen-eustaquio",
+      "toClubId": "los-angeles-fc",
+      "note": "Jan/26 (offseason MLS): Stephen Eustáquio emprestado pelo Porto ao LAFC para a temporada 2026, com opção de compra (SI/GiveMeSport)"
+    },
+    {
+      "op": "move",
+      "playerId": "a-gordon",
+      "toClubId": "fc-barcelona",
+      "note": "Mai/26: Anthony Gordon trocou o Newcastle pelo Barcelona por £69m (beIN Sports 29/05, Al Jazeera)"
+    },
+    {
+      "op": "move",
+      "playerId": "marc-cucurella",
+      "toClubId": "real-madrid",
+      "note": "Jun/26: Marc Cucurella trocou o Chelsea pelo Real Madrid por €60m (ESPN/Sky Sports)"
+    },
+    {
+      "op": "move",
+      "playerId": "bernardo-silva",
+      "toClubId": "real-madrid",
+      "note": "Jun/26: Bernardo Silva assinou por 2 anos com o Real Madrid após fim de contrato no Manchester City (Real Madrid oficial 17/06, ESPN)"
+    },
+    {
+      "op": "move",
+      "playerId": "goncalo-ramos",
+      "toClubId": "ac-milan",
+      "note": "Jun/26 (30/06): Gonçalo Ramos trocou o PSG pelo AC Milan por ~€74m, recorde do clube (ESPN/Football Italia)"
+    },
+    {
+      "op": "move",
+      "playerId": "i-saibari",
+      "toClubId": "fc-bayern-munchen",
+      "note": "Jun/26: Ismael Saibari trocou o PSV pelo Bayern de Munique, anúncio oficial (Bavarian Football Works/Yahoo)"
+    },
+    {
+      "op": "move",
+      "playerId": "j-jacquet",
+      "toClubId": "liverpool",
+      "note": "Jan/26 (efetivado no verão): Jérémy Jacquet, zagueiro do Rennes, assinou com o Liverpool por £55m (ESPN/TEAMtalk)"
+    },
+    {
+      "op": "move",
+      "playerId": "victor-munoz",
+      "toClubId": "liverpool",
+      "note": "Jun/26: Víctor Muñoz trocou o Osasuna pelo Liverpool por £34,5m (TEAMtalk/Football365)"
+    },
+    {
+      "op": "move",
+      "playerId": "geovany-quenda",
+      "toClubId": "chelsea",
+      "note": "Verão/26: Geovany Quenda chegou ao Chelsea vindo do Sporting, acordo pré-firmado oficializado (ESPN/Football365)"
+    },
+    {
+      "op": "move",
+      "playerId": "e-emegha",
+      "toClubId": "chelsea",
+      "note": "Verão/26: Emmanuel Emegha chegou ao Chelsea vindo do Strasbourg (ESPN/Football365)"
+    },
+    {
+      "op": "move",
+      "playerId": "m-palestra",
+      "toClubId": "chelsea",
+      "note": "Verão/26: Marco Palestra contratado pelo Chelsea (estava emprestado ao Cagliari pela Atalanta) (ESPN/Football365)"
+    },
+    {
+      "op": "move",
+      "playerId": "p-hincapie",
+      "toClubId": "bayer-04-leverkusen",
+      "note": "Jun/26: Piero Hincapié vendido pelo Arsenal de volta ao Bayer Leverkusen por £45m (Football365/Daily Cannon)"
+    },
+    {
+      "op": "move",
+      "playerId": "lucas-paqueta",
+      "toClubId": "flamengo",
+      "note": "Jan/26: Lucas Paquetá voltou ao Flamengo por ~R$ 260 milhões, maior contratação da história do futebol brasileiro (CNN Brasil/Terra/ESPN)"
+    },
+    {
+      "op": "move",
+      "playerId": "j-arias",
+      "toClubId": "palmeiras",
+      "note": "Jan/26: Jhon Arias trocou o Wolverhampton pelo Palmeiras, contratação mais cara do Brasil em 2026 (~R$ 192 milhões na janela) (The Football/Diário de Pernambuco)"
+    },
+    {
+      "op": "move",
+      "playerId": "renan-lodi",
+      "toClubId": "atletico-mg",
+      "note": "Jan/26: Renan Lodi deixou o Al-Hilal e assinou com o Atlético-MG (CNN Brasil)"
+    },
+    {
+      "op": "move",
+      "playerId": "brenner",
+      "toClubId": "vasco",
+      "note": "Jan/26: Vasco contratou o atacante Brenner junto à Udinese (NetVasco/ESPN)"
+    },
+    {
+      "op": "move",
+      "playerId": "patrick-de-paula",
+      "toClubId": "remo",
+      "note": "Jan/26: Patrick de Paula reforçou o Remo para a Série A e foi titular na estreia do Parazão (O Tempo/Lance)"
+    },
+    {
+      "op": "remove",
+      "playerId": "bebeto",
+      "note": "Dedupe: o RB do Tondela \"Bebeto\" (FC26) colide com o id do ícone Bebeto em players.json"
+    }
+  ]
+}
