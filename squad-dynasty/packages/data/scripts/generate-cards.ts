@@ -25,6 +25,7 @@ interface EpicMoment {
   id: string;
   basePlayerId: string;
   label: string;
+  moment?: string;
   rarity: 'epic' | 'legendary';
   attributes: AnyAttributes;
 }
@@ -58,6 +59,7 @@ for (const moment of epicMoments) {
     version: 'epic_moment',
     rarity: moment.rarity,
     label: moment.label,
+    ...(moment.moment ? { moment: moment.moment } : {}),
     attributes: moment.attributes,
     frozen: true,
   });
@@ -70,6 +72,7 @@ for (const legend of players.filter((p) => p.clubId === 'icons')) {
     version: 'icon',
     rarity: 'icon',
     label: 'Lenda',
+    ...(legend.bio ? { moment: legend.bio } : {}),
     attributes: legend.attributes,
     frozen: true,
   });

@@ -1,6 +1,6 @@
-// Temas visuais das cartas (estilo UT) + bandeiras emoji.
-import type { CardVersion, Rarity } from '@squad-dynasty/engine';
-import { CARD_DIMENSIONS, cardTheme } from '../src/services/cardTheme';
+// Temas visuais das cartas (estilo UT) + flavor text + bandeiras emoji.
+import type { AnyAttributes, CardDefinition, CardVersion, Rarity } from '@squad-dynasty/engine';
+import { CARD_DIMENSIONS, cardTheme, momentText } from '../src/services/cardTheme';
 import { flagEmoji } from '../src/services/flags';
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'icon'];
@@ -64,6 +64,31 @@ describe('cardTheme', () => {
       expect(size.height / size.width).toBeGreaterThan(1.4); // retrato
     }
     expect(lg.width).toBeGreaterThan(md.width);
+  });
+});
+
+describe('momentText', () => {
+  const card = (over: Partial<CardDefinition>): CardDefinition => ({
+    id: 'x',
+    basePlayerId: 'x',
+    version: 'base',
+    rarity: 'legendary',
+    attributes: {} as AnyAttributes,
+    frozen: false,
+    ...over,
+  });
+
+  it('usa o moment curado quando existe', () => {
+    expect(momentText(card({ moment: 'O milagre de Istambul.' }), 'Gerrard')).toBe(
+      'O milagre de Istambul.',
+    );
+  });
+
+  it('fallbacks por versão cobrem cartas sem texto (TOTW dinâmica etc.)', () => {
+    expect(momentText(card({ version: 'inform' }), 'Pedro')).toContain('Pedro');
+    expect(momentText(card({ version: 'icon' }), 'Pelé')).toContain('lenda');
+    expect(momentText(card({ version: 'epic_moment', label: 'Copa 1970' }), 'Pelé')).toBe('Copa 1970');
+    expect(momentText(card({}), 'Alguém').length).toBeGreaterThan(10);
   });
 });
 

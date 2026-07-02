@@ -21,6 +21,7 @@ import Animated, {
 import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import type { BasePlayer } from '@squad-dynasty/engine';
 import { CardView } from './CardView';
+import { CinematicReveal } from './CinematicReveal';
 import { Confetti } from './Confetti';
 import { PackArtwork, type PackArt } from './PackArtwork';
 import { CARD_DIMENSIONS, cardTheme } from '../services/cardTheme';
@@ -157,6 +158,7 @@ function SealedPack({
 function RevealStage({ steps, onDone }: { steps: RevealStep[]; onDone: () => void }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [cinematic, setCinematic] = useState(false);
   const [burstKey, setBurstKey] = useState<string | null>(null);
   const rot = useSharedValue(0);
   const flash = useSharedValue(0);
@@ -186,13 +188,20 @@ function RevealStage({ steps, onDone }: { steps: RevealStep[]; onDone: () => voi
       setTimeout(() => setFlipped(true), 460);
     };
     if (tier === 'cinematic') {
-      // build-up: o verso pulsa em branco antes de virar (não revela a cor)
+      // build-up: o verso pulsa em branco (não revela a cor) e abre a cinemática
       feedback.buildup();
       flash.value = withRepeat(withSequence(withTiming(0.35, { duration: 320 }), withTiming(0.05, { duration: 320 })), 2);
-      setTimeout(startFlip, 1300);
+      setTimeout(() => setCinematic(true), 1300);
     } else {
       startFlip();
     }
+  };
+
+  const finishCinematic = () => {
+    setCinematic(false);
+    rot.value = 180;
+    setBurstKey(`${step!.card.id}-${index}`);
+    setFlipped(true);
   };
 
   const advance = () => {
@@ -268,6 +277,15 @@ function RevealStage({ steps, onDone }: { steps: RevealStep[]; onDone: () => voi
         <Confetti seed={burstKey} colors={[theme.glow, ...theme.frame.stops.map((s) => s.color)]} />
       ) : null}
       <Animated.View pointerEvents="none" style={[styles.flash, flashStyle]} />
+
+      {cinematic ? (
+        <CinematicReveal
+          card={step.card}
+          player={player as BasePlayer}
+          overall={cardOverall(step.card)}
+          onDone={finishCinematic}
+        />
+      ) : null}
     </Pressable>
   );
 }

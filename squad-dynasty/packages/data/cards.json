@@ -142085,6 +142085,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 2018",
+    "moment": "Aos 19, atropelou a Argentina nas oitavas e marcou na final — o mundo conheceu o moleque de Bondy.",
     "attributes": {
       "acceleration": 96,
       "sprintSpeed": 97,
@@ -142118,6 +142119,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 2022",
+    "moment": "Hat-trick numa final de Copa do Mundo e quase virou sozinho o jogo mais insano da história.",
     "attributes": {
       "acceleration": 94,
       "sprintSpeed": 95,
@@ -142151,6 +142153,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Champions 2024",
+    "moment": "Decisivo em Wembley mais uma vez: a Champions da 15ª puxada pelos dribles do camisa 7.",
     "attributes": {
       "acceleration": 93,
       "sprintSpeed": 93,
@@ -142184,6 +142187,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Tríplice Coroa 2023",
+    "moment": "52 gols na temporada da tríplice coroa — o ciborgue que reescreveu a Premier League.",
     "attributes": {
       "acceleration": 88,
       "sprintSpeed": 94,
@@ -142217,6 +142221,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Sêxtuplo 2020",
+    "moment": "O sêxtuplo do Bayern com 55 gols: a temporada perfeita de um centroavante.",
     "attributes": {
       "acceleration": 78,
       "sprintSpeed": 80,
@@ -142250,6 +142255,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Bola de Ouro 2005",
+    "moment": "O ano do sorriso: melhor do mundo e aplaudido de pé... pelo Bernabéu.",
     "attributes": {
       "acceleration": 88,
       "sprintSpeed": 86,
@@ -142283,6 +142289,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Bola de Ouro 2007",
+    "moment": "Rasgou a Europa até a Champions e levou a última Bola de Ouro antes da era Messi–CR7.",
     "attributes": {
       "acceleration": 94,
       "sprintSpeed": 95,
@@ -142316,6 +142323,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Temporada 2017/18",
+    "moment": "44 gols logo na primeira temporada — Anfield coroou seu Rei Egípcio.",
     "attributes": {
       "acceleration": 90,
       "sprintSpeed": 91,
@@ -142349,6 +142357,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Temporada Mágica 2023/24",
+    "moment": "Chegou, vestiu a 5 de Zidane e decidiu clássico atrás de clássico: campeão de La Liga e da Europa aos 20.",
     "attributes": {
       "acceleration": 80,
       "sprintSpeed": 82,
@@ -142382,6 +142391,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Libertadores 2011",
+    "moment": "Driblou até a glória: gol na final e o Peixe campeão da América 48 anos depois.",
     "attributes": {
       "acceleration": 89,
       "sprintSpeed": 88,
@@ -142415,6 +142425,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Tríplice Coroa 2021",
+    "moment": "Força bruta e gols no ano mágico do Galo: Brasileirão e Copa do Brasil na mesma temporada.",
     "attributes": {
       "acceleration": 80,
       "sprintSpeed": 84,
@@ -142448,6 +142459,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Scudetto 2024",
+    "moment": "Capitão e artilheiro do Scudetto da segunda estrela da Inter.",
     "attributes": {
       "acceleration": 83,
       "sprintSpeed": 84,
@@ -142481,6 +142493,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Bota de Ouro 2018",
+    "moment": "Bota de Ouro da Copa: seis gols carregando a Inglaterra até a semifinal.",
     "attributes": {
       "acceleration": 74,
       "sprintSpeed": 76,
@@ -142514,6 +142527,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Copa América 2019",
+    "moment": "A muralha da Copa América em casa: defesas impossíveis e o troféu erguido no Maracanã.",
     "attributes": {
       "reflexes": 93,
       "handling": 90,
@@ -142532,6 +142546,7 @@
     "version": "epic_moment",
     "rarity": "epic",
     "label": "Champions 2019",
+    "moment": "O zagueiro que ninguém driblava: Champions em Madri e quase uma Bola de Ouro de defensor.",
     "attributes": {
       "acceleration": 74,
       "sprintSpeed": 83,
@@ -142565,6 +142580,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 1962",
+    "moment": "Sem Pelé, o Anjo das Pernas Tortas driblou o mundo inteiro e levou o bi praticamente sozinho.",
     "attributes": {
       "acceleration": 93,
       "sprintSpeed": 88,
@@ -142598,6 +142614,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 1974",
+    "moment": "O Kaiser ergueu a Copa em casa regendo a defesa alemã como um maestro.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 82,
@@ -142631,6 +142648,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 2010",
+    "moment": "O metrônomo da Espanha: tiki-taka até a primeira estrela espanhola.",
     "attributes": {
       "acceleration": 76,
       "sprintSpeed": 72,
@@ -142664,6 +142682,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Champions 2003",
+    "moment": "Capitão imbatível em Old Trafford: a Champions nas mãos do eterno camisa 3.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 85,
@@ -142697,6 +142716,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 1970",
+    "moment": "O Rei no auge do time perfeito: gol na final e o tri eternizado no México.",
     "attributes": {
       "acceleration": 94,
       "sprintSpeed": 93,
@@ -142730,6 +142750,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Invencíveis 2004",
+    "moment": "38 jogos sem perder: o artilheiro-símbolo dos Invencíveis de Highbury.",
     "attributes": {
       "acceleration": 96,
       "sprintSpeed": 95,
@@ -142763,6 +142784,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Istambul 2005",
+    "moment": "3 a 0 no intervalo? O capitão puxou de cabeça erguida o milagre de Istambul.",
     "attributes": {
       "acceleration": 83,
       "sprintSpeed": 85,
@@ -142796,6 +142818,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Euro 1988",
+    "moment": "O voleio impossível da Euro 88 — talvez o gol mais bonito já feito numa final.",
     "attributes": {
       "acceleration": 86,
       "sprintSpeed": 85,
@@ -142829,6 +142852,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 2006",
+    "moment": "Quase imbatível rumo ao tetra da Itália: dois gols sofridos em sete jogos, nenhum em bola rolando.",
     "attributes": {
       "reflexes": 97,
       "handling": 94,
@@ -142847,6 +142871,7 @@
     "version": "epic_moment",
     "rarity": "legendary",
     "label": "Copa 1998",
+    "moment": "Batigol em fúria na França: cinco gols, metralhadora carregada em cada comemoração.",
     "attributes": {
       "acceleration": 89,
       "sprintSpeed": 90,
@@ -142880,6 +142905,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Três Copas do Mundo e mais de mil gols: o Rei do Futebol.",
     "attributes": {
       "acceleration": 94,
       "sprintSpeed": 93,
@@ -142913,6 +142939,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O barrilete cósmico: a Mão de Deus e o Gol do Século no mesmo jogo.",
     "attributes": {
       "acceleration": 90,
       "sprintSpeed": 86,
@@ -142946,6 +142973,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A elegância feita futebol: decidiu Copa e Champions com obras de arte.",
     "attributes": {
       "acceleration": 80,
       "sprintSpeed": 78,
@@ -142979,6 +143007,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Fenômeno: o centroavante mais devastador que o jogo já viu.",
     "attributes": {
       "acceleration": 96,
       "sprintSpeed": 95,
@@ -143012,6 +143041,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Baixinho genial: mil gols de área e o tetra de 94 nas costas.",
     "attributes": {
       "acceleration": 90,
       "sprintSpeed": 88,
@@ -143045,6 +143075,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O profeta do Futebol Total — mudou a forma como o jogo se pensa.",
     "attributes": {
       "acceleration": 92,
       "sprintSpeed": 90,
@@ -143078,6 +143109,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Galinho de Quintino: a camisa 10 mais sagrada do Maracanã.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 82,
@@ -143111,6 +143143,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O bruxo que fazia o futebol sorrir: elástico, no-look e pura magia.",
     "attributes": {
       "acceleration": 88,
       "sprintSpeed": 86,
@@ -143144,6 +143177,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Velocidade e classe: o último Bola de Ouro antes da era Messi–CR7.",
     "attributes": {
       "acceleration": 91,
       "sprintSpeed": 92,
@@ -143177,6 +143211,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Santo Taffarel! Pênaltis defendidos e o Brasil em duas finais de Copa.",
     "attributes": {
       "reflexes": 93,
       "handling": 89,
@@ -143195,6 +143230,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A Alegria do Povo: dribles tortos que ninguém nunca conseguiu ler.",
     "attributes": {
       "acceleration": 93,
       "sprintSpeed": 88,
@@ -143228,6 +143264,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Doutor: calcanhares, filosofia e a Democracia Corinthiana.",
     "attributes": {
       "acceleration": 74,
       "sprintSpeed": 76,
@@ -143261,6 +143298,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Bigode, canhota atômica e a patente do elástico.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 80,
@@ -143294,6 +143332,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Canhota mágica: bicicleta antológica e protagonista do penta de 2002.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 84,
@@ -143327,6 +143366,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Pendolino: o único a disputar três finais de Copa seguidas.",
     "attributes": {
       "acceleration": 91,
       "sprintSpeed": 92,
@@ -143360,6 +143400,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A folha seca impossível de 97 e o foguete da lateral esquerda.",
     "attributes": {
       "acceleration": 94,
       "sprintSpeed": 95,
@@ -143393,6 +143434,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Faro de gol puro: parceria histórica com Maradona no Napoli.",
     "attributes": {
       "acceleration": 88,
       "sprintSpeed": 87,
@@ -143426,6 +143468,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O embalo de bebê mais famoso das Copas e o faro de gol do tetra.",
     "attributes": {
       "acceleration": 89,
       "sprintSpeed": 88,
@@ -143459,6 +143502,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Kaiser: inventou o líbero e ergueu a Copa como capitão e como técnico.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 82,
@@ -143492,6 +143536,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "25 anos de Milan e cinco Champions: a defesa elevada a arte.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 85,
@@ -143525,6 +143570,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O líbero perfeito: lia o jogo dois lances antes de todo mundo.",
     "attributes": {
       "acceleration": 80,
       "sprintSpeed": 79,
@@ -143558,6 +143604,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A muralha de Berlim 2006: capitão do tetra e Bola de Ouro de zagueiro.",
     "attributes": {
       "acceleration": 85,
       "sprintSpeed": 84,
@@ -143591,6 +143638,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O cérebro do tiki-taka: mil passes por jogo, nenhum desperdiçado.",
     "attributes": {
       "acceleration": 76,
       "sprintSpeed": 72,
@@ -143624,6 +143672,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Dom Andrés: o gol da final de 2010 e a pausa que não se ensina.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 78,
@@ -143657,6 +143706,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A Aranha Negra: o único goleiro a vencer a Bola de Ouro.",
     "attributes": {
       "reflexes": 96,
       "handling": 93,
@@ -143675,6 +143725,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "A Saeta Rubia: cinco Champions seguidas fundando o mito do Real.",
     "attributes": {
       "acceleration": 89,
       "sprintSpeed": 88,
@@ -143708,6 +143759,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O canhão húngaro: 84 gols em 85 jogos pela seleção.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 78,
@@ -143741,6 +143793,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Pantera Negra: a pérola de Moçambique, artilheiro da Copa de 66.",
     "attributes": {
       "acceleration": 95,
       "sprintSpeed": 94,
@@ -143774,6 +143827,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Le Roi: três Bolas de Ouro seguidas e uma Euro vencida quase sozinho.",
     "attributes": {
       "acceleration": 78,
       "sprintSpeed": 76,
@@ -143807,6 +143861,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Divino Codino: genialidade e a coragem de quem chama o pênalti decisivo.",
     "attributes": {
       "acceleration": 87,
       "sprintSpeed": 84,
@@ -143840,6 +143895,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O imperador de Roma: uma vida inteira de cavadinhas por um só escudo.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 80,
@@ -143873,6 +143929,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Pinturicchio: o \"ângulo de Del Piero\" virou verbete do futebol.",
     "attributes": {
       "acceleration": 86,
       "sprintSpeed": 83,
@@ -143906,6 +143963,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Cisne de Utrecht: três Bolas de Ouro e voleios impossíveis.",
     "attributes": {
       "acceleration": 85,
       "sprintSpeed": 84,
@@ -143939,6 +143997,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Potência total: o líder da Holanda campeã da Euro 88.",
     "attributes": {
       "acceleration": 86,
       "sprintSpeed": 88,
@@ -143972,6 +144031,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O holandês não-voador: controles de bola que desafiam a física.",
     "attributes": {
       "acceleration": 84,
       "sprintSpeed": 82,
@@ -144005,6 +144065,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O rei de Highbury: frieza, velocidade e 228 gols de Arsenal.",
     "attributes": {
       "acceleration": 95,
       "sprintSpeed": 94,
@@ -144038,6 +144099,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O coração de Anfield: capitão especialista em milagres.",
     "attributes": {
       "acceleration": 82,
       "sprintSpeed": 84,
@@ -144071,6 +144133,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "Batigol: a metralhadora mais temida da Serie A e das Copas.",
     "attributes": {
       "acceleration": 88,
       "sprintSpeed": 89,
@@ -144104,6 +144167,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O último 10 clássico: pausa, pisada e La Bombonera aos seus pés.",
     "attributes": {
       "acceleration": 68,
       "sprintSpeed": 66,
@@ -144137,6 +144201,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "O Superman de Turim: reflexos e liderança por quase três décadas.",
     "attributes": {
       "reflexes": 95,
       "handling": 92,
@@ -144155,6 +144220,7 @@
     "version": "icon",
     "rarity": "icon",
     "label": "Lenda",
+    "moment": "San Iker: capitão do tri histórico Euro–Copa–Euro da Espanha.",
     "attributes": {
       "reflexes": 96,
       "handling": 88,

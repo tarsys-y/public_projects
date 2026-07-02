@@ -74,6 +74,7 @@ export interface BasePlayer {
   birthYear: number;
   positions: Position[]; // primeira é a principal
   attributes: AnyAttributes;
+  bio?: string; // 1 frase (lendas) — vira o `moment` da carta icon
 }
 
 export interface Club {
@@ -96,6 +97,7 @@ export interface CardDefinition {
   version: CardVersion;
   rarity: Rarity;
   label?: string; // ex: "Copa 2018", "Champions 2015"
+  moment?: string; // flavor text do grande momento/bio (cinemática de reveal)
   attributes: AnyAttributes; // snapshot (versões especiais congelam o auge)
   frozen: boolean; // true para epic_moment e icon (não envelhecem nem recebem patch)
 }

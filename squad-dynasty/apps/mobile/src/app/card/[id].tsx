@@ -16,7 +16,9 @@ import {
   type AttributeCategory,
 } from '@squad-dynasty/engine';
 import { CardView } from '../../components/CardView';
+import { LightRays } from '../../components/LightRays';
 import { RadarChart } from '../../components/RadarChart';
+import { cardTheme } from '../../services/cardTheme';
 import { categoryLabel, colors, rarityColors, rarityLabel } from '../../constants/theme';
 import { getCatalog, clubById } from '../../services/catalog';
 import { useCareerStore } from '../../stores/careerStore';
@@ -94,7 +96,15 @@ export default function CardDetailScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <CardView card={card} player={basePlayer} overall={resolved.overall} size="lg" animateSheen />
+        <View style={styles.heroCard}>
+          {cardTheme(card.version, card.rarity).cinematic ? (
+            <View style={styles.heroRays}>
+              <LightRays size={300} color={cardTheme(card.version, card.rarity).glow} opacity={0.22} />
+            </View>
+          ) : null}
+          <CardView card={card} player={basePlayer} overall={resolved.overall} size="lg" animateSheen />
+        </View>
+
         <View style={styles.heroInfo}>
           <Text style={styles.playerName}>{basePlayer.name}</Text>
           <Text style={styles.meta}>
@@ -241,6 +251,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 14, gap: 14, paddingBottom: 40 },
   hero: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  heroCard: { alignItems: 'center', justifyContent: 'center' },
+  heroRays: { position: 'absolute' },
   heroInfo: { flex: 1, gap: 3 },
   playerName: { color: colors.text, fontSize: 20, fontWeight: '900' },
   meta: { color: colors.textDim, fontSize: 12 },

@@ -47,6 +47,7 @@ export const basePlayerSchema = z
     birthYear: z.number().int().min(1900).max(2015),
     positions: z.array(positionSchema).min(1),
     attributes: anyAttributesSchema,
+    bio: z.string().min(8).max(160).optional(),
   })
   .strict()
   .superRefine((player, ctx) => {
@@ -80,6 +81,7 @@ export const epicMomentSchema = z
     id: slug,
     basePlayerId: slug,
     label: z.string().min(1),
+    moment: z.string().min(8).max(160).optional(),
     rarity: z.enum(['epic', 'legendary']),
     attributes: anyAttributesSchema,
   })
@@ -92,6 +94,7 @@ export const cardDefinitionSchema = z
     version: cardVersionSchema,
     rarity: raritySchema,
     label: z.string().min(1).optional(),
+    moment: z.string().min(8).max(160).optional(),
     attributes: anyAttributesSchema,
     frozen: z.boolean(),
   })

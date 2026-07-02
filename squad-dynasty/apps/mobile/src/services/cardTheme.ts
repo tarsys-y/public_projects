@@ -1,7 +1,7 @@
 // Fonte única do visual das cartas (estilo Ultimate Team): mapa
 // (version, rarity) → tema (gradientes, moldura metálica, textura, tipografia,
 // brilho) consumido por CardBackground/CardView/PackOpening. Puro e testável.
-import type { CardVersion, Rarity } from '@squad-dynasty/engine';
+import type { CardDefinition, CardVersion, Rarity } from '@squad-dynasty/engine';
 
 export type CardSize = 'sm' | 'md' | 'lg';
 
@@ -175,4 +175,22 @@ const VERSION_THEMES: Partial<Record<CardVersion, CardTheme>> = {
 /** Versões especiais têm identidade própria; carta base segue a raridade. */
 export function cardTheme(version: CardVersion, rarity: Rarity): CardTheme {
   return VERSION_THEMES[version] ?? RARITY_THEMES[rarity];
+}
+
+/**
+ * Flavor text da cinemática: o grande momento/bio curado da carta, com
+ * fallback por versão (cobre as TOTW dinâmicas, que nascem sem texto).
+ */
+export function momentText(card: CardDefinition, playerName: string): string {
+  if (card.moment) return card.moment;
+  switch (card.version) {
+    case 'inform':
+      return `${playerName} está Em Alta: destaque do Time da Semana.`;
+    case 'icon':
+      return 'Uma lenda eterna do futebol.';
+    case 'epic_moment':
+      return card.label ?? 'Um momento inesquecível.';
+    default:
+      return 'Uma carta rara de verdade — trate com carinho.';
+  }
 }
