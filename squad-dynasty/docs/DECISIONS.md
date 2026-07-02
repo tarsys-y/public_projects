@@ -26,6 +26,27 @@ mais simples que preserva a diversão (SPEC seção 10.8).
 - **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
   (MLS com 30 clubes → 58 rodadas).
 
+## 2026-07-02 — Cartas premium + abertura cinematográfica
+
+- **Gradientes 100% via react-native-svg** (`Defs`/`LinearGradient`): nada de
+  expo-linear-gradient — zero dependência nova, e o mesmo SVG desenha textura,
+  moldura metálica e sheen.
+- **Tema visual centralizado em `services/cardTheme.ts` (puro)**: mapa
+  (version, rarity) → gradientes/moldura/textura/tipografia. Versão especial
+  (inform/epic_moment/icon) vence a raridade. UI só consome.
+- **Sweep foil animado é opt-in** (`animateSheen`) e nunca liga em listas —
+  só no detalhe da carta (lg), no reveal do pacote e na cinemática. Coleção
+  usa o sheen estático (barato).
+- **Reveal "melhores por último"** (packSequence puro): build-up estilo
+  Pokémon TCG Pocket; o backdrop da abertura é SEMPRE neutro — a cor da
+  melhor carta não vaza antes do flip (o modal antigo vazava).
+- **Cinemática restrita a legendary/icon/epic_moment**: inform (TOTW) fica no
+  tier "big" (flash+confete) para a cinemática continuar especial.
+- **Campo `moment` opcional** na carta (flavor text): curado nas 25 epic
+  moments (referência ao feito real) e `bio` nos 41 ícones; TOTW dinâmicas
+  usam fallback de `momentText()`. Válido no zod, repassado por
+  generate-cards — nunca obrigatório.
+
 ## 2026-07-02 — Artes das cartas (avatares cartunescos)
 
 - **Avatar SVG procedural em vez de fotos**: não há fonte de retratos

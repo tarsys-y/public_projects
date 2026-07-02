@@ -110,6 +110,9 @@ export default function CollectionScreen() {
         numColumns={3}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
+        windowSize={7}
+        initialNumToRender={9}
+        removeClippedSubviews
         renderItem={({ item }) => (
           <Link href={{ pathname: '/card/[id]', params: { id: item.firstOwnedId } }} asChild>
             <Pressable>

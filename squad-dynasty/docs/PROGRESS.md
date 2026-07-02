@@ -22,3 +22,4 @@ Acompanhamento dos milestones da SPEC.md (seção 9).
 - FM: forma/moral, copa mata-mata de 16 na carreira, treino de jovens, clássicos com bônus.
 - UT: SBCs (8 desafios) e Modo Draft com gauntlet de 4 partidas.
 - Artes das cartas: avatar cartunesco SVG determinístico por jogador (feições por hash do id, camisa nas cores reais do clube, ícones com kit dourado).
+- Cartas premium estilo UT: gradientes/textura/moldura metálica/foil por tema (cardTheme), layout FUT com bandeira emoji, tamanho lg; abertura de pacotes cinematográfica (rasgar com o dedo, flip 3D com build-up, confete) e cinemática de ultra-raras com o grande momento do jogador (`moment`/`bio` curados).
