@@ -182,6 +182,16 @@ export default function MatchScreen() {
           {result.stats.home.shots} x {result.stats.away.shots} · xG {result.stats.home.xg.toFixed(2)} x{' '}
           {result.stats.away.xg.toFixed(2)}
         </Text>
+        {match.reward ? (
+          <View style={styles.rewardBox}>
+            <Text style={styles.rewardText}>
+              🪙 +{match.reward.coins.toLocaleString('pt-BR')} coins
+            </Text>
+            <Text style={styles.meta}>
+              {match.reward.base} pelo resultado + {match.reward.performanceBonus} de desempenho
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.section}>
           <Text style={styles.label}>Notas finais</Text>
           {finalRatings.map(({ playerId, rating, participation }) => (
@@ -496,4 +506,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  rewardBox: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 12,
+    padding: 12,
+    gap: 2,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  rewardText: { color: colors.accent, fontWeight: '900', fontSize: 16 },
 });

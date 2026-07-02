@@ -4,17 +4,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { OwnedCard } from '@squad-dynasty/engine';
-import { CARDS, playerById } from '../services/catalog';
+import { applyEvolution, evolutionCost, isGkAttributes, type OwnedCard } from '@squad-dynasty/engine';
+import { CARDS, cardById, playerById } from '../services/catalog';
+import { useEconomyStore } from './economyStore';
 
 const CURRENT_YEAR = 2026;
 const OWNER_ID = 'local-user';
+
+export type EvolveOutcome = 'ok' | 'max' | 'no-duplicates' | 'no-coins';
 
 interface CollectionState {
   ownedCards: Record<string, OwnedCard>;
   nextId: number;
   seeded: boolean;
   grantCard: (cardDefId: string) => OwnedCard | null;
+  /**
+   * Evolui a carta (SPEC 4.6): consome N duplicatas da mesma definição
+   * (as mais recentes) + coins, aplica os deltas nos atributos-chave.
+   */
+  evolveCard: (ownedId: string) => EvolveOutcome;
   seedDemoCollection: () => void;
   reset: () => void;
 }
@@ -55,6 +63,32 @@ export const useCollectionStore = create<CollectionState>()(
           nextId: state.nextId + 1,
         });
         return owned;
+      },
+
+      evolveCard: (ownedId) => {
+        const state = get();
+        const owned = state.ownedCards[ownedId];
+        if (!owned) return 'max';
+        const cost = evolutionCost(owned.evolutionLevel);
+        if (!cost) return 'max';
+        const duplicates = Object.values(state.ownedCards)
+          .filter((o) => o.cardDefId === owned.cardDefId && o.id !== ownedId)
+          .sort((a, b) => b.acquiredAt - a.acquiredAt)
+          .slice(0, cost.duplicates);
+        if (duplicates.length < cost.duplicates) return 'no-duplicates';
+        if (!useEconomyStore.getState().spend({ coins: cost.coins })) return 'no-coins';
+
+        const card = cardById.get(owned.cardDefId);
+        const player = card ? playerById.get(card.basePlayerId) : undefined;
+        const evolved = applyEvolution(
+          owned,
+          player?.positions[0] ?? 'ST',
+          card ? isGkAttributes(card.attributes) : false,
+        );
+        const ownedCards = { ...state.ownedCards, [ownedId]: evolved };
+        for (const dup of duplicates) delete ownedCards[dup.id];
+        set({ ownedCards });
+        return 'ok';
       },
 
       seedDemoCollection: () => {

@@ -56,6 +56,14 @@ export default function RootLayout() {
           }}
         />
         <Tabs.Screen
+          name="shop"
+          options={{
+            title: 'LOJA',
+            tabBarLabel: 'Loja',
+            tabBarIcon: ({ color }) => <TabIcon glyph="🛒" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="match"
           options={{
             title: 'PARTIDA',

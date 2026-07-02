@@ -36,7 +36,7 @@ export const CONFIG = {
     // abaixo de rare → common
   },
 
-  /** Pacotes (SPEC 4.5) — usado a partir do M5, definido junto por coesão. */
+  /** Pacotes (SPEC 4.5). Pity é POR PACOTE (contador visível na UI). */
   packs: {
     rarityWeights: {
       common: 0.7,
@@ -47,6 +47,10 @@ export const CONFIG = {
     },
     legendaryPity: 40,
     iconPity: 400,
+    types: {
+      basic: { cards: 3, costCoins: 1500, costGems: 0, guaranteedRarity: 'rare' },
+      premium: { cards: 5, costCoins: 0, costGems: 50, guaranteedRarity: 'epic' },
+    },
   },
 
   /** Envelhecimento por temporada (SPEC 4.4) — regras aplicadas em aging/. */
@@ -164,14 +168,21 @@ export const CONFIG = {
     },
   },
 
-  /** Economia (SPEC 6) — usada a partir do M5. */
+  /** Economia (SPEC 6). */
   economy: {
     matchCoins: { win: 400, draw: 200, loss: 100 },
+    /** Bônus por desempenho: (nota média do time − 6) × fator, clampado. */
+    performanceBonusPerPoint: 60,
+    performanceBonusMax: 150,
     dailyObjectivesCoins: 500,
     leagueChampionGems: 200,
-    basicPackCoins: 1500,
-    premiumPackGems: 50,
+    /** Premiação de fim de temporada por colocação (M6). */
+    seasonPrizeCoinsByPlacement: [5000, 3500, 2500, 2000, 1500, 1200, 1000, 900, 800, 700, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150],
     marketFeeRate: 0.05,
+    /** Evolução (SPEC 4.6): coins por nível, além das duplicatas. */
+    evolutionCoinsPerLevel: [400, 600, 900, 1300, 1800, 2400],
+    /** Delta aplicado nos atributos-chave da posição a cada nível. */
+    evolutionDeltaPerLevel: 2,
   },
 } as const;
 

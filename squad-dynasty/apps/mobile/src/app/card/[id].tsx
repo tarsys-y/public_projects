@@ -1,10 +1,12 @@
 // Detalhe da Carta (SPEC tela 3): arte por raridade, atributos por categoria,
 // radar estático (snowflake de atributos), idade + projeção de envelhecimento
 // e nível de evolução.
+import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   agingBracketFor,
+  evolutionCost,
   GK_ATTRIBUTE_KEYS,
   isGkAttributes,
   OUTFIELD_ATTRIBUTE_KEYS,
@@ -32,6 +34,15 @@ const CATEGORY_ORDER: AttributeCategory[] = [
 export default function CardDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const owned = useCollectionStore((s) => (id ? s.ownedCards[id] : undefined));
+  const duplicateCount = useCollectionStore((s) =>
+    owned
+      ? Object.values(s.ownedCards).filter(
+          (o) => o.cardDefId === owned.cardDefId && o.id !== owned.id,
+        ).length
+      : 0,
+  );
+  const evolveCard = useCollectionStore((s) => s.evolveCard);
+  const [evolveMessage, setEvolveMessage] = useState<string | null>(null);
   if (!owned) {
     return (
       <View style={styles.screen}>
@@ -105,6 +116,43 @@ export default function CardDetailScreen() {
         </View>
       </View>
 
+      {/* Evolução (SPEC 4.6) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Evolução — nível {owned.evolutionLevel}/6</Text>
+        {(() => {
+          const cost = evolutionCost(owned.evolutionLevel);
+          if (!cost) return <Text style={styles.meta}>Nível máximo alcançado. 🏆</Text>;
+          const canEvolve = duplicateCount >= cost.duplicates;
+          return (
+            <>
+              <Text style={styles.meta}>
+                Custo: {cost.duplicates} duplicata(s) + 🪙 {cost.coins.toLocaleString('pt-BR')} — você
+                tem {duplicateCount} duplicata(s)
+              </Text>
+              <Pressable
+                disabled={!canEvolve}
+                style={[styles.evolveButton, !canEvolve && { opacity: 0.4 }]}
+                onPress={() => {
+                  const outcome = evolveCard(owned.id);
+                  setEvolveMessage(
+                    outcome === 'ok'
+                      ? '✨ Evolução aplicada nos atributos-chave!'
+                      : outcome === 'no-coins'
+                        ? 'Coins insuficientes.'
+                        : outcome === 'no-duplicates'
+                          ? 'Duplicatas insuficientes.'
+                          : 'Nível máximo.',
+                  );
+                }}
+              >
+                <Text style={styles.evolveText}>Evoluir (+1 nos atributos-chave)</Text>
+              </Pressable>
+              {evolveMessage ? <Text style={styles.meta}>{evolveMessage}</Text> : null}
+            </>
+          );
+        })()}
+      </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Projeção de envelhecimento</Text>
         <Text style={styles.agingLabel}>
@@ -167,4 +215,12 @@ const styles = StyleSheet.create({
   barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.bgCard },
   barFill: { height: 6, borderRadius: 3 },
   attrValue: { color: colors.text, fontSize: 12, fontWeight: '800', width: 26, textAlign: 'right' },
+  evolveButton: {
+    backgroundColor: colors.accent,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  evolveText: { color: '#fff', fontWeight: '800', fontSize: 13 },
 });

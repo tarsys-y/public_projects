@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
 import { Link } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../constants/theme';
 import { CATALOG } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
+import { useEconomyStore } from '../stores/economyStore';
+import { DAILY_OBJECTIVES, useObjectivesStore } from '../stores/objectivesStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
 
@@ -10,11 +13,51 @@ export default function HomeScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
   const view = resolveDraft(draft, collection, CATALOG);
+  const { coins, gems } = useEconomyStore();
+  const objectives = useObjectivesStore();
+  useEffect(() => {
+    objectives.ensureToday();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>SQUAD DYNASTY</Text>
-      <Text style={styles.subtitle}>Monte seu elenco. Domine a liga.</Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.title}>SQUAD DYNASTY</Text>
+          <Text style={styles.subtitle}>Monte seu elenco. Domine a liga.</Text>
+        </View>
+      </View>
+      <View style={styles.wallet}>
+        <Text style={styles.walletText}>🪙 {coins.toLocaleString('pt-BR')}</Text>
+        <Text style={styles.walletText}>💎 {gems}</Text>
+      </View>
+
+      {/* Objetivos diários (SPEC 6) */}
+      <View style={styles.objectives}>
+        <Text style={styles.objectivesTitle}>Objetivos de hoje</Text>
+        {DAILY_OBJECTIVES.map((objective) => {
+          const progress = Math.min(objectives.progress[objective.id] ?? 0, objective.target);
+          const done = progress >= objective.target;
+          const claimed = objectives.claimed[objective.id] ?? false;
+          return (
+            <View key={objective.id} style={styles.objectiveRow}>
+              <Text style={styles.objectiveLabel}>
+                {claimed ? '✅' : done ? '🎁' : '▫️'} {objective.label} ({progress}/{objective.target})
+              </Text>
+              <Pressable
+                disabled={!done || claimed}
+                onPress={() => objectives.claim(objective.id)}
+                style={[styles.claimButton, (!done || claimed) && { opacity: 0.35 }]}
+              >
+                <Text style={styles.claimText}>
+                  {claimed ? 'Recebido' : `🪙 ${objective.rewardCoins}`}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
 
       <View style={styles.cards}>
         <View style={styles.stat}>
@@ -46,6 +89,9 @@ export default function HomeScreen() {
       <Link href="/collection" style={styles.ctaSecondary}>
         <Text style={styles.ctaSecondaryText}>Ver coleção →</Text>
       </Link>
+      <Link href="/shop" style={styles.ctaSecondary}>
+        <Text style={styles.ctaSecondaryText}>Abrir pacotes →</Text>
+      </Link>
     </ScrollView>
   );
 }
@@ -53,8 +99,24 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 14 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: 2, marginTop: 8 },
   subtitle: { color: colors.textDim, fontSize: 14, marginBottom: 8 },
+  wallet: { flexDirection: 'row', gap: 16 },
+  walletText: { color: colors.text, fontWeight: '900', fontSize: 16 },
+  objectives: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  objectivesTitle: { color: colors.text, fontWeight: '900', fontSize: 13, textTransform: 'uppercase' },
+  objectiveRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  objectiveLabel: { color: colors.textDim, fontSize: 13, flex: 1 },
+  claimButton: { backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
+  claimText: { color: '#fff', fontWeight: '800', fontSize: 12 },
   cards: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   stat: {
     backgroundColor: colors.bgElevated,

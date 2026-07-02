@@ -11,6 +11,17 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Pacotes + Evolução (M5)
+
+- **Sorteio no cliente até o M7**: openPack roda no engine com seed do relógio;
+  a migração para Cloud Function (SPEC 10.4) acontece no M7 sem mudar a API.
+- **Pity por PACOTE** (não por carta), contadores persistidos e visíveis na
+  Loja; garantia do pacote (básico ≥rare, premium ≥epic) trocando a última carta.
+- **Evolução consome as duplicatas mais recentes**; se uma duplicata consumida
+  estava escalada, o slot esvazia (a UI lida com slot vazio naturalmente).
+- **Saldo inicial 3.000 coins + 50 gems** para o novo jogador sentir o loop
+  de pacotes imediatamente.
+
 ## 2026-07-02 — Base real de 10 ligas
 
 - **Fonte de stats: dataset EA FC 26** (update 4, set/2025 — temporada 25/26),

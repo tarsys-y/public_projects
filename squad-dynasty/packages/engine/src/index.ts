@@ -17,3 +17,8 @@ export * from './sim/decisions';
 export * from './ratings/ratings';
 export * from './autoSquad';
 export * from './aging/aging';
+export * from './aging/applyAging';
+export * from './packs/packs';
+export * from './economy/economy';
+export * from './league/fixtures';
+export * from './league/standings';

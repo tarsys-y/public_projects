@@ -7,11 +7,13 @@ import { create } from 'zustand';
 import {
   buildAutoSquad,
   buildCatalog,
+  matchReward,
   resolveSquad,
   simulateMatch,
   type DecisionPoint,
   type Intervention,
   type MatchResult,
+  type MatchReward,
   type OwnedCard,
   type ResolvedSquad,
   type Squad,
@@ -19,6 +21,8 @@ import {
   type Tactics,
 } from '@squad-dynasty/engine';
 import { CARDS, CATALOG, PLAYERS } from '../services/catalog';
+import { useEconomyStore } from './economyStore';
+import { useObjectivesStore } from './objectivesStore';
 
 export type MatchPhase = 'idle' | 'playing' | 'decision' | 'finished';
 export type MatchSpeed = 'normal' | 'fast';
@@ -37,6 +41,8 @@ interface MatchState {
   interventions: Intervention[];
   home: ResolvedSquad | null;
   seed: number;
+  /** Recompensa concedida no fim da partida (uma única vez). */
+  reward: MatchReward | null;
 
   startFriendly: (
     userSquad: Squad,
@@ -121,6 +127,7 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
   interventions: [],
   home: null,
   seed: 0,
+  reward: null,
 
   startFriendly: (userSquad, owned, opponentClubId, seed) => {
     const withBench = autoBench(userSquad, owned);
@@ -136,6 +143,7 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       playbackMinute: 0,
       pendingDecision: null,
       answeredDecisionIds: [],
+      reward: null,
     });
   },
 
@@ -160,7 +168,11 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       return;
     }
     if (next >= state.result.totalMinutes) {
-      set({ playbackMinute: state.result.totalMinutes, phase: 'finished' });
+      // Fim de jogo: concede recompensa e registra objetivos (uma vez).
+      const reward = matchReward(state.result, 'home');
+      useEconomyStore.getState().earn({ coins: reward.coins });
+      useObjectivesStore.getState().recordMatch(state.result, 'home');
+      set({ playbackMinute: state.result.totalMinutes, phase: 'finished', reward });
       return;
     }
     set({ playbackMinute: next });
@@ -215,5 +227,6 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       interventions: [],
       home: null,
       seed: 0,
+      reward: null,
     }),
 }));
