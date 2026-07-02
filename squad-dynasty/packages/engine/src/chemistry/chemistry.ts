@@ -5,9 +5,12 @@
 //   +15 conexão de estilos com um vizinho (synergies.ts)
 //   +0..20 entrosamento: min(20, starterStreak × 1)
 //   multiplicadorQuimica = 0.90 + 0.15 × (quimica/100)
+//
+// Aceita elencos parciais (slots null) para a UI de montagem: vizinhos e
+// titulares ausentes simplesmente não contam.
 import { CONFIG } from '../config';
 import { FORMATIONS, getNeighborMap } from '../models/formations';
-import type { ResolvedSquad } from '../resolve';
+import type { ResolvedSlot, ResolvedSquad } from '../resolve';
 import { areRolesSynergistic } from './synergies';
 
 export interface ChemistryBreakdown {
@@ -20,29 +23,40 @@ export interface ChemistryBreakdown {
   multiplier: number; // 0.90–1.05
 }
 
+/** Visão mínima aceita pelos cálculos (ResolvedSquad é assignável). */
+export interface ChemistrySquadView {
+  formation: string;
+  slots: ReadonlyArray<ResolvedSlot | null | undefined>;
+}
+
 export function chemistryMultiplier(total: number): number {
   const c = CONFIG.chemistry;
   return c.multiplierBase + c.multiplierSpan * (Math.max(0, Math.min(100, total)) / 100);
 }
 
-/** Química de um titular (índice do slot) dentro do elenco resolvido. */
-export function computePlayerChemistry(squad: ResolvedSquad, slotIndex: number): ChemistryBreakdown {
+/** Química de um titular (índice do slot) dentro do elenco (parcial ou não). */
+export function computePlayerChemistry(
+  squad: ChemistrySquadView,
+  slotIndex: number,
+): ChemistryBreakdown {
   const c = CONFIG.chemistry;
   const formation = FORMATIONS[squad.formation];
   if (!formation) throw new Error(`Formação desconhecida: ${squad.formation}`);
   const neighborMap = getNeighborMap(formation);
   const slot = squad.slots[slotIndex];
-  if (!slot) throw new Error(`Slot inválido: ${slotIndex}`);
+  if (!slot) throw new Error(`Slot vazio ou inválido: ${slotIndex}`);
 
   const me = slot.player.basePlayer;
   const neighbors = (neighborMap[slotIndex] ?? [])
     .map((i) => squad.slots[i])
-    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+    .filter((s): s is ResolvedSlot => Boolean(s));
 
   const clubNeighbors = neighbors.filter((n) => n.player.basePlayer.clubId === me.clubId).length;
   const club = clubNeighbors >= c.clubMinNeighbors ? c.clubBonus : 0;
 
-  const others = squad.slots.filter((_, i) => i !== slotIndex);
+  const others = squad.slots.filter(
+    (s, i): s is ResolvedSlot => i !== slotIndex && Boolean(s),
+  );
   const sameNationality = others.filter(
     (s) => s.player.basePlayer.nationality === me.nationality,
   ).length;
@@ -61,15 +75,18 @@ export function computePlayerChemistry(squad: ResolvedSquad, slotIndex: number):
   return { club, nationality, league, synergy, streak, total, multiplier: chemistryMultiplier(total) };
 }
 
-/** Química de todos os titulares + média do time (para a UI). */
-export function computeSquadChemistry(squad: ResolvedSquad): {
-  perSlot: ChemistryBreakdown[];
+/** Química de todos os titulares presentes + média do time (para a UI). */
+export function computeSquadChemistry(squad: ChemistrySquadView | ResolvedSquad): {
+  perSlot: Array<ChemistryBreakdown | null>;
   teamAverage: number;
 } {
-  const perSlot = squad.slots.map((_, i) => computePlayerChemistry(squad, i));
+  const perSlot = squad.slots.map((slot, i) =>
+    slot ? computePlayerChemistry(squad, i) : null,
+  );
+  const filled = perSlot.filter((b): b is ChemistryBreakdown => b !== null);
   const teamAverage =
-    perSlot.length === 0
+    filled.length === 0
       ? 0
-      : Math.round(perSlot.reduce((sum, b) => sum + b.total, 0) / perSlot.length);
+      : Math.round(filled.reduce((sum, b) => sum + b.total, 0) / filled.length);
   return { perSlot, teamAverage };
 }

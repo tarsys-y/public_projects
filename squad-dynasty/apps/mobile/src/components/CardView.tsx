@@ -1,0 +1,83 @@
+import { StyleSheet, Text, View } from 'react-native';
+import type { BasePlayer, CardDefinition } from '@squad-dynasty/engine';
+import { colors, rarityColors, versionLabel } from '../constants/theme';
+import { clubById } from '../services/catalog';
+
+interface Props {
+  card: CardDefinition;
+  player: BasePlayer;
+  overall: number;
+  size?: 'sm' | 'md';
+  badge?: string; // ex: "x2" para duplicatas
+}
+
+export function CardView({ card, player, overall, size = 'md', badge }: Props) {
+  const rarity = rarityColors[card.rarity];
+  const club = clubById.get(player.clubId);
+  const small = size === 'sm';
+  const version = versionLabel[card.version];
+
+  return (
+    <View
+      style={[
+        styles.frame,
+        small ? styles.frameSm : styles.frameMd,
+        { borderColor: rarity.frame, shadowColor: rarity.glow },
+      ]}
+    >
+      <View style={styles.header}>
+        <Text style={[styles.overall, { color: rarity.frame }]}>{overall}</Text>
+        <Text style={styles.position}>{player.positions[0]}</Text>
+      </View>
+      <Text numberOfLines={1} style={[styles.name, small && styles.nameSm]}>
+        {player.name}
+      </Text>
+      <View style={styles.footer}>
+        <Text style={styles.club}>{club?.shortName ?? '—'}</Text>
+        <Text style={styles.nation}>{player.nationality}</Text>
+      </View>
+      {version ? (
+        <Text style={[styles.version, { color: rarity.frame }]} numberOfLines={1}>
+          {card.label ?? version}
+        </Text>
+      ) : null}
+      {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  frame: {
+    backgroundColor: colors.bgCard,
+    borderWidth: 2,
+    borderRadius: 10,
+    padding: 8,
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  frameMd: { width: 104, minHeight: 120 },
+  frameSm: { width: 84, minHeight: 100 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  overall: { fontSize: 24, fontWeight: '900' },
+  position: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+  name: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 4 },
+  nameSm: { fontSize: 10 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  club: { color: colors.textDim, fontSize: 10, fontWeight: '600' },
+  nation: { color: colors.textDim, fontSize: 10 },
+  version: { fontSize: 9, fontWeight: '800', marginTop: 2, textTransform: 'uppercase' },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: colors.accent,
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
+});

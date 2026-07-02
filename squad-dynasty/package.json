@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "npm run test -w @squad-dynasty/engine",
+    "test": "npm run test -w @squad-dynasty/engine && npm run test -w mobile",
     "test:coverage": "npm run test:coverage -w @squad-dynasty/engine",
     "sim": "npm run sim -w @squad-dynasty/engine --",
     "data:validate": "npm run validate -w @squad-dynasty/data",

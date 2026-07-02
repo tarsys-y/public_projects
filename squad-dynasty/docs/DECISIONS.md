@@ -11,6 +11,23 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Meu Time + Cartas (M3)
+
+- **Tap-to-select em vez de drag & drop** na escalação: tocar no slot abre a
+  lista de candidatos ordenada por adequação; tocar numa carta escala (e troca,
+  se já estava em outro slot). Mais confiável que drag em campo pequeno e
+  não exige gesture-handler; drag pode ser adicionado depois sem mudar a lógica.
+- **Lógica de escalação em `squadLogic.ts` puro** (sem React/AsyncStorage),
+  testada em Node; os stores Zustand são só wiring + persistência. É assim que
+  o aceite "overall/química em tempo real" é verificado sem emulador.
+- **Química tolera elenco parcial**: `computeSquadChemistry` aceita slots null
+  (vizinho vazio não conta) para a UI de montagem — o engine continua exigindo
+  11 para simular.
+- **Coleção demo**: cartas base de Flamengo + Palmeiras + 1 Momento Épico,
+  semeada uma única vez no primeiro launch (flag `seeded` persistida).
+- **Catálogo embarcado**: os JSONs de packages/data entram no bundle via
+  import estático; no M7 passam a vir do Firestore (Cartas Vivas).
+
 ## 2026-07-02 — Motor de Simulação (M2)
 
 - **`baseChanceProb` calibrado em 0.15** (o rascunho da SPEC sugeria 0.075):

@@ -136,8 +136,9 @@ describe('química (SPEC 4.2)', () => {
     );
     const { perSlot, teamAverage } = computeSquadChemistry(squad);
     for (const chem of perSlot) {
-      expect(chem.total).toBeLessThanOrEqual(100);
-      expect(chem.multiplier).toBeLessThanOrEqual(
+      expect(chem).not.toBeNull();
+      expect(chem!.total).toBeLessThanOrEqual(100);
+      expect(chem!.multiplier).toBeLessThanOrEqual(
         CONFIG.chemistry.multiplierBase + CONFIG.chemistry.multiplierSpan + 1e-9,
       );
     }

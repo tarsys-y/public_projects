@@ -16,3 +16,4 @@ export * from './sim/effective';
 export * from './sim/decisions';
 export * from './ratings/ratings';
 export * from './autoSquad';
+export * from './aging/aging';
