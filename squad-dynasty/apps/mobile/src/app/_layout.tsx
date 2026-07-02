@@ -3,6 +3,7 @@ import { DarkTheme, ThemeProvider } from 'expo-router';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../constants/theme';
 import { Onboarding } from '../components/Onboarding';
 import { useCareerStore } from '../stores/careerStore';
@@ -33,7 +34,8 @@ export default function RootLayout() {
   );
 
   return (
-    <ThemeProvider value={DarkTheme}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={DarkTheme}>
       <Tabs
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },
@@ -99,8 +101,9 @@ export default function RootLayout() {
         <Tabs.Screen name="draft" options={{ href: null, title: 'DRAFT' }} />
         <Tabs.Screen name="friends-league" options={{ href: null, title: 'LIGA DE AMIGOS' }} />
       </Tabs>
-      <Onboarding />
-      <StatusBar style="light" />
-    </ThemeProvider>
+        <Onboarding />
+        <StatusBar style="light" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
