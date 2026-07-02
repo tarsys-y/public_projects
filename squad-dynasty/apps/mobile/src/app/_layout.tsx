@@ -4,7 +4,9 @@ import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { colors } from '../constants/theme';
+import { useCareerStore } from '../stores/careerStore';
 import { useCollectionStore } from '../stores/collectionStore';
+import { useMatchStore } from '../stores/matchStore';
 
 import type { ColorValue } from 'react-native';
 
@@ -17,6 +19,17 @@ export default function RootLayout() {
   useEffect(() => {
     seedDemoCollection();
   }, [seedDemoCollection]);
+
+  // Partida de carreira concluída → registra rodada na liga (uma vez).
+  useEffect(
+    () =>
+      useMatchStore.subscribe((s) => {
+        if (s.mode === 'career' && s.phase === 'finished' && !s.careerConsumed) {
+          useCareerStore.getState().consumeUserResult();
+        }
+      }),
+    [],
+  );
 
   return (
     <ThemeProvider value={DarkTheme}>
@@ -61,6 +74,14 @@ export default function RootLayout() {
             title: 'LOJA',
             tabBarLabel: 'Loja',
             tabBarIcon: ({ color }) => <TabIcon glyph="🛒" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="league"
+          options={{
+            title: 'LIGA',
+            tabBarLabel: 'Liga',
+            tabBarIcon: ({ color }) => <TabIcon glyph="🏆" color={color} />,
           }}
         />
         <Tabs.Screen

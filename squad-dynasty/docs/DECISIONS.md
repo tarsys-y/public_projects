@@ -11,6 +11,21 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Carreira PvE (M6)
+
+- **Sem vantagem de mando no engine**: a partida do usuário sempre simula com
+  ele como 'home' (a tela de Partida assume isso); o placar é gravado na
+  orientação do fixture para a tabela. Vantagem de mando real fica para um
+  passe de balanceamento futuro.
+- **Rodada fecha junto com o jogo do usuário**: os outros 9 jogos são
+  simulados na hora (IA×IA, seeds derivadas da temporada — determinístico).
+  Elencos da IA são cacheados por temporada em memória.
+- **Envelhecimento roda no cliente** na virada (determinístico por seed);
+  aposentados ficam em 'retired' no collectionStore e somem dos candidatos
+  de escalação.
+- **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
+  (MLS com 30 clubes → 58 rodadas).
+
 ## 2026-07-02 — Pacotes + Evolução (M5)
 
 - **Sorteio no cliente até o M7**: openPack roda no engine com seed do relógio;

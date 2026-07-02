@@ -26,6 +26,7 @@ import { useObjectivesStore } from './objectivesStore';
 
 export type MatchPhase = 'idle' | 'playing' | 'decision' | 'finished';
 export type MatchSpeed = 'normal' | 'fast';
+export type MatchMode = 'friendly' | 'career';
 
 /** minutos de jogo por segundo real: 90' → ~4min (normal) ou ~30s (rápido). */
 export const SPEED_FACTOR: Record<MatchSpeed, number> = { normal: 0.375, fast: 3 };
@@ -43,6 +44,9 @@ interface MatchState {
   seed: number;
   /** Recompensa concedida no fim da partida (uma única vez). */
   reward: MatchReward | null;
+  mode: MatchMode;
+  /** O careerStore já consumiu o resultado desta partida? */
+  careerConsumed: boolean;
 
   startFriendly: (
     userSquad: Squad,
@@ -50,6 +54,14 @@ interface MatchState {
     opponentClubId: string,
     seed?: number,
   ) => void;
+  /** Partida de carreira: mesma tela, resultado consumido pelo careerStore. */
+  startCareerMatch: (
+    userSquad: Squad,
+    owned: Map<string, OwnedCard>,
+    opponentClubId: string,
+    seed: number,
+  ) => void;
+  markCareerConsumed: () => void;
   setSpeed: (speed: MatchSpeed) => void;
   /** Avança o relógio do playback; pausa em decisões do usuário. */
   advance: (minutes: number) => void;
@@ -116,6 +128,32 @@ function runSim(state: Pick<MatchState, 'home' | 'opponentClubId' | 'seed' | 'in
   );
 }
 
+function start(
+  set: (partial: Partial<MatchState>) => void,
+  userSquad: Squad,
+  owned: Map<string, OwnedCard>,
+  opponentClubId: string,
+  mode: MatchMode,
+  seed?: number,
+): void {
+  const withBench = autoBench(userSquad, owned);
+  const home = resolveSquad(withBench, new Map(owned), buildCatalog(PLAYERS, CARDS));
+  const finalSeed = seed ?? Math.floor(Date.now() % 2147483647);
+  const base = { home, opponentClubId, seed: finalSeed, interventions: [] as Intervention[] };
+  const result = runSim(base);
+  set({
+    ...base,
+    result,
+    phase: 'playing',
+    playbackMinute: 0,
+    pendingDecision: null,
+    answeredDecisionIds: [],
+    reward: null,
+    mode,
+    careerConsumed: false,
+  });
+}
+
 export const useMatchStore = create<MatchState>()((set, get) => ({
   phase: 'idle',
   speed: 'normal',
@@ -128,24 +166,18 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
   home: null,
   seed: 0,
   reward: null,
+  mode: 'friendly',
+  careerConsumed: false,
 
   startFriendly: (userSquad, owned, opponentClubId, seed) => {
-    const withBench = autoBench(userSquad, owned);
-    const ownedWithAuto = new Map(owned);
-    const home = resolveSquad(withBench, ownedWithAuto, buildCatalog(PLAYERS, CARDS));
-    const finalSeed = seed ?? Math.floor(Date.now() % 2147483647);
-    const base = { home, opponentClubId, seed: finalSeed, interventions: [] as Intervention[] };
-    const result = runSim(base);
-    set({
-      ...base,
-      result,
-      phase: 'playing',
-      playbackMinute: 0,
-      pendingDecision: null,
-      answeredDecisionIds: [],
-      reward: null,
-    });
+    start(set, userSquad, owned, opponentClubId, 'friendly', seed);
   },
+
+  startCareerMatch: (userSquad, owned, opponentClubId, seed) => {
+    start(set, userSquad, owned, opponentClubId, 'career', seed);
+  },
+
+  markCareerConsumed: () => set({ careerConsumed: true }),
 
   setSpeed: (speed) => set({ speed }),
 
@@ -228,5 +260,7 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       home: null,
       seed: 0,
       reward: null,
+      mode: 'friendly',
+      careerConsumed: false,
     }),
 }));

@@ -22,6 +22,7 @@ import { useSquadStore } from '../stores/squadStore';
 
 export default function SquadScreen() {
   const collection = useCollectionStore(ownedCardsMap);
+  const retired = useCollectionStore((s) => s.retired);
   const { draft, setFormation, assign, clear, changeRole, updateTactics } = useSquadStore();
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [showTactics, setShowTactics] = useState(false);
@@ -36,6 +37,7 @@ export default function SquadScreen() {
     if (selectedSlot === null || !slotPosition) return [];
     const inUse = new Set(draft.slots.map((s) => s.ownedCardId).filter(Boolean));
     return [...collection.values()]
+      .filter((owned) => !retired[owned.id]) // aposentados não são escaláveis (SPEC 4.4)
       .map((owned) => {
         const player = resolveOwnedCard(owned, CATALOG);
         const gkCard = isGkAttributes(player.attributes);
@@ -52,7 +54,7 @@ export default function SquadScreen() {
       .filter((c): c is NonNullable<typeof c> => c !== null)
       .sort((a, b) => Number(a.inUse) - Number(b.inUse) || b.score - a.score)
       .slice(0, 30);
-  }, [selectedSlot, slotPosition, collection, draft.slots]);
+  }, [selectedSlot, slotPosition, collection, draft.slots, retired]);
 
   const selected = selectedSlot !== null ? view.slots[selectedSlot] : null;
 

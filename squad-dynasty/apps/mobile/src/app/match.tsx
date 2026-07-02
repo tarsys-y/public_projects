@@ -2,6 +2,7 @@
 // jogador, narração por texto, bottom sheet com snowflake ao vivo, botões de
 // substituição/tática, modal de Momento de Decisão e modo rápido (só texto).
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   FlatList,
   Modal,
@@ -38,6 +39,7 @@ export default function MatchScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
   const match = useMatchStore();
+  const router = useRouter();
   const [opponent, setOpponent] = useState(OPPONENTS[0]!.id);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showTactics, setShowTactics] = useState(false);
@@ -205,9 +207,21 @@ export default function MatchScreen() {
             </View>
           ))}
         </View>
-        <Pressable onPress={match.reset} style={styles.cta}>
-          <Text style={styles.ctaText}>Jogar outro amistoso</Text>
-        </Pressable>
+        {match.mode === 'career' ? (
+          <Pressable
+            onPress={() => {
+              match.reset();
+              router.push('/league');
+            }}
+            style={styles.cta}
+          >
+            <Text style={styles.ctaText}>Voltar à Liga</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={match.reset} style={styles.cta}>
+            <Text style={styles.ctaText}>Jogar outro amistoso</Text>
+          </Pressable>
+        )}
       </ScrollView>
     );
   }

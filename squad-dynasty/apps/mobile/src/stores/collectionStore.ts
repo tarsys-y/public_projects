@@ -4,7 +4,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { applyEvolution, evolutionCost, isGkAttributes, type OwnedCard } from '@squad-dynasty/engine';
+import {
+  applyAging,
+  applyEvolution,
+  evolutionCost,
+  isGkAttributes,
+  mulberry32,
+  type OwnedCard,
+} from '@squad-dynasty/engine';
 import { CARDS, cardById, playerById } from '../services/catalog';
 import { useEconomyStore } from './economyStore';
 
@@ -13,11 +20,26 @@ const OWNER_ID = 'local-user';
 
 export type EvolveOutcome = 'ok' | 'max' | 'no-duplicates' | 'no-coins';
 
+export interface AgingSummaryEntry {
+  ownedId: string;
+  name: string;
+  newAge: number;
+  changes: Record<string, number>;
+  retired: boolean;
+}
+
 interface CollectionState {
   ownedCards: Record<string, OwnedCard>;
+  /** Cartas aposentadas (SPEC 4.4): viram item de coleção, não escaláveis. */
+  retired: Record<string, boolean>;
   nextId: number;
   seeded: boolean;
   grantCard: (cardDefId: string) => OwnedCard | null;
+  /**
+   * Virada de temporada (SPEC 4.4): +1 ano nas cartas não-congeladas,
+   * aplica envelhecimento e sorteia aposentadorias. Determinístico por seed.
+   */
+  applySeasonAging: (seed: number) => AgingSummaryEntry[];
   /**
    * Evolui a carta (SPEC 4.6): consome N duplicatas da mesma definição
    * (as mais recentes) + coins, aplica os deltas nos atributos-chave.
@@ -51,6 +73,7 @@ export const useCollectionStore = create<CollectionState>()(
   persist(
     (set, get) => ({
       ownedCards: {},
+      retired: {},
       nextId: 1,
       seeded: false,
 
@@ -63,6 +86,39 @@ export const useCollectionStore = create<CollectionState>()(
           nextId: state.nextId + 1,
         });
         return owned;
+      },
+
+      applySeasonAging: (seed) => {
+        const rng = mulberry32(seed);
+        const state = get();
+        const summary: AgingSummaryEntry[] = [];
+        const ownedCards: Record<string, OwnedCard> = {};
+        const retired = { ...state.retired };
+        // ordem estável para determinismo
+        const entries = Object.values(state.ownedCards).sort((a, b) => a.id.localeCompare(b.id));
+        for (const owned of entries) {
+          const card = cardById.get(owned.cardDefId);
+          const player = card ? playerById.get(card.basePlayerId) : undefined;
+          if (!card || !player || card.frozen || retired[owned.id]) {
+            ownedCards[owned.id] = owned;
+            continue;
+          }
+          const aged: OwnedCard = { ...owned, age: owned.age + 1 };
+          const outcome = applyAging(aged, card, player, rng);
+          ownedCards[owned.id] = outcome.card;
+          if (outcome.retired) retired[owned.id] = true;
+          if (outcome.retired || Object.keys(outcome.changes).length > 0) {
+            summary.push({
+              ownedId: owned.id,
+              name: player.name,
+              newAge: aged.age,
+              changes: outcome.changes as Record<string, number>,
+              retired: outcome.retired,
+            });
+          }
+        }
+        set({ ownedCards, retired });
+        return summary;
       },
 
       evolveCard: (ownedId) => {
@@ -110,7 +166,7 @@ export const useCollectionStore = create<CollectionState>()(
         set({ ownedCards, nextId, seeded: true });
       },
 
-      reset: () => set({ ownedCards: {}, nextId: 1, seeded: false }),
+      reset: () => set({ ownedCards: {}, retired: {}, nextId: 1, seeded: false }),
     }),
     {
       name: 'squad-dynasty/collection',

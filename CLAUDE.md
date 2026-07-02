@@ -48,8 +48,9 @@ npm test                 # Jest: engine (packages/engine) + lógica do app (apps
 npm run test:coverage    # cobertura do engine (aceite M2: ≥85% em src/sim/)
 npm run typecheck        # tsc --noEmit em todos os workspaces
 npm run start            # expo start (app mobile)
-npm run data:validate    # valida players/clubs/cards (zod + integridade referencial)
-npm run data:generate    # regenera players-filler.json (determinístico) + cards.json
+npm run data:validate    # valida os 4 arquivos de jogadores + clubs/cards (zod + refs)
+npm run data:generate    # import-fc26 (CSV commitado) + fillers BR + cards.json
+npm run data:crests      # baixa escudos reais (rede) + regenera src/services/crests.ts
 
 # Simulador standalone (aceite M2)
 npm run sim -- --home packages/engine/cli/fixtures/squadA.json \
@@ -70,7 +71,7 @@ Para validar a UI sem emulador: `cd apps/mobile && npx expo export --platform we
   - `src/models/` — tipos da SPEC §3 + formações (vizinhos táticos derivados por distância) + 20 funções.
   - `src/sim/` — simulador tick-a-tick determinístico; `src/ratings/` notas ao vivo + snowflake; `src/chemistry/` química (aceita elenco parcial para a UI); `src/rng.ts` mulberry32.
   - Interatividade por **re-simulação**: decisões/substituições do usuário viram `interventions` de `simulateMatch(input, {interventions})` com a mesma seed — eventos anteriores ao minuto da intervenção são idênticos (coberto por teste).
-- **`packages/data`** — base editável estilo patch: `players.json` (curado à mão) + `players-filler.json` (gerado, nunca editar à mão) + `cards.json` (gerado). Scripts com zod em `scripts/`.
+- **`packages/data`** — base em 4 arquivos de jogadores: `players.json` (ícones curados), `players-br.json` (Brasileirão real curado — editável, estilo patch), `players-real.json` (GERADO do dataset EA FC 26 em `sources/fc26-trimmed.csv` — nunca editar), `players-filler.json` (gerado, só completa clubes BR). `clubs.json` cobre as 10 ligas (201 clubes com cores reais); escudos reais em `assets/crests/` (135 PNG Europa + SVG BR; MLS/Saudita usam monograma via `ClubCrest`). Scripts com zod em `scripts/`.
 - **`apps/mobile`** — Expo SDK 57 + expo-router (rotas em `src/app/`), Zustand + AsyncStorage. Lógica de estado testável fica pura em `src/stores/squadLogic.ts` / `matchStore.ts` (Jest em Node via `tsconfig.jest.json`); componentes SVG em `src/components/`.
 
 ### Regras invioláveis (SPEC §10)
@@ -83,4 +84,4 @@ Para validar a UI sem emulador: `cd apps/mobile && npx expo export --platform we
 
 ### Estado atual
 
-M0–M4 concluídos (fundação, modelos+dados, motor de simulação, telas Meu Time/Carta/Coleção, Partida ao Vivo vs IA — tudo offline-first). Próximos: M5 (pacotes/gacha + evolução — módulos `packs/` e `economy/` já esboçados no engine), M6 (carreira PvE + envelhecimento via `aging/`), M7 (Firebase), M8 (Cartas Vivas).
+M0–M6 concluídos, tudo offline-first: fundação, modelos, motor de simulação, telas (Meu Time/Carta/Coleção), Partida ao Vivo vs IA, base real de 10 ligas (4.681 jogadores: EA FC 26 + curadoria do Brasileirão + 10 lendas; escudos reais), M5 (Loja com gacha/pity, evolução por duplicatas, objetivos diários, economia coins/gems) e M6 (carreira PvE com calendário, tabela, premiação e envelhecimento na virada de temporada). Próximos: M7 (Firebase: auth, liga de amigos, mercado, sorteios em Cloud Functions) e M8 (Cartas Vivas + polish).
