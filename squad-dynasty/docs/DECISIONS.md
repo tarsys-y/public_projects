@@ -26,6 +26,27 @@ mais simples que preserva a diversão (SPEC seção 10.8).
 - **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
   (MLS com 30 clubes → 58 rodadas).
 
+## 2026-07-02 — Avatares big-head com aparência curada
+
+- **Estilo caricatura big-head** (aprovado pelo usuário em gate visual):
+  cabeça ~60% do busto, contorno grosso, olhos grandes — identidade por
+  silhueta+cores, não retrato (limite consciente do SVG flat).
+- **Aparência curada de 251 famosos** em `packages/data/appearance.json`
+  (taxonomia fechada em `appearance-taxonomy.ts` — fonte única compartilhada
+  por app e scripts, fora do engine): curadoria por agentes com enums
+  fechados + validação zod + integridade referencial; o arquivo fica FORA do
+  pipeline `data:generate` (players-real.json é regenerável, aparência não).
+- **Builder compartilhado** (`avatarTree.ts`, puro): a mesma árvore SVG é
+  renderizada pelo PlayerAvatar (react-native-svg, com cache por jogador) e
+  serializada pela prévia headless — fim do drift app/prévia.
+- **Invariante de salts**: cada feição sorteia com salt próprio; os salts
+  legados continuam decidindo os mesmos slots — caras procedurais preservam
+  pele/cor/família de cabelo entre versões.
+- **Jogador curado sem `accessories` = sem acessórios** (não herda sorteio):
+  brinco/faixa aleatórios são traço forte demais para um rosto famoso.
+- **Sem braços no busto** ⇒ sem luvas de GK nem tatuagens; fita de capitão é
+  estado de partida, não aparência.
+
 ## 2026-07-02 — Cartas premium + abertura cinematográfica
 
 - **Gradientes 100% via react-native-svg** (`Defs`/`LinearGradient`): nada de
