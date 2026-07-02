@@ -24,6 +24,8 @@ export interface ResolvedPlayer {
   starterStreak: number;
   overall: number;
   isGk: boolean;
+  /** Forma/moral (FM): multiplicador 0.95–1.05 aplicado em partida (default 1). */
+  formMultiplier?: number;
 }
 
 export interface ResolvedSlot {
@@ -84,16 +86,26 @@ export function resolveOwnedCard(owned: OwnedCard, catalog: Catalog): ResolvedPl
   };
 }
 
-/** Resolve um Squad persistido num ResolvedSquad pronto para simulação. */
+const FORM_MIN = 0.95;
+const FORM_MAX = 1.05;
+
+/** Resolve um Squad persistido num ResolvedSquad pronto para simulação.
+ *  `options.formById` aplica forma/moral (clamp 0.95–1.05) por ownedCardId. */
 export function resolveSquad(
   squad: Squad,
   ownedById: Map<string, OwnedCard>,
   catalog: Catalog,
+  options: { formById?: Map<string, number> } = {},
 ): ResolvedSquad {
   const resolveId = (ownedCardId: string): ResolvedPlayer => {
     const owned = ownedById.get(ownedCardId);
     if (!owned) throw new Error(`OwnedCard não encontrada: ${ownedCardId}`);
-    return resolveOwnedCard(owned, catalog);
+    const player = resolveOwnedCard(owned, catalog);
+    const form = options.formById?.get(ownedCardId);
+    if (form !== undefined) {
+      player.formMultiplier = Math.max(FORM_MIN, Math.min(FORM_MAX, form));
+    }
+    return player;
   };
   return {
     formation: squad.formation,

@@ -13,7 +13,7 @@ import {
   type PackType,
   type PityState,
 } from '@squad-dynasty/engine';
-import { CARDS } from '../services/catalog';
+import { getAllCards } from '../services/catalog';
 import { useCollectionStore } from './collectionStore';
 import { useEconomyStore } from './economyStore';
 
@@ -31,8 +31,7 @@ interface PacksState {
   reset: () => void;
 }
 
-/** Pool sorteável: tudo que pode vir em pacote (cartas base + especiais). */
-const PACK_POOL = CARDS;
+
 
 export const usePacksStore = create<PacksState>()(
   persist(
@@ -48,7 +47,7 @@ export const usePacksStore = create<PacksState>()(
         if (!paid) return null;
 
         const rng = mulberry32(seed ?? Math.floor(Date.now() % 2147483647));
-        const opening = openPack(rng, PACK_POOL, packType, get().pity);
+        const opening = openPack(rng, getAllCards(), packType, get().pity);
         const grant = useCollectionStore.getState().grantCard;
         const ownedIds: string[] = [];
         for (const card of opening.cards) {

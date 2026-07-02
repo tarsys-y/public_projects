@@ -20,8 +20,9 @@ import {
   type Substitution,
   type Tactics,
 } from '@squad-dynasty/engine';
-import { CARDS, CATALOG, PLAYERS } from '../services/catalog';
+import { CARDS, CATALOG, getCatalog, PLAYERS } from '../services/catalog';
 import { useEconomyStore } from './economyStore';
+import { useEventsStore, countThemeStarters } from './eventsStore';
 import { useObjectivesStore } from './objectivesStore';
 
 export type MatchPhase = 'idle' | 'playing' | 'decision' | 'finished';
@@ -47,6 +48,8 @@ interface MatchState {
   mode: MatchMode;
   /** O careerStore já consumiu o resultado desta partida? */
   careerConsumed: boolean;
+  isDerby?: boolean;
+  derbyName?: string;
 
   startFriendly: (
     userSquad: Squad,
@@ -59,7 +62,7 @@ interface MatchState {
     userSquad: Squad,
     owned: Map<string, OwnedCard>,
     opponentClubId: string,
-    seed: number,
+    opts: { seed: number; isDerby?: boolean; derbyName?: string; formById?: Map<string, number> },
   ) => void;
   markCareerConsumed: () => void;
   setSpeed: (speed: MatchSpeed) => void;
@@ -114,7 +117,12 @@ function autoBench(userSquad: Squad, owned: Map<string, OwnedCard>): Squad {
   return { ...userSquad, bench };
 }
 
-function runSim(state: Pick<MatchState, 'home' | 'opponentClubId' | 'seed' | 'interventions'>): MatchResult {
+function runSim(
+  state: Pick<MatchState, 'home' | 'opponentClubId' | 'seed' | 'interventions'> & {
+    isDerby?: boolean;
+    derbyName?: string;
+  },
+): MatchResult {
   if (!state.home || !state.opponentClubId) throw new Error('Partida não iniciada');
   return simulateMatch(
     {
@@ -123,6 +131,8 @@ function runSim(state: Pick<MatchState, 'home' | 'opponentClubId' | 'seed' | 'in
       seed: state.seed,
       homeController: 'user',
       awayController: 'ai',
+      isDerby: state.isDerby,
+      derbyName: state.derbyName,
     },
     { interventions: state.interventions },
   );
@@ -135,11 +145,19 @@ function start(
   opponentClubId: string,
   mode: MatchMode,
   seed?: number,
+  extras: { isDerby?: boolean; derbyName?: string; formById?: Map<string, number> } = {},
 ): void {
   const withBench = autoBench(userSquad, owned);
-  const home = resolveSquad(withBench, new Map(owned), buildCatalog(PLAYERS, CARDS));
+  const home = resolveSquad(withBench, new Map(owned), getCatalog(), { formById: extras.formById });
   const finalSeed = seed ?? Math.floor(Date.now() % 2147483647);
-  const base = { home, opponentClubId, seed: finalSeed, interventions: [] as Intervention[] };
+  const base = {
+    home,
+    opponentClubId,
+    seed: finalSeed,
+    interventions: [] as Intervention[],
+    isDerby: extras.isDerby,
+    derbyName: extras.derbyName,
+  };
   const result = runSim(base);
   set({
     ...base,
@@ -168,13 +186,15 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
   reward: null,
   mode: 'friendly',
   careerConsumed: false,
+  isDerby: false,
+  derbyName: undefined,
 
   startFriendly: (userSquad, owned, opponentClubId, seed) => {
     start(set, userSquad, owned, opponentClubId, 'friendly', seed);
   },
 
-  startCareerMatch: (userSquad, owned, opponentClubId, seed) => {
-    start(set, userSquad, owned, opponentClubId, 'career', seed);
+  startCareerMatch: (userSquad, owned, opponentClubId, opts) => {
+    start(set, userSquad, owned, opponentClubId, 'career', opts.seed, opts);
   },
 
   markCareerConsumed: () => set({ careerConsumed: true }),
@@ -200,10 +220,18 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       return;
     }
     if (next >= state.result.totalMinutes) {
-      // Fim de jogo: concede recompensa e registra objetivos (uma vez).
+      // Fim de jogo: concede recompensa e registra objetivos/evento (uma vez).
       const reward = matchReward(state.result, 'home');
       useEconomyStore.getState().earn({ coins: reward.coins });
       useObjectivesStore.getState().recordMatch(state.result, 'home');
+      const event = useEventsStore.getState().currentEvent();
+      const themeStarters = state.home
+        ? countThemeStarters(
+            event,
+            state.home.slots.map((slot) => ({ basePlayerId: slot.player.basePlayer.id })),
+          )
+        : 0;
+      useEventsStore.getState().recordMatch(state.result, 'home', themeStarters);
       set({ playbackMinute: state.result.totalMinutes, phase: 'finished', reward });
       return;
     }
@@ -262,5 +290,7 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
       reward: null,
       mode: 'friendly',
       careerConsumed: false,
+      isDerby: false,
+      derbyName: undefined,
     }),
 }));

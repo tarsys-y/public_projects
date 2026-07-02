@@ -86,6 +86,9 @@ export interface MatchInput {
   /** Quem decide os DecisionPoints de cada lado (default: user/ai). */
   homeController?: Controller;
   awayController?: Controller;
+  /** Clássico: bigGame conta desde o 1º minuto e a narração muda. */
+  isDerby?: boolean;
+  derbyName?: string;
 }
 
 export interface SimOptions {

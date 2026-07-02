@@ -18,7 +18,8 @@ import {
 import { CardView } from '../../components/CardView';
 import { RadarChart } from '../../components/RadarChart';
 import { categoryLabel, colors, rarityColors, rarityLabel } from '../../constants/theme';
-import { CATALOG, clubById } from '../../services/catalog';
+import { getCatalog, clubById } from '../../services/catalog';
+import { useCareerStore } from '../../stores/careerStore';
 import { useCollectionStore } from '../../stores/collectionStore';
 
 const CATEGORY_ORDER: AttributeCategory[] = [
@@ -43,6 +44,10 @@ export default function CardDetailScreen() {
   );
   const evolveCard = useCollectionStore((s) => s.evolveCard);
   const [evolveMessage, setEvolveMessage] = useState<string | null>(null);
+  const careerActive = useCareerStore((s) => s.active);
+  const trainingFocus = useCareerStore((s) => (id ? s.trainingFocus[id] : undefined));
+  const setTrainingFocus = useCareerStore((s) => s.setTrainingFocus);
+  const form = useCareerStore((s) => (id ? s.formOf(id) : 1));
   if (!owned) {
     return (
       <View style={styles.screen}>
@@ -51,7 +56,7 @@ export default function CardDetailScreen() {
     );
   }
 
-  const resolved = resolveOwnedCard(owned, CATALOG);
+  const resolved = resolveOwnedCard(owned, getCatalog());
   const { card, basePlayer, attributes } = resolved;
   const gk = isGkAttributes(attributes);
   const values = attributes as unknown as Record<string, number>;
@@ -115,6 +120,47 @@ export default function CardDetailScreen() {
           />
         </View>
       </View>
+
+      {/* Treino + forma (carreira/FM) */}
+      {careerActive ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Carreira — forma {form > 1.01 ? '🔥' : form < 0.99 ? '🥶' : '➖'}{' '}
+            {((form - 1) * 100).toFixed(1)}%
+          </Text>
+          {owned.age <= 23 && !card.frozen ? (
+            <>
+              <Text style={styles.meta}>
+                Foco de treino (jovens ≤23 podem ganhar +1 por rodada na categoria):
+              </Text>
+              <View style={styles.trainingRow}>
+                {CATEGORY_ORDER.map((category) => (
+                  <Pressable
+                    key={category}
+                    onPress={() =>
+                      setTrainingFocus(owned.id, trainingFocus === category ? null : category)
+                    }
+                    style={[styles.trainingChip, trainingFocus === category && styles.trainingChipActive]}
+                  >
+                    <Text
+                      style={[
+                        styles.trainingText,
+                        trainingFocus === category && styles.trainingTextActive,
+                      ]}
+                    >
+                      {categoryLabel[category]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.meta}>
+              {card.frozen ? 'Cartas congeladas não treinam.' : 'Treino focado é para jovens (≤23).'}
+            </Text>
+          )}
+        </View>
+      ) : null}
 
       {/* Evolução (SPEC 4.6) */}
       <View style={styles.section}>
@@ -223,4 +269,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   evolveText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  trainingRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  trainingChip: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    backgroundColor: colors.bgCard,
+  },
+  trainingChipActive: { backgroundColor: '#1d4ed8', borderColor: '#1d4ed8' },
+  trainingText: { color: colors.textDim, fontSize: 11, fontWeight: '700' },
+  trainingTextActive: { color: '#fff' },
 });

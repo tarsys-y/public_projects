@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../constants/theme';
-import { CATALOG } from '../services/catalog';
+import { getCatalog } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { useEconomyStore } from '../stores/economyStore';
+import { useEventsStore } from '../stores/eventsStore';
 import { DAILY_OBJECTIVES, useObjectivesStore } from '../stores/objectivesStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
@@ -12,11 +13,14 @@ import { useSquadStore } from '../stores/squadStore';
 export default function HomeScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
-  const view = resolveDraft(draft, collection, CATALOG);
+  const view = resolveDraft(draft, collection, getCatalog());
   const { coins, gems } = useEconomyStore();
   const objectives = useObjectivesStore();
+  const events = useEventsStore();
+  const event = events.currentEvent();
   useEffect(() => {
     objectives.ensureToday();
+    events.ensureWeek();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -31,6 +35,46 @@ export default function HomeScreen() {
       <View style={styles.wallet}>
         <Text style={styles.walletText}>🪙 {coins.toLocaleString('pt-BR')}</Text>
         <Text style={styles.walletText}>💎 {gems}</Text>
+      </View>
+
+      {/* Evento da semana */}
+      <Link href="/shop" style={styles.eventBanner}>
+        <Text style={styles.eventText}>
+          {event.emoji} EVENTO DA SEMANA: {event.name} — {event.description} Pacote temático e
+          objetivos exclusivos na Loja →
+        </Text>
+      </Link>
+
+      {/* Objetivos do evento */}
+      <View style={styles.objectives}>
+        <Text style={styles.objectivesTitle}>
+          {event.emoji} Objetivos do evento
+        </Text>
+        {event.objectives.map((objective) => {
+          const progress = Math.min(events.progress[objective.id] ?? 0, objective.target);
+          const done = progress >= objective.target;
+          const claimed = events.claimed[objective.id] ?? false;
+          return (
+            <View key={objective.id} style={styles.objectiveRow}>
+              <Text style={styles.objectiveLabel}>
+                {claimed ? '✅' : done ? '🎁' : '▫️'} {objective.label} ({progress}/{objective.target})
+              </Text>
+              <Pressable
+                disabled={!done || claimed}
+                onPress={() => events.claim(objective.id)}
+                style={[styles.claimButton, (!done || claimed) && { opacity: 0.35 }]}
+              >
+                <Text style={styles.claimText}>
+                  {claimed
+                    ? 'Recebido'
+                    : objective.rewardCardId
+                      ? '🃏 carta'
+                      : `🪙 ${objective.rewardCoins ?? 0}`}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
 
       {/* Objetivos diários (SPEC 6) */}
@@ -104,6 +148,15 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.textDim, fontSize: 14, marginBottom: 8 },
   wallet: { flexDirection: 'row', gap: 16 },
   walletText: { color: colors.text, fontWeight: '900', fontSize: 16 },
+  eventBanner: {
+    backgroundColor: '#1d2a3a',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#2e4a6b',
+    overflow: 'hidden',
+  },
+  eventText: { color: colors.text, fontWeight: '700', fontSize: 13 },
   objectives: {
     backgroundColor: colors.bgElevated,
     borderRadius: 12,

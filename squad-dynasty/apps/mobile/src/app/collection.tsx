@@ -11,7 +11,7 @@ import {
 } from '@squad-dynasty/engine';
 import { CardView } from '../components/CardView';
 import { colors, rarityLabel } from '../constants/theme';
-import { cardById, cardOverall, LEAGUES, playerById } from '../services/catalog';
+import { getCardById, cardOverall, LEAGUES, playerById } from '../services/catalog';
 import { useCollectionStore } from '../stores/collectionStore';
 
 const POSITIONS: Array<Position | 'all'> = ['all', 'GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
@@ -63,7 +63,7 @@ export default function CollectionScreen() {
     }
     return [...byDef.entries()]
       .map(([cardDefId, { ownedIds }]) => {
-        const card = cardById.get(cardDefId);
+        const card = getCardById(cardDefId);
         const player = card ? playerById.get(card.basePlayerId) : undefined;
         if (!card || !player) return null;
         return { card, player, count: ownedIds.length, firstOwnedId: ownedIds[0]!, overall: cardOverall(card) };

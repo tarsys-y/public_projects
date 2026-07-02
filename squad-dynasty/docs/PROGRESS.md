@@ -12,4 +12,12 @@ Acompanhamento dos milestones da SPEC.md (seção 9).
 | M5 — Pacotes + Evolução | ✅ | Loja com pacotes básico/premium, abertura com suspense por raridade, pity visível (40 lendária / 400 ícone), evolução por duplicatas+coins nos atributos-chave, objetivos diários, recompensas de partida. Engine packs/economy com 13 testes; loop completo coberto por teste de integração |
 | M6 — Carreira PvE | ✅ | Aba Liga: carreira em qualquer uma das 10 ligas reais (clube com escudo), calendário round-robin duplo determinístico, tabela com critérios do Brasileirão, jogar rodada ao vivo (tela de Partida) ou simular; demais jogos simulados pela IA. Virada de temporada: premiação por colocação (campeão +200 gems), envelhecimento SPEC 4.4 com aposentadorias (cartas viram colecionáveis não-escaláveis). Aceite: teste de integração completa uma temporada de 38 rodadas |
 | M7 — Online (Firebase) | ⬜ | |
-| M8 — Cartas Vivas + Polish | ⬜ | |
+| M8 — Cartas Vivas + Polish | 🔶 parcial | TOTW/"Em Alta" dinâmico e eventos semanais já entregues (frente offline); pipeline de patch (apply-patches) pronto — falta o publish via Firestore (M7) | |
+
+## Extras além dos milestones (jul/2026)
+
+- Base 2026: transferências reais jan–jun/26 via patch pesquisado na web; Série A 2026 real (Chapecoense/Remo).
+- 41 Ícones lendários + 25 Momentos Épicos.
+- Eventos semanais rotativos com pacote temático e objetivos que pagam cartas exclusivas.
+- FM: forma/moral, copa mata-mata de 16 na carreira, treino de jovens, clássicos com bônus.
+- UT: SBCs (8 desafios) e Modo Draft com gauntlet de 4 partidas.

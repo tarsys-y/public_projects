@@ -22,3 +22,7 @@ export * from './packs/packs';
 export * from './economy/economy';
 export * from './league/fixtures';
 export * from './league/standings';
+export * from './league/cup';
+export * from './events/events';
+export * from './data/rivalries';
+export * from './sbc/requirements';

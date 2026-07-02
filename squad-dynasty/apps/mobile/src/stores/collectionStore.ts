@@ -12,7 +12,7 @@ import {
   mulberry32,
   type OwnedCard,
 } from '@squad-dynasty/engine';
-import { CARDS, cardById, playerById } from '../services/catalog';
+import { CARDS, getCardById, playerById } from '../services/catalog';
 import { useEconomyStore } from './economyStore';
 
 const CURRENT_YEAR = 2026;
@@ -45,12 +45,16 @@ interface CollectionState {
    * (as mais recentes) + coins, aplica os deltas nos atributos-chave.
    */
   evolveCard: (ownedId: string) => EvolveOutcome;
+  /** SBC: consome (remove) cartas entregues num desafio. */
+  consumeCards: (ownedIds: string[]) => void;
+  /** Treino (carreira): +1 num atributo específico via attributeDeltas. */
+  applyTrainingGain: (ownedId: string, attribute: string) => void;
   seedDemoCollection: () => void;
   reset: () => void;
 }
 
 function makeOwned(cardDefId: string, id: string): OwnedCard | null {
-  const card = CARDS.find((c) => c.id === cardDefId);
+  const card = getCardById(cardDefId);
   if (!card) return null;
   const player = playerById.get(card.basePlayerId);
   if (!player) return null;
@@ -97,7 +101,7 @@ export const useCollectionStore = create<CollectionState>()(
         // ordem estável para determinismo
         const entries = Object.values(state.ownedCards).sort((a, b) => a.id.localeCompare(b.id));
         for (const owned of entries) {
-          const card = cardById.get(owned.cardDefId);
+          const card = getCardById(owned.cardDefId);
           const player = card ? playerById.get(card.basePlayerId) : undefined;
           if (!card || !player || card.frozen || retired[owned.id]) {
             ownedCards[owned.id] = owned;
@@ -134,7 +138,7 @@ export const useCollectionStore = create<CollectionState>()(
         if (duplicates.length < cost.duplicates) return 'no-duplicates';
         if (!useEconomyStore.getState().spend({ coins: cost.coins })) return 'no-coins';
 
-        const card = cardById.get(owned.cardDefId);
+        const card = getCardById(owned.cardDefId);
         const player = card ? playerById.get(card.basePlayerId) : undefined;
         const evolved = applyEvolution(
           owned,
@@ -145,6 +149,26 @@ export const useCollectionStore = create<CollectionState>()(
         for (const dup of duplicates) delete ownedCards[dup.id];
         set({ ownedCards });
         return 'ok';
+      },
+
+      consumeCards: (ownedIds) => {
+        const ownedCards = { ...get().ownedCards };
+        for (const id of ownedIds) delete ownedCards[id];
+        set({ ownedCards });
+      },
+
+      applyTrainingGain: (ownedId, attribute) => {
+        const state = get();
+        const owned = state.ownedCards[ownedId];
+        if (!owned) return;
+        const deltas = { ...(owned.attributeDeltas as Record<string, number>) };
+        deltas[attribute] = (deltas[attribute] ?? 0) + 1;
+        set({
+          ownedCards: {
+            ...state.ownedCards,
+            [ownedId]: { ...owned, attributeDeltas: deltas as OwnedCard['attributeDeltas'] },
+          },
+        });
       },
 
       seedDemoCollection: () => {

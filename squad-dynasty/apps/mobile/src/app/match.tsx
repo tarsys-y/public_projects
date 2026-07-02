@@ -2,7 +2,7 @@
 // jogador, narração por texto, bottom sheet com snowflake ao vivo, botões de
 // substituição/tática, modal de Momento de Decisão e modo rápido (só texto).
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import {
   FlatList,
   Modal,
@@ -158,6 +158,9 @@ export default function MatchScreen() {
         >
           <Text style={styles.ctaText}>Começar partida</Text>
         </Pressable>
+        <Link href="/draft" style={styles.draftLink}>
+          <Text style={styles.draftLinkText}>🎲 Modo Draft: monte um XI de sorte e encare a série →</Text>
+        </Link>
       </ScrollView>
     );
   }
@@ -529,4 +532,13 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
   },
   rewardText: { color: colors.accent, fontWeight: '900', fontSize: 16 },
+  draftLink: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  draftLinkText: { color: colors.text, fontWeight: '700', fontSize: 13 },
 });

@@ -1,6 +1,7 @@
 // Loja de pacotes (SPEC tela 5): compra, abertura com suspense por raridade
 // (brilho/cor antes de revelar) e contador de pity visível.
 import { useMemo, useState } from 'react';
+import { Link } from 'expo-router';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FlipInYRight } from 'react-native-reanimated';
 import { CONFIG, type CardDefinition, type Rarity } from '@squad-dynasty/engine';
@@ -8,6 +9,7 @@ import { CardView } from '../components/CardView';
 import { colors, rarityColors, rarityLabel } from '../constants/theme';
 import { cardOverall, playerById } from '../services/catalog';
 import { useEconomyStore } from '../stores/economyStore';
+import { useEventsStore } from '../stores/eventsStore';
 import { usePacksStore, type OpeningResult } from '../stores/packsStore';
 
 const RARITY_RANK: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'icon'];
@@ -20,6 +22,8 @@ const bestRarity = (cards: CardDefinition[]): Rarity =>
 export default function ShopScreen() {
   const { coins, gems } = useEconomyStore();
   const { pity, totalOpened, buyAndOpen } = usePacksStore();
+  const events = useEventsStore();
+  const event = events.currentEvent();
   const [opening, setOpening] = useState<OpeningResult | null>(null);
   const [revealed, setRevealed] = useState(0); // quantas cartas já viradas
 
@@ -49,6 +53,35 @@ export default function ShopScreen() {
         <Text style={styles.walletText}>💎 {gems}</Text>
       </View>
 
+      {/* Pacote do evento da semana */}
+      <View style={[styles.pack, styles.eventPack]}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.packName}>
+            {event.emoji} {event.name}
+          </Text>
+          <Text style={styles.packMeta}>
+            {event.pack.cards} cartas do tema · garante {rarityLabel[event.pack.guaranteedRarity as Rarity]}+ ·
+            odds épicas ×{event.pack.epicPlusBoost} · inclui os “Em Alta” da rodada
+          </Text>
+        </View>
+        <Pressable
+          style={styles.buyButton}
+          onPress={() => {
+            const result = events.buyEventPack();
+            if (result) {
+              setOpening(result);
+              setRevealed(0);
+            }
+          }}
+        >
+          <Text style={styles.buyText}>
+            {event.pack.costCoins > 0
+              ? `🪙 ${event.pack.costCoins.toLocaleString('pt-BR')}`
+              : `💎 ${event.pack.costGems}`}
+          </Text>
+        </Pressable>
+      </View>
+
       {packTypes.map(({ type, spec }) => (
         <View key={type} style={styles.pack}>
           <View style={{ flex: 1 }}>
@@ -66,6 +99,12 @@ export default function ShopScreen() {
           </Pressable>
         </View>
       ))}
+
+      <Link href="/sbc" style={styles.sbcLink}>
+        <Text style={styles.sbcLinkText}>
+          🧩 Desafios de Montagem — troque cartas paradas por pacotes e prêmios →
+        </Text>
+      </Link>
 
       {/* Pity visível (SPEC 4.5) */}
       <View style={styles.pityBox}>
@@ -142,6 +181,16 @@ const styles = StyleSheet.create({
   },
   packName: { color: colors.text, fontSize: 16, fontWeight: '900' },
   packMeta: { color: colors.textDim, fontSize: 12 },
+  eventPack: { borderColor: '#2e4a6b', backgroundColor: '#1d2a3a' },
+  sbcLink: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  sbcLinkText: { color: colors.text, fontWeight: '700', fontSize: 13 },
   buyButton: { backgroundColor: colors.accent, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14 },
   buyText: { color: '#fff', fontWeight: '800' },
   pityBox: {

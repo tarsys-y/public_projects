@@ -46,6 +46,30 @@ export const clubById = new Map(CLUBS.map((c) => [c.id, c]));
 export const playerById = new Map(PLAYERS.map((p) => [p.id, p]));
 export const cardById = new Map(CARDS.map((c) => [c.id, c]));
 
+// --- catálogo em runtime (estático + cartas dinâmicas TOTW/"Em Alta") -------
+import { useDynamicCardsStore } from '../stores/dynamicCardsStore';
+
+let cachedCatalog: Catalog = CATALOG;
+let cachedDynamicCount = 0;
+
+/** Catálogo mesclado — use SEMPRE este nos fluxos que tocam a coleção. */
+export function getCatalog(): Catalog {
+  const dynamic = useDynamicCardsStore.getState().list();
+  if (dynamic.length !== cachedDynamicCount) {
+    cachedCatalog = buildCatalog(PLAYERS, [...CARDS, ...dynamic]);
+    cachedDynamicCount = dynamic.length;
+  }
+  return cachedCatalog;
+}
+
+export function getAllCards(): CardDefinition[] {
+  return [...CARDS, ...useDynamicCardsStore.getState().list()];
+}
+
+export function getCardById(id: string): CardDefinition | undefined {
+  return cardById.get(id) ?? useDynamicCardsStore.getState().cards[id];
+}
+
 /** Overall derivado de uma CardDefinition (nunca persistido — SPEC 10.3). */
 export function cardOverall(card: CardDefinition): number {
   const player = playerById.get(card.basePlayerId);

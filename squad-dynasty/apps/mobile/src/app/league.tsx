@@ -10,7 +10,7 @@ import { useCareerStore } from '../stores/careerStore';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
-import { CATALOG } from '../services/catalog';
+import { getCatalog } from '../services/catalog';
 
 export default function LeagueScreen() {
   const career = useCareerStore();
@@ -19,7 +19,7 @@ export default function LeagueScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
   const squadReady = useMemo(
-    () => resolveDraft(draft, collection, CATALOG).isComplete,
+    () => resolveDraft(draft, collection, getCatalog()).isComplete,
     [draft, collection],
   );
 
@@ -59,15 +59,10 @@ export default function LeagueScreen() {
   }
 
   // ---------- carreira ativa ----------
-  const fixture = career.userFixture();
+  const match = career.currentMatch();
   const standings = career.standings();
   const userRow = standings.findIndex((r) => r.clubId === career.userClubId) + 1;
   const totalRounds = career.fixtures.length > 0 ? Math.max(...career.fixtures.map((f) => f.round)) : 0;
-  const opponentId = fixture
-    ? fixture.homeClubId === career.userClubId
-      ? fixture.awayClubId
-      : fixture.homeClubId
-    : null;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -81,18 +76,25 @@ export default function LeagueScreen() {
         </View>
       </View>
 
-      {fixture && opponentId ? (
+      {match ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Próximo jogo (rodada {fixture.round})</Text>
+          <Text style={styles.sectionTitle}>
+            {match.type === 'cup'
+              ? `🏆 Copa — ${match.stageName}`
+              : `Próximo jogo (rodada ${career.round})`}
+          </Text>
+          {match.isDerby ? (
+            <Text style={styles.derby}>🔥 CLÁSSICO{match.derbyName ? `: ${match.derbyName}` : ''} (+{250} coins na vitória)</Text>
+          ) : null}
           <View style={styles.fixtureRow}>
             <View style={styles.fixtureSide}>
-              <ClubCrest clubId={fixture.homeClubId} size={30} />
-              <Text style={styles.fixtureName}>{clubById.get(fixture.homeClubId)?.shortName}</Text>
+              <ClubCrest clubId={match.fixture.homeClubId} size={30} />
+              <Text style={styles.fixtureName}>{clubById.get(match.fixture.homeClubId)?.shortName}</Text>
             </View>
             <Text style={styles.vs}>×</Text>
             <View style={styles.fixtureSide}>
-              <ClubCrest clubId={fixture.awayClubId} size={30} />
-              <Text style={styles.fixtureName}>{clubById.get(fixture.awayClubId)?.shortName}</Text>
+              <ClubCrest clubId={match.fixture.awayClubId} size={30} />
+              <Text style={styles.fixtureName}>{clubById.get(match.fixture.awayClubId)?.shortName}</Text>
             </View>
           </View>
           {!squadReady ? (
@@ -118,6 +120,26 @@ export default function LeagueScreen() {
         </View>
       ) : null}
 
+      {career.cup && !career.cup.champion ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🏆 Copa</Text>
+          <Text style={styles.meta}>
+            {career.cup.userAlive
+              ? `Você está vivo! Próxima fase: ${career.cup.stage < 4 ? ['Oitavas', 'Quartas', 'Semifinal', 'Final'][career.cup.stage] : '—'} (após a rodada ${[8, 16, 24, 32][career.cup.stage] ?? '—'} da liga)`
+              : 'Você foi eliminado — a copa segue sem o seu clube.'}
+          </Text>
+        </View>
+      ) : null}
+      {career.cup?.champion ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🏆 Copa encerrada</Text>
+          <Text style={styles.meta}>
+            Campeão: {clubById.get(career.cup.champion)?.name}
+            {career.cup.champion === career.userClubId ? ' — É SEU! 🎉' : ''}
+          </Text>
+        </View>
+      ) : null}
+
       {career.lastSummary ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Temporada {career.lastSummary.season} encerrada</Text>
@@ -126,6 +148,12 @@ export default function LeagueScreen() {
             {clubById.get(career.lastSummary.champion)?.name} · 🪙 +{career.lastSummary.prizeCoins}
             {career.lastSummary.prizeGems ? ` · 💎 +${career.lastSummary.prizeGems}` : ''}
           </Text>
+          {career.lastSummary.cupChampion ? (
+            <Text style={styles.meta}>
+              Copa: {clubById.get(career.lastSummary.cupChampion)?.name}
+              {career.lastSummary.userWonCup ? ' — conquistada por você! 🏆' : ''}
+            </Text>
+          ) : null}
           {career.lastSummary.aging.length > 0 ? (
             <>
               <Text style={[styles.meta, { marginTop: 4 }]}>Envelhecimento do elenco:</Text>
@@ -182,6 +210,7 @@ const styles = StyleSheet.create({
   content: { padding: 14, gap: 12, paddingBottom: 40 },
   h1: { color: colors.text, fontSize: 20, fontWeight: '900' },
   meta: { color: colors.textDim, fontSize: 12 },
+  derby: { color: colors.warning, fontSize: 12, fontWeight: '900' },
   agingLine: { color: colors.textDim, fontSize: 11, paddingLeft: 4 },
   warn: { color: colors.warning, fontSize: 12, fontWeight: '700' },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

@@ -26,6 +26,32 @@ mais simples que preserva a diversão (SPEC seção 10.8).
 - **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
   (MLS com 30 clubes → 58 rodadas).
 
+## 2026-07-02 — Lendas, Eventos, FM e SBC/Draft
+
+- **Eventos semanais offline**: a semana ISO do relógio escolhe o evento do
+  catálogo (engine/events) — determinístico em qualquer aparelho, sem servidor.
+  Pacote do evento = pool do tema + cartas "Em Alta" da rodada, com odds epic+
+  multiplicadas.
+- **TOTW/"Em Alta" antecipado do M8**: o XI da rodada da carreira vira cartas
+  "inform" dinâmicas (+2 nos atributos-chave, raridade +1 tier, frozen: true —
+  desvio consciente da SPEC, que congela só epic_moment/icon: inform é snapshot).
+  Cartas dinâmicas ficam num store persistido e entram no catálogo via
+  getCatalog()/getAllCards() — os fluxos de coleção usam SEMPRE os getters.
+- **Elencos 2026 por pesquisa web com fontes**: patch só com transferências
+  oficializadas; rumores ficam fora. Série A 2026 corrigida (Chapecoense/Remo).
+- **Forma/moral**: multiplicador 0.95–1.05 derivado das últimas 5 notas do
+  jogador nas partidas jogadas pelo usuário; aplicado via resolveSquad(options).
+- **Copa mata-mata de 16** intercalada após as rodadas 8/16/24/32; empate
+  decide nos pênaltis (sorteio ponderado por bigGame+composure). Eliminado =
+  copa segue sozinha; temporada nunca trava.
+- **Clássicos**: tabela curada de rivalidades; derby liga o bigGame desde o
+  1º minuto e paga bônus na vitória.
+- **Treino**: foco por categoria só para jovens (≤23), chance determinística
+  de +1 por rodada — complementa (não substitui) a evolução por duplicatas.
+- **SBC consome cartas de verdade** (aviso destrutivo na UI); desafios não
+  repetíveis ficam marcados. **Draft** usa cartas emprestadas; derrota encerra
+  a série (estilo UT) e o prêmio escala por vitórias.
+
 ## 2026-07-02 — Pacotes + Evolução (M5)
 
 - **Sorteio no cliente até o M7**: openPack roda no engine com seed do relógio;

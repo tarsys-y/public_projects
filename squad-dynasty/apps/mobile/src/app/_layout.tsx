@@ -93,6 +93,8 @@ export default function RootLayout() {
           }}
         />
         <Tabs.Screen name="card/[id]" options={{ href: null, title: 'CARTA' }} />
+        <Tabs.Screen name="sbc" options={{ href: null, title: 'DESAFIOS' }} />
+        <Tabs.Screen name="draft" options={{ href: null, title: 'DRAFT' }} />
       </Tabs>
       <StatusBar style="light" />
     </ThemeProvider>

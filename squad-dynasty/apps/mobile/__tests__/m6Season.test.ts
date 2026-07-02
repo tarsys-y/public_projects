@@ -29,7 +29,7 @@ describe('aceite M6: temporada completa da carreira', () => {
     expect(career.leagueId).toBe('brasileirao');
     expect(career.fixtures).toHaveLength(380);
     expect(Math.max(...career.fixtures.map((f) => f.round))).toBe(38);
-    expect(career.userFixture()?.round).toBe(1);
+    expect((career.currentMatch()?.fixture as {round?: number}).round).toBe(1);
   });
 
   it('jogar ao vivo uma rodada registra o resultado e avança', () => {
@@ -58,7 +58,7 @@ describe('aceite M6: temporada completa da carreira', () => {
     );
 
     let guard = 0;
-    while (useCareerStore.getState().season === 1 && guard++ < 40) {
+    while (useCareerStore.getState().season === 1 && guard++ < 50) {
       useCareerStore.getState().simulateUserMatch();
     }
 
@@ -86,7 +86,7 @@ describe('aceite M6: temporada completa da carreira', () => {
   });
 
   it('a segunda temporada continua jogável', () => {
-    expect(useCareerStore.getState().userFixture()).not.toBeNull();
+    expect(useCareerStore.getState().currentMatch()).not.toBeNull();
     useCareerStore.getState().simulateUserMatch();
     expect(useCareerStore.getState().round).toBe(2);
   });

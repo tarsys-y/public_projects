@@ -139,11 +139,12 @@ function initTeam(side: Side, squad: ResolvedSquad, controller: Controller): Tea
   };
 }
 
-/** Multiplicador dinâmico do jogador no minuto: estático × fadiga × lesão. */
+/** Multiplicador dinâmico: estático × forma × fadiga × lesão. */
 function dynMult(p: ActivePlayer, minute: number, tactics: Tactics): number {
   const highPressing = tactics.pressing === 3;
   return (
     p.staticMult *
+    (p.player.formMultiplier ?? 1) *
     p.injuryPenalty *
     fatigueFactor(staminaOf(p.player), minute - p.enteredMinute, highPressing)
   );
@@ -204,7 +205,15 @@ export function simulateMatch(input: MatchInput, options: SimOptions = {}): Matc
   const emit = (event: MatchEvent) => events.push(event);
   const scoreString = () => `${score.home} x ${score.away}`;
 
-  emit({ minute: 0, side: 'home', type: 'kickoff', detail: narrate.kickoff(), ratingImpacts: [] });
+  emit({
+    minute: 0,
+    side: 'home',
+    type: 'kickoff',
+    detail: input.isDerby
+      ? `🔥 DIA DE CLÁSSICO${input.derbyName ? ` — ${input.derbyName}` : ''}! O estádio ferve. A bola vai rolar!`
+      : narrate.kickoff(),
+    ratingImpacts: [],
+  });
 
   // --- substituições ---------------------------------------------------------
   function applySubstitution(
@@ -361,8 +370,8 @@ export function simulateMatch(input: MatchInput, options: SimOptions = {}): Matc
       atkComposite(finisher.player) * dynMult(finisher, minute, team.tactics) -
       (defender ? defComposite(defender.player) * dynMult(defender, minute, opp.tactics) : 55);
 
-    // bigGame com placar empatado no fim (SPEC 5.2.4).
-    if (score.home === score.away && minute >= c.bigGameFromMinute) {
+    // bigGame com placar empatado no fim (SPEC 5.2.4); em clássico, sempre.
+    if (input.isDerby || (score.home === score.away && minute >= c.bigGameFromMinute)) {
       quality += (finisher.player.attributes.bigGame - 60) / c.bigGameQualityDiv;
     }
 

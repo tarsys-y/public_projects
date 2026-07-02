@@ -15,7 +15,7 @@ import {
 import { PitchView } from '../components/PitchView';
 import { TacticsPanel } from '../components/TacticsPanel';
 import { colors } from '../constants/theme';
-import { CATALOG } from '../services/catalog';
+import { getCatalog } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
@@ -27,7 +27,7 @@ export default function SquadScreen() {
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [showTactics, setShowTactics] = useState(false);
 
-  const view = useMemo(() => resolveDraft(draft, collection, CATALOG), [draft, collection]);
+  const view = useMemo(() => resolveDraft(draft, collection, getCatalog()), [draft, collection]);
 
   const slotPosition: Position | null =
     selectedSlot !== null ? (view.slots[selectedSlot]?.position as Position) : null;
@@ -39,7 +39,7 @@ export default function SquadScreen() {
     return [...collection.values()]
       .filter((owned) => !retired[owned.id]) // aposentados não são escaláveis (SPEC 4.4)
       .map((owned) => {
-        const player = resolveOwnedCard(owned, CATALOG);
+        const player = resolveOwnedCard(owned, getCatalog());
         const gkCard = isGkAttributes(player.attributes);
         if (gkCard !== (slotPosition === 'GK')) return null;
         const natural = player.basePlayer.positions.includes(slotPosition);

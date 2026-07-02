@@ -9,6 +9,14 @@ import { pickWeighted } from '../rng';
 
 export type PackType = keyof typeof CONFIG.packs.types;
 
+/** Spec avulsa (pacotes de evento): odds epic+ multiplicadas por boost. */
+export interface CustomPackSpec {
+  cards: number;
+  guaranteedRarity: Rarity;
+  /** multiplica os pesos de epic/legendary/icon no roll de raridade. */
+  epicPlusBoost?: number;
+}
+
 export interface PityState {
   /** Pacotes abertos desde a última legendary/icon (contador visível na UI). */
   sinceLegendary: number;
@@ -26,11 +34,13 @@ export interface PackOpening {
 const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'icon'];
 const rarityRank = (r: Rarity) => RARITY_ORDER.indexOf(r);
 
-function rollRarity(rng: Rng): Rarity {
+function rollRarity(rng: Rng, epicPlusBoost = 1): Rarity {
   const weights = CONFIG.packs.rarityWeights;
   const idx = pickWeighted(
     rng,
-    RARITY_ORDER.map((r) => weights[r]),
+    RARITY_ORDER.map((r) =>
+      rarityRank(r) >= rarityRank('epic') ? weights[r] * epicPlusBoost : weights[r],
+    ),
   );
   return RARITY_ORDER[idx]!;
 }
@@ -52,16 +62,19 @@ function drawCardOfRarity(rng: Rng, pool: CardDefinition[], rarity: Rarity): Car
 /**
  * Abre um pacote. `pool` é o catálogo sorteável (cartas base + especiais;
  * epic_moment/icon já têm raridade epic+ e só saem nesses rolls — SPEC 4.5).
+ * Aceita um tipo do config ou uma spec customizada (pacotes de evento).
  */
 export function openPack(
   rng: Rng,
   pool: CardDefinition[],
-  packType: PackType,
+  packType: PackType | CustomPackSpec,
   pity: PityState,
 ): PackOpening {
-  const spec = CONFIG.packs.types[packType];
+  const spec: CustomPackSpec =
+    typeof packType === 'string' ? CONFIG.packs.types[packType] : packType;
+  const boost = spec.epicPlusBoost ?? 1;
   const rarities: Rarity[] = [];
-  for (let i = 0; i < spec.cards; i++) rarities.push(rollRarity(rng));
+  for (let i = 0; i < spec.cards; i++) rarities.push(rollRarity(rng, boost));
 
   // Garantia do pacote: pelo menos 1 carta ≥ guaranteedRarity.
   const guaranteed = spec.guaranteedRarity as Rarity;
