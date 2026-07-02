@@ -1,0 +1,606 @@
+{
+  "afc-bournemouth": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/AFC%20Bournemouth.png"
+  },
+  "arsenal": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Arsenal%20FC.png"
+  },
+  "aston-villa": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Aston%20Villa.png"
+  },
+  "brentford": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Brentford%20FC.png"
+  },
+  "brighton-hove-albion": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Brighton%20%26%20Hove%20Albion.png"
+  },
+  "burnley": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Burnley%20FC.png"
+  },
+  "chelsea": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Chelsea%20FC.png"
+  },
+  "crystal-palace": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Crystal%20Palace.png"
+  },
+  "everton": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Everton%20FC.png"
+  },
+  "fulham-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Fulham%20FC.png"
+  },
+  "leeds-united": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Leeds%20United.png"
+  },
+  "liverpool": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Liverpool%20FC.png"
+  },
+  "manchester-city": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Manchester%20City.png"
+  },
+  "manchester-united": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Manchester%20United.png"
+  },
+  "newcastle-united": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Newcastle%20United.png"
+  },
+  "nottingham-forest": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Nottingham%20Forest.png"
+  },
+  "sunderland": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Sunderland%20AFC.png"
+  },
+  "tottenham-hotspur": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Tottenham%20Hotspur.png"
+  },
+  "west-ham-united": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/West%20Ham%20United.png"
+  },
+  "wolverhampton-wanderers": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/England%20-%20Premier%20League/Wolverhampton%20Wanderers.png"
+  },
+  "athletic-club": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Athletic%20Bilbao.png"
+  },
+  "atletico-madrid": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Atl%C3%A9tico%20de%20Madrid.png"
+  },
+  "ca-osasuna": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/CA%20Osasuna.png"
+  },
+  "rc-celta": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Celta%20de%20Vigo.png"
+  },
+  "deportivo-alaves": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Deportivo%20Alav%C3%A9s.png"
+  },
+  "elche-cf": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Elche%20CF.png"
+  },
+  "fc-barcelona": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/FC%20Barcelona.png"
+  },
+  "getafe-cf": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Getafe%20CF.png"
+  },
+  "girona-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Girona%20FC.png"
+  },
+  "levante-ud": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Levante%20UD.png"
+  },
+  "rcd-espanyol": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/RCD%20Espanyol%20Barcelona.png"
+  },
+  "rcd-mallorca": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/RCD%20Mallorca.png"
+  },
+  "rayo-vallecano": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Rayo%20Vallecano.png"
+  },
+  "real-betis-balompie": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Real%20Betis%20Balompi%C3%A9.png"
+  },
+  "real-madrid": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Real%20Madrid.png"
+  },
+  "real-oviedo": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Real%20Oviedo.png"
+  },
+  "real-sociedad": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Real%20Sociedad.png"
+  },
+  "sevilla-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Sevilla%20FC.png"
+  },
+  "valencia-cf": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Valencia%20CF.png"
+  },
+  "villarreal-cf": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Spain%20-%20LaLiga/Villarreal%20CF.png"
+  },
+  "ac-milan": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/AC%20Milan.png"
+  },
+  "fiorentina": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/ACF%20Fiorentina.png"
+  },
+  "roma": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/AS%20Roma.png"
+  },
+  "atalanta": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Atalanta%20BC.png"
+  },
+  "bologna": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Bologna%20FC%201909.png"
+  },
+  "cagliari": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Cagliari%20Calcio.png"
+  },
+  "como": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Como%201907.png"
+  },
+  "genoa": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Genoa%20CFC.png"
+  },
+  "hellas-verona-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Hellas%20Verona.png"
+  },
+  "inter": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Inter%20Milan.png"
+  },
+  "juventus": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Juventus%20FC.png"
+  },
+  "parma": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Parma%20Calcio%201913.png"
+  },
+  "pisa": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Pisa%20Sporting%20Club.png"
+  },
+  "lazio": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/SS%20Lazio.png"
+  },
+  "napoli": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/SSC%20Napoli.png"
+  },
+  "torino": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Torino%20FC.png"
+  },
+  "cremonese": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/US%20Cremonese.png"
+  },
+  "lecce": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/US%20Lecce.png"
+  },
+  "sassuolo": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/US%20Sassuolo.png"
+  },
+  "udinese": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Italy%20-%20Serie%20A/Udinese%20Calcio.png"
+  },
+  "1-fc-heidenheim-1846": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/1.FC%20Heidenheim%201846.png"
+  },
+  "1-fc-koln": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/1.FC%20K%C3%B6ln.png"
+  },
+  "1-fc-union-berlin": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/1.FC%20Union%20Berlin.png"
+  },
+  "1-fsv-mainz-05": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/1.FSV%20Mainz%2005.png"
+  },
+  "bayer-04-leverkusen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Bayer%2004%20Leverkusen.png"
+  },
+  "fc-bayern-munchen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Bayern%20Munich.png"
+  },
+  "borussia-dortmund": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Borussia%20Dortmund.png"
+  },
+  "borussia-monchengladbach": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Borussia%20M%C3%B6nchengladbach.png"
+  },
+  "eintracht-frankfurt": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Eintracht%20Frankfurt.png"
+  },
+  "fc-augsburg": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/FC%20Augsburg.png"
+  },
+  "fc-st-pauli": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/FC%20St.%20Pauli.png"
+  },
+  "hamburger-sv": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/Hamburger%20SV.png"
+  },
+  "rb-leipzig": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/RB%20Leipzig.png"
+  },
+  "sc-freiburg": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/SC%20Freiburg.png"
+  },
+  "sv-werder-bremen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/SV%20Werder%20Bremen.png"
+  },
+  "tsg-1899-hoffenheim": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/TSG%201899%20Hoffenheim.png"
+  },
+  "vfb-stuttgart": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/VfB%20Stuttgart.png"
+  },
+  "vfl-wolfsburg": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Germany%20-%20Bundesliga/VfL%20Wolfsburg.png"
+  },
+  "aj-auxerre": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/AJ%20Auxerre.png"
+  },
+  "as-monaco": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/AS%20Monaco.png"
+  },
+  "angers-sco": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Angers%20SCO.png"
+  },
+  "fc-lorient": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/FC%20Lorient.png"
+  },
+  "fc-metz": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/FC%20Metz.png"
+  },
+  "fc-nantes": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/FC%20Nantes.png"
+  },
+  "toulouse-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/FC%20Toulouse.png"
+  },
+  "lille-osc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/LOSC%20Lille.png"
+  },
+  "le-havre-ac": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Le%20Havre%20AC.png"
+  },
+  "ogc-nice": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/OGC%20Nice.png"
+  },
+  "olympique-lyonnais": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Olympique%20Lyon.png"
+  },
+  "olympique-de-marseille": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Olympique%20Marseille.png"
+  },
+  "paris-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Paris%20FC.png"
+  },
+  "paris-saint-germain": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Paris%20Saint-Germain.png"
+  },
+  "rc-lens": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/RC%20Lens.png"
+  },
+  "rc-strasbourg-alsace": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/RC%20Strasbourg%20Alsace.png"
+  },
+  "stade-brestois-29": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Stade%20Brestois%2029.png"
+  },
+  "stade-rennais-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/France%20-%20Ligue%201/Stade%20Rennais%20FC.png"
+  },
+  "avs-futebol-sad": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Avs%20Futebol.png"
+  },
+  "cd-nacional": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/CD%20Nacional.png"
+  },
+  "santa-clara": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/CD%20Santa%20Clara.png"
+  },
+  "cd-tondela": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/CD%20Tondela.png"
+  },
+  "estrela-da-amadora": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/CF%20Estrela%20Amadora.png"
+  },
+  "casa-pia": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Casa%20Pia%20AC.png"
+  },
+  "alverca": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/FC%20Alverca.png"
+  },
+  "fc-arouca": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/FC%20Arouca.png"
+  },
+  "famalicao": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/FC%20Famalic%C3%A3o.png"
+  },
+  "fc-porto": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/FC%20Porto.png"
+  },
+  "gd-estoril-praia": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/GD%20Estoril%20Praia.png"
+  },
+  "gil-vicente-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Gil%20Vicente%20FC.png"
+  },
+  "moreirense-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Moreirense%20FC.png"
+  },
+  "rio-ave-fc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Rio%20Ave%20FC.png"
+  },
+  "sporting-clube-de-braga": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/SC%20Braga.png"
+  },
+  "sl-benfica": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/SL%20Benfica.png"
+  },
+  "sporting-cp": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Sporting%20CP.png"
+  },
+  "vitoria-sc": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Portugal%20-%20Liga%20Portugal/Vit%C3%B3ria%20Guimar%C3%A3es%20SC.png"
+  },
+  "az-alkmaar": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/AZ%20Alkmaar.png"
+  },
+  "ajax": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Ajax%20Amsterdam.png"
+  },
+  "excelsior": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Excelsior%20Rotterdam.png"
+  },
+  "fc-groningen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/FC%20Groningen.png"
+  },
+  "fc-utrecht": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/FC%20Utrecht.png"
+  },
+  "fc-volendam": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/FC%20Volendam.png"
+  },
+  "feyenoord": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Feyenoord%20Rotterdam.png"
+  },
+  "fortuna-sittard": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Fortuna%20Sittard.png"
+  },
+  "go-ahead-eagles": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Go%20Ahead%20Eagles.png"
+  },
+  "heracles-almelo": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Heracles%20Almelo.png"
+  },
+  "nac-breda": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/NAC%20Breda.png"
+  },
+  "nec-nijmegen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/NEC%20Nijmegen.png"
+  },
+  "pec-zwolle": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/PEC%20Zwolle.png"
+  },
+  "psv": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/PSV%20Eindhoven.png"
+  },
+  "sc-heerenveen": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/SC%20Heerenveen.png"
+  },
+  "telstar": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/SC%20Telstar.png"
+  },
+  "sparta-rotterdam": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Sparta%20Rotterdam.png"
+  },
+  "fc-twente": {
+    "format": "png",
+    "url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Netherlands%20-%20Eredivisie/Twente%20Enschede%20FC.png"
+  },
+  "flamengo": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/flamengo.svg"
+  },
+  "palmeiras": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/palmeiras.svg"
+  },
+  "corinthians": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/corinthians.svg"
+  },
+  "sao-paulo": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/sao-paulo.svg"
+  },
+  "santos": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/santos.svg"
+  },
+  "gremio": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/gremio.svg"
+  },
+  "internacional": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/internacional.svg"
+  },
+  "atletico-mg": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/atletico-mg.svg"
+  },
+  "botafogo": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/botafogo.svg"
+  },
+  "fluminense": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/fluminense.svg"
+  },
+  "cruzeiro": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/cruzeiro.svg"
+  },
+  "vasco": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/vasco-da-gama.svg"
+  },
+  "bahia": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/bahia.svg"
+  },
+  "fortaleza": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/fortaleza.svg"
+  },
+  "bragantino": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/bragantino.svg"
+  },
+  "ceara": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/ceara.svg"
+  },
+  "vitoria": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/vitoria.svg"
+  },
+  "coritiba": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/coritiba.svg"
+  },
+  "athletico-pr": {
+    "format": "svg",
+    "url": "https://raw.githubusercontent.com/williamorim/brasileirao/master/inst/badges/athletico-pr.svg"
+  }
+}

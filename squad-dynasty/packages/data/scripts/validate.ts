@@ -56,15 +56,17 @@ function checkUnique(file: string, ids: string[]) {
 
 // --- carga e validação de schema ---
 const clubs = validateArray('clubs.json', readJson('clubs.json'), clubSchema);
-const curated = validateArray('players.json', readJson('players.json'), basePlayerSchema);
+const icons = validateArray('players.json', readJson('players.json'), basePlayerSchema);
+const curatedBr = validateArray('players-br.json', readJson('players-br.json'), basePlayerSchema);
+const real = validateArray('players-real.json', readJson('players-real.json'), basePlayerSchema);
 const filler = validateArray('players-filler.json', readJson('players-filler.json'), basePlayerSchema);
 const epicMoments = validateArray('epic-moments.json', readJson('epic-moments.json'), epicMomentSchema);
 const cards = validateArray('cards.json', readJson('cards.json'), cardDefinitionSchema);
 
-const players = [...curated, ...filler];
+const players = [...icons, ...curatedBr, ...real, ...filler];
 
 checkUnique('clubs.json', clubs.map((c) => c.id));
-checkUnique('players(.json + -filler.json)', players.map((p) => p.id));
+checkUnique('players(4 arquivos)', players.map((p) => p.id));
 checkUnique('epic-moments.json', epicMoments.map((e) => e.id));
 checkUnique('cards.json', cards.map((c) => c.id));
 
@@ -96,7 +98,7 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `✓ Base válida: ${clubs.length} clubes, ${curated.length} jogadores curados` +
+  `✓ Base válida: ${clubs.length} clubes, ${icons.length} ícones + ${curatedBr.length} BR curados + ${real.length} reais (FC26)` +
     (filler.length ? ` + ${filler.length} fillers` : '') +
     `, ${epicMoments.length} epic moments` +
     (cards.length ? `, ${cards.length} cartas no catálogo` : ''),

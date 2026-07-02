@@ -11,6 +11,31 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Base real de 10 ligas
+
+- **Fonte de stats: dataset EA FC 26** (update 4, set/2025 — temporada 25/26),
+  importado por `import-fc26.ts` a partir de `sources/fc26-trimmed.csv`
+  (commitado; o pipeline não depende de rede). 9 ligas licenciadas, cap de 24
+  jogadores/clube. `consistency`←reactions e `bigGame`←f(composure, reactions,
+  reputação) — o FC26 não tem esses atributos.
+- **Brasileirão sem licença no FC26** (jogadores fictícios) → curadoria manual
+  de 237 jogadores reais (elencos 2025/26 até jan/2026, ex.: Neymar no Santos,
+  Memphis no Corinthians) + fillers completando até 18 por clube. Clubes da
+  Série A 2026 com melhor conhecimento disponível (Coritiba/Athletico-PR no
+  lugar de Sport/Juventude) — lista é patchável em `clubs.json`.
+- **Base em 4 arquivos**: `players.json` (só ícones), `players-br.json`
+  (curado editável), `players-real.json` (gerado — nunca editar),
+  `players-filler.json` (gerado, só BR).
+- **Escudos reais** de fontes públicas no GitHub: Europa em PNG
+  (`luukhopman/football-logos`, 132/132) e Brasileirão em SVG
+  (`williamorim/brasileirao`, 19/20 — Mirassol sem badge). MLS/Saudita sem
+  fonte acessível → monograma SVG com as cores reais (`ClubCrest`). Marcas dos
+  clubes: uso privado do grupo, sem distribuição comercial.
+- **Home nations** usam códigos de jogo (EN/SC/WL/NI) na nacionalidade para a
+  química diferenciá-las; demais países seguem ISO 3166-1 alpha-2.
+- **Slugs famosos**: em colisão de short_name (irmãos Bellingham), o slug
+  limpo vai para o maior overall; o resto ganha sufixo do player_id.
+
 ## 2026-07-02 — Partida ao Vivo (M4)
 
 - **Playback sobre resultado pronto**: a partida inteira é simulada no início;

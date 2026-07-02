@@ -29,10 +29,12 @@ interface EpicMoment {
   attributes: AnyAttributes;
 }
 
-const curated = readJson<BasePlayer[]>('players.json');
+const icons = readJson<BasePlayer[]>('players.json');
+const curatedBr = readJson<BasePlayer[]>('players-br.json', true);
+const real = readJson<BasePlayer[]>('players-real.json', true);
 const filler = readJson<BasePlayer[]>('players-filler.json', true);
 const epicMoments = readJson<EpicMoment[]>('epic-moments.json');
-const players = [...curated, ...filler];
+const players = [...icons, ...curatedBr, ...real, ...filler];
 
 const cards: CardDefinition[] = [];
 

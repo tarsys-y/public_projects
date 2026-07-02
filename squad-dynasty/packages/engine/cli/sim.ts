@@ -66,6 +66,8 @@ function loadData(dataDir: string): { players: BasePlayer[]; cards: CardDefiniti
   };
   const players = [
     ...read<BasePlayer[]>('players.json'),
+    ...read<BasePlayer[]>('players-br.json', true),
+    ...read<BasePlayer[]>('players-real.json', true),
     ...read<BasePlayer[]>('players-filler.json', true),
   ];
   const cards = read<CardDefinition[]>('cards.json');

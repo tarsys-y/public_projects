@@ -12,6 +12,7 @@
     "sim": "npm run sim -w @squad-dynasty/engine --",
     "data:validate": "npm run validate -w @squad-dynasty/data",
     "data:generate": "npm run generate -w @squad-dynasty/data",
+    "data:crests": "npm run crests -w @squad-dynasty/data",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "start": "npm run start -w mobile"
   },

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { BasePlayer, CardDefinition } from '@squad-dynasty/engine';
 import { colors, rarityColors, versionLabel } from '../constants/theme';
 import { clubById } from '../services/catalog';
+import { ClubCrest } from './ClubCrest';
 
 interface Props {
   card: CardDefinition;
@@ -33,7 +34,10 @@ export function CardView({ card, player, overall, size = 'md', badge }: Props) {
         {player.name}
       </Text>
       <View style={styles.footer}>
-        <Text style={styles.club}>{club?.shortName ?? '—'}</Text>
+        <View style={styles.clubRow}>
+          <ClubCrest clubId={player.clubId} size={small ? 14 : 16} />
+          <Text style={styles.club}>{club?.shortName ?? '—'}</Text>
+        </View>
         <Text style={styles.nation}>{player.nationality}</Text>
       </View>
       {version ? (
@@ -63,7 +67,8 @@ const styles = StyleSheet.create({
   position: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
   name: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 4 },
   nameSm: { fontSize: 10 },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   club: { color: colors.textDim, fontSize: 10, fontWeight: '600' },
   nation: { color: colors.textDim, fontSize: 10 },
   version: { fontSize: 9, fontWeight: '800', marginTop: 2, textTransform: 'uppercase' },

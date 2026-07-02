@@ -10,13 +10,35 @@ import {
   type Club,
 } from '@squad-dynasty/engine';
 import clubsJson from '../../../../packages/data/clubs.json';
-import playersJson from '../../../../packages/data/players.json';
+import iconsJson from '../../../../packages/data/players.json';
+import brJson from '../../../../packages/data/players-br.json';
+import realJson from '../../../../packages/data/players-real.json';
 import fillersJson from '../../../../packages/data/players-filler.json';
 import cardsJson from '../../../../packages/data/cards.json';
 
 export const CLUBS = clubsJson as Club[];
-export const PLAYERS = [...(playersJson as BasePlayer[]), ...(fillersJson as BasePlayer[])];
+export const PLAYERS = [
+  ...(iconsJson as BasePlayer[]),
+  ...(brJson as BasePlayer[]),
+  ...(realJson as BasePlayer[]),
+  ...(fillersJson as BasePlayer[]),
+];
 export const CARDS = cardsJson as CardDefinition[];
+
+/** As 10 ligas jogáveis + Lendas, para filtros e telas. */
+export const LEAGUES: Array<{ id: string; name: string }> = [
+  { id: 'brasileirao', name: 'Brasileirão' },
+  { id: 'premier-league', name: 'Premier League' },
+  { id: 'la-liga', name: 'La Liga' },
+  { id: 'serie-a-it', name: 'Serie A' },
+  { id: 'bundesliga', name: 'Bundesliga' },
+  { id: 'ligue-1', name: 'Ligue 1' },
+  { id: 'primeira-liga', name: 'Primeira Liga' },
+  { id: 'eredivisie', name: 'Eredivisie' },
+  { id: 'saudi-pro-league', name: 'Saudi Pro League' },
+  { id: 'mls', name: 'MLS' },
+  { id: 'legends', name: 'Lendas' },
+];
 
 export const CATALOG: Catalog = buildCatalog(PLAYERS, CARDS);
 

@@ -11,7 +11,7 @@ import {
 } from '@squad-dynasty/engine';
 import { CardView } from '../components/CardView';
 import { colors, rarityLabel } from '../constants/theme';
-import { cardById, cardOverall, playerById } from '../services/catalog';
+import { cardById, cardOverall, LEAGUES, playerById } from '../services/catalog';
 import { useCollectionStore } from '../stores/collectionStore';
 
 const POSITIONS: Array<Position | 'all'> = ['all', 'GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
@@ -51,6 +51,7 @@ export default function CollectionScreen() {
   const [position, setPosition] = useState<(typeof POSITIONS)[number]>('all');
   const [rarity, setRarity] = useState<(typeof RARITIES)[number]>('all');
   const [version, setVersion] = useState<(typeof VERSIONS)[number]>('all');
+  const [league, setLeague] = useState<string>('all');
 
   // Agrupa por definição de carta (duplicatas → contador, SPEC tela 6).
   const groups = useMemo(() => {
@@ -76,13 +77,20 @@ export default function CollectionScreen() {
         }
         if (rarity !== 'all' && g.card.rarity !== rarity) return false;
         if (version !== 'all' && g.card.version !== version) return false;
+        if (league !== 'all' && g.player.leagueId !== league) return false;
         return true;
       })
       .sort((a, b) => b.overall - a.overall);
-  }, [ownedCards, position, rarity, version]);
+  }, [ownedCards, position, rarity, version, league]);
 
   return (
     <View style={styles.screen}>
+      <Chips
+        options={['all', ...LEAGUES.map((l) => l.id)]}
+        value={league}
+        onChange={setLeague}
+        labelOf={(id) => (id === 'all' ? 'Todas' : LEAGUES.find((l) => l.id === id)?.name ?? id)}
+      />
       <Chips options={POSITIONS} value={position} onChange={setPosition} />
       <Chips
         options={RARITIES}

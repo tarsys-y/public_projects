@@ -1,7 +1,7 @@
 [
   {
     "id": "mbappe-wc2018",
-    "basePlayerId": "kylian-mbappe",
+    "basePlayerId": "k-mbappe",
     "label": "Copa 2018",
     "rarity": "legendary",
     "attributes": {
@@ -32,7 +32,7 @@
   },
   {
     "id": "mbappe-wc2022",
-    "basePlayerId": "kylian-mbappe",
+    "basePlayerId": "k-mbappe",
     "label": "Copa 2022",
     "rarity": "legendary",
     "attributes": {
@@ -63,7 +63,7 @@
   },
   {
     "id": "vinicius-junior-ucl2024",
-    "basePlayerId": "vinicius-junior",
+    "basePlayerId": "vini-jr",
     "label": "Champions 2024",
     "rarity": "epic",
     "attributes": {
@@ -94,7 +94,7 @@
   },
   {
     "id": "haaland-treble2023",
-    "basePlayerId": "erling-haaland",
+    "basePlayerId": "e-haaland",
     "label": "Tríplice Coroa 2023",
     "rarity": "legendary",
     "attributes": {
@@ -125,7 +125,7 @@
   },
   {
     "id": "lewandowski-2020",
-    "basePlayerId": "robert-lewandowski",
+    "basePlayerId": "r-lewandowski",
     "label": "Sêxtuplo 2020",
     "rarity": "legendary",
     "attributes": {
@@ -218,7 +218,7 @@
   },
   {
     "id": "salah-2018",
-    "basePlayerId": "mohamed-salah",
+    "basePlayerId": "m-salah",
     "label": "Temporada 2017/18",
     "rarity": "epic",
     "attributes": {
@@ -249,7 +249,7 @@
   },
   {
     "id": "bellingham-2024",
-    "basePlayerId": "jude-bellingham",
+    "basePlayerId": "j-bellingham",
     "label": "Temporada Mágica 2023/24",
     "rarity": "epic",
     "attributes": {
@@ -342,7 +342,7 @@
   },
   {
     "id": "lautaro-martinez-2024",
-    "basePlayerId": "lautaro-martinez",
+    "basePlayerId": "l-martinez",
     "label": "Scudetto 2024",
     "rarity": "epic",
     "attributes": {
@@ -373,7 +373,7 @@
   },
   {
     "id": "kane-2018",
-    "basePlayerId": "harry-kane",
+    "basePlayerId": "h-kane",
     "label": "Bota de Ouro 2018",
     "rarity": "epic",
     "attributes": {
@@ -420,7 +420,7 @@
   },
   {
     "id": "van-dijk-2019",
-    "basePlayerId": "virgil-van-dijk",
+    "basePlayerId": "v-van-dijk",
     "label": "Champions 2019",
     "rarity": "epic",
     "attributes": {

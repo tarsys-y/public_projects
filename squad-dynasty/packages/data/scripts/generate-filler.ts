@@ -1,7 +1,7 @@
 // Gerador de jogadores de preenchimento (SPEC seção 8): completa os elencos
-// dos clubes reais com nomes plausíveis por nacionalidade. Determinístico
-// (seed fixa) — rodar duas vezes produz o mesmo players-filler.json.
-// A base curada (players.json) nunca é tocada.
+// do BRASILEIRÃO (única liga sem dados licenciados do FC26) com nomes
+// plausíveis. Determinístico (seed fixa) — rodar duas vezes produz o mesmo
+// players-filler.json. As bases curadas nunca são tocadas.
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
@@ -158,12 +158,20 @@ function gkAttrs(rng: Rng, tier: number): GkAttributes {
 // --- geração ---
 const rng = mulberry32(SEED);
 const clubs: Club[] = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'clubs.json'), 'utf8'));
-const curated: BasePlayer[] = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'players.json'), 'utf8'));
+const readJson = (file: string): BasePlayer[] =>
+  fs.existsSync(path.join(DATA_DIR, file))
+    ? JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf8'))
+    : [];
+const curated: BasePlayer[] = [
+  ...readJson('players.json'),
+  ...readJson('players-br.json'),
+  ...readJson('players-real.json'),
+];
 
 const usedIds = new Set(curated.map((p) => p.id));
 const fillers: BasePlayer[] = [];
 
-for (const club of clubs.filter((c) => c.id !== 'icons')) {
+for (const club of clubs.filter((c) => c.leagueId === 'brasileirao')) {
   const clubPlayers = curated.filter((p) => p.clubId === club.id);
   const missing = TARGET_SQUAD_SIZE - clubPlayers.length;
   if (missing <= 0) continue;
