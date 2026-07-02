@@ -5,6 +5,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { z } from 'zod';
 import {
+  appearanceSchema,
   basePlayerSchema,
   cardDefinitionSchema,
   clubSchema,
@@ -62,6 +63,7 @@ const real = validateArray('players-real.json', readJson('players-real.json'), b
 const filler = validateArray('players-filler.json', readJson('players-filler.json'), basePlayerSchema);
 const epicMoments = validateArray('epic-moments.json', readJson('epic-moments.json'), epicMomentSchema);
 const cards = validateArray('cards.json', readJson('cards.json'), cardDefinitionSchema);
+const appearances = validateArray('appearance.json', readJson('appearance.json'), appearanceSchema);
 
 const players = [...icons, ...curatedBr, ...real, ...filler];
 
@@ -69,6 +71,7 @@ checkUnique('clubs.json', clubs.map((c) => c.id));
 checkUnique('players(4 arquivos)', players.map((p) => p.id));
 checkUnique('epic-moments.json', epicMoments.map((e) => e.id));
 checkUnique('cards.json', cards.map((c) => c.id));
+checkUnique('appearance.json', appearances.map((a) => a.playerId));
 
 // --- integridade referencial ---
 const clubIds = new Set(clubs.map((c) => c.id));
@@ -90,6 +93,10 @@ for (const c of cards) {
   if ((c.version === 'epic_moment' || c.version === 'icon') && !c.frozen)
     errors.push(`cards: ${c.id} versão ${c.version} deveria ser frozen`);
 }
+for (const a of appearances) {
+  if (!playerIds.has(a.playerId))
+    errors.push(`appearance: referencia jogador inexistente "${a.playerId}"`);
+}
 
 // --- resultado ---
 if (errors.length > 0) {
@@ -101,5 +108,6 @@ console.log(
   `✓ Base válida: ${clubs.length} clubes, ${icons.length} ícones + ${curatedBr.length} BR curados + ${real.length} reais (FC26)` +
     (filler.length ? ` + ${filler.length} fillers` : '') +
     `, ${epicMoments.length} epic moments` +
-    (cards.length ? `, ${cards.length} cartas no catálogo` : ''),
+    (cards.length ? `, ${cards.length} cartas no catálogo` : '') +
+    (appearances.length ? `, ${appearances.length} aparências curadas` : ''),
 );

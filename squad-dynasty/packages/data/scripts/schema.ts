@@ -5,6 +5,19 @@ import {
   GK_ATTRIBUTE_KEYS,
   OUTFIELD_ATTRIBUTE_KEYS,
 } from '@squad-dynasty/engine';
+import {
+  ACCESSORIES,
+  BEARDS,
+  EYE_COLORS,
+  EYE_SHAPES,
+  FACE_SHAPES,
+  HAIR_COLORS,
+  HAIRLINES,
+  HAIR_STYLES,
+  MOUTHS,
+  NOSES,
+  SKIN_TONES,
+} from '../appearance-taxonomy';
 
 const attr = z.number().int().min(0).max(99);
 
@@ -70,6 +83,31 @@ export const clubSchema = z
     country: z.string().regex(/^[A-Z]{2}$/),
     primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
     secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  })
+  .strict();
+
+// Aparência curada (appearance.json): só o que difere do procedural.
+export const appearanceSchema = z
+  .object({
+    playerId: slug,
+    skinTone: z.number().int().min(0).max(SKIN_TONES - 1).optional(),
+    faceShape: z.enum(FACE_SHAPES).optional(),
+    hair: z
+      .object({
+        style: z.enum(HAIR_STYLES).optional(),
+        color: z.enum(HAIR_COLORS).optional(),
+        hairline: z.enum(HAIRLINES).optional(),
+      })
+      .strict()
+      .optional(),
+    beard: z.enum(BEARDS).optional(),
+    eyes: z
+      .object({ shape: z.enum(EYE_SHAPES).optional(), color: z.enum(EYE_COLORS).optional() })
+      .strict()
+      .optional(),
+    nose: z.enum(NOSES).optional(),
+    mouth: z.enum(MOUTHS).optional(),
+    accessories: z.array(z.enum(ACCESSORIES)).max(3).optional(),
   })
   .strict();
 
