@@ -62,28 +62,81 @@ export const CONFIG = {
     maxLevel: 6,
   },
 
-  /** Simulação de partida (SPEC 5.2) — consumido pelo sim/ no M2. */
+  /** Simulação de partida (SPEC 5.2). */
   sim: {
     regularMinutes: 90,
+    /** Acréscimos: randInt(min, max). */
+    stoppageMin: 1,
+    stoppageMax: 5,
     /** Expoente da disputa de meio para a posse do tick. */
     possessionExponent: 1.3,
-    /** Prob. base de criar chance num tick para quem tem a posse. */
-    baseChanceProb: 0.075,
-    /** Ajuste máximo de mentalidade na criação de chances (±30%). */
+    /** Ajuste de posse por diferença de pressing e de mentalidade. */
+    possessionPressingShift: 0.04,
+    possessionMentalityShift: 0.02,
+    possessionClamp: 0.22,
+    /**
+     * Prob. base de criar chance num tick para quem tem a posse.
+     * O rascunho da SPEC sugeria 0.075, mas com ~0.14 de xG médio por chance
+     * isso dá ~0.5 gol/time e ~48% de empates — calibrado para ~0.9 gol/time
+     * e o aceite 33/33/33 do M2 (ver DECISIONS.md).
+     */
+    baseChanceProb: 0.15,
+    /** Ajuste de mentalidade na criação de chances (±30% nos extremos). */
     mentalityChanceSwing: 0.3,
-    /** xG: sigmoide clampada. */
+    /** passStyle vs pressing adversário e attackFocus vs largura adversária. */
+    directVsHighPressBonus: 1.1,
+    shortVsHighPressPenalty: 0.92,
+    shortVsLowPressBonus: 1.05,
+    focusMismatchBonus: 1.08,
+    /** Razão ataque/defesa modula a criação: (atk/def)^expoente, clampado. */
+    strengthRatioExponent: 1.2,
+    strengthRatioMin: 0.6,
+    strengthRatioMax: 1.6,
+    /** xG: xgScale × sigmoide(qualidade/xgSlope), clampado. */
     xgMin: 0.02,
     xgMax: 0.65,
-    /** Fadiga: 1 − (minuto/90) × (fadigaMax × (1 − stamina/99)). */
+    xgScale: 0.36,
+    xgSlope: 12,
+    /** Viés pró-ataque na qualidade da chance (elencos reais têm defesa
+     * estruturalmente mais alta que ataque; sem isso o jogo vira 0 a 0). */
+    chanceQualityBias: 2,
+    /** Fator do grupo posicional no sorteio do finalizador (atacantes chutam mais). */
+    finisherGroupFactor: { ATT: 2.5, MID: 1.1, DEF: 0.35 },
+    /** Goleiro reduz a qualidade: (composto GK − ref) / divisor. */
+    gkQualityRef: 78,
+    gkQualityDiv: 3,
+    /** bigGame conta a partir deste minuto com placar empatado. */
+    bigGameFromMinute: 75,
+    bigGameQualityDiv: 4,
+    /** Chance de o lance ter assistência (passe-chave) e não jogada individual. */
+    assistProb: 0.72,
+    /** Resolução de chance sem gol: pesos relativos de defesa/bloqueio/fora. */
+    missSplitSave: 0.45,
+    missSplitBlock: 0.2,
+    /** Fadiga: 1 − (minutosEmCampo/90) × (fadigaMax × (1 − stamina/99)). */
     fatigueMaxLoss: 0.25,
     /** Pressing alto acelera a fadiga do próprio time. */
     highPressingFatigueBoost: 0.15,
-    /** bigGame conta a partir deste minuto com placar empatado. */
-    bigGameFromMinute: 75,
+    /** Eventos secundários por tick (para quem NÃO tem a posse: desarme etc.). */
+    tackleEventProb: 0.16,
+    interceptionEventProb: 0.12,
+    dribbleEventProb: 0.1,
+    foulEventProb: 0.1,
+    yellowOnFoulProb: 0.18,
+    straightRedOnFoulProb: 0.012,
+    injuryEventProb: 0.004,
+    /** Vermelho reduz o time: jogador sai das agregações e das escolhas. */
     substitutionWindows: 3,
     substitutionsMax: 5,
+    /** IA: minutos em que considera substituições de ofício. */
+    aiSubMinutes: [60, 75],
     /** Minutos mínimos em campo para o titular incrementar starterStreak. */
     starterStreakMinutes: 60,
+    /** Momentos de decisão: máximo por partida e espaçamento mínimo. */
+    decisionsMax: 4,
+    decisionsMinGap: 12,
+    noShotsWindow: 20,
+    dribbledRepeatedlyCount: 3,
   },
 
   /** Notas ao vivo (SPEC 5.3). */

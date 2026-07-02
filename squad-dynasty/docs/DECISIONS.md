@@ -11,6 +11,24 @@ mais simples que preserva a diversão (SPEC seção 10.8).
   `apps/mobile/app` como o rascunho da SPEC — mesma semântica, só o prefixo `src/`.
 - **`react-compiler` desativado** no `app.json`: experimento do template que não
   agrega ao projeto agora e adiciona risco de build.
+## 2026-07-02 — Motor de Simulação (M2)
+
+- **`baseChanceProb` calibrado em 0.15** (o rascunho da SPEC sugeria 0.075):
+  com 0.075 a média era ~0,5 gol/time e ~48% de empates, violando o aceite
+  33/33/33 (±5pp). Todas as constantes ficaram em `config.ts`.
+- **Sorteio do finalizador com peso quadrático + fator por grupo posicional**
+  (ATT 2.5 / MID 1.1 / DEF 0.35): sem isso, volantes e zagueiros finalizavam
+  mais da metade das chances e partidas com elencos reais morriam em 0 a 0.
+  Invariante para os testes de times uniformes.
+- **Re-simulação como mecanismo de interatividade**: decisões/substituições do
+  usuário são `interventions` passadas a um novo `simulateMatch` com a mesma
+  seed — os eventos anteriores ao minuto da intervenção são provadamente
+  idênticos (teste), então a UI só "continua" a partida.
+- **IA decide na hora** (`aiChoiceId`) e faz trocas de ofício aos 60'/75';
+  o lado do usuário nunca tem decisão automática.
+- **Lesão leve** tenta substituição automática; sem janela/banco, o jogador
+  segue em campo com penalidade de 15% nos multiplicadores.
+
 ## 2026-07-02 — Modelos + Dados (M1)
 
 - **Vizinhos táticos derivados por distância** entre coordenadas dos slots
