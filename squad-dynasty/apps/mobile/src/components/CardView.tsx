@@ -3,6 +3,7 @@ import type { BasePlayer, CardDefinition } from '@squad-dynasty/engine';
 import { colors, rarityColors, versionLabel } from '../constants/theme';
 import { clubById } from '../services/catalog';
 import { ClubCrest } from './ClubCrest';
+import { PlayerAvatar } from './PlayerAvatar';
 
 interface Props {
   card: CardDefinition;
@@ -29,6 +30,14 @@ export function CardView({ card, player, overall, size = 'md', badge }: Props) {
       <View style={styles.header}>
         <Text style={[styles.overall, { color: rarity.frame }]}>{overall}</Text>
         <Text style={styles.position}>{player.positions[0]}</Text>
+      </View>
+      <View style={styles.avatarWrap}>
+        <PlayerAvatar
+          playerId={player.id}
+          clubId={player.clubId}
+          isIcon={card.version === 'icon'}
+          size={small ? 44 : 56}
+        />
       </View>
       <Text numberOfLines={1} style={[styles.name, small && styles.nameSm]}>
         {player.name}
@@ -60,9 +69,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 0 },
   },
-  frameMd: { width: 104, minHeight: 120 },
-  frameSm: { width: 84, minHeight: 100 },
+  frameMd: { width: 104, minHeight: 172 },
+  frameSm: { width: 84, minHeight: 142 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  avatarWrap: { alignItems: 'center', marginTop: 2 },
   overall: { fontSize: 24, fontWeight: '900' },
   position: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
   name: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 4 },

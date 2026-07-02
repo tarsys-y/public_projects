@@ -21,3 +21,4 @@ Acompanhamento dos milestones da SPEC.md (seção 9).
 - Eventos semanais rotativos com pacote temático e objetivos que pagam cartas exclusivas.
 - FM: forma/moral, copa mata-mata de 16 na carreira, treino de jovens, clássicos com bônus.
 - UT: SBCs (8 desafios) e Modo Draft com gauntlet de 4 partidas.
+- Artes das cartas: avatar cartunesco SVG determinístico por jogador (feições por hash do id, camisa nas cores reais do clube, ícones com kit dourado).

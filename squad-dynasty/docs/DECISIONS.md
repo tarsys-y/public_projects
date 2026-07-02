@@ -26,6 +26,18 @@ mais simples que preserva a diversão (SPEC seção 10.8).
 - **Carreira em qualquer liga**: fixtures genéricos por nº par de clubes
   (MLS com 30 clubes → 58 rodadas).
 
+## 2026-07-02 — Artes das cartas (avatares cartunescos)
+
+- **Avatar SVG procedural em vez de fotos**: não há fonte de retratos
+  licenciável/acessível e 4.700+ imagens inflariam o bundle. As feições
+  (tom de pele, cabelo, barba) derivam de hashes independentes do id do
+  jogador (`services/avatar.ts` puro + `PlayerAvatar.tsx`) — a mesma cara em
+  qualquer aparelho, sem rede. Feições NÃO tentam imitar o jogador real.
+- **Camisa nas cores reais do clube** (primária/secundária de `clubs.json`);
+  cartas ícone vestem kit dourado próprio das lendas.
+- **Hash por feição com salt** (`id:skin`, `id:hair-style`, ...): adicionar ou
+  remover uma feição no futuro não muda as demais caras já conhecidas.
+
 ## 2026-07-02 — M8 polish + M7 preparado
 
 - **Sons sintetizados por script** (WAVs de apito/gol/flip/sting/vitória):
