@@ -1,0 +1,173 @@
+[
+  {
+    "id": "flamengo",
+    "name": "Flamengo",
+    "shortName": "FLA",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#C52613",
+    "secondaryColor": "#000000"
+  },
+  {
+    "id": "palmeiras",
+    "name": "Palmeiras",
+    "shortName": "PAL",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#006437",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "corinthians",
+    "name": "Corinthians",
+    "shortName": "COR",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#000000",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "sao-paulo",
+    "name": "São Paulo",
+    "shortName": "SAO",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#E30613",
+    "secondaryColor": "#000000"
+  },
+  {
+    "id": "santos",
+    "name": "Santos",
+    "shortName": "SAN",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#FFFFFF",
+    "secondaryColor": "#000000"
+  },
+  {
+    "id": "gremio",
+    "name": "Grêmio",
+    "shortName": "GRE",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#0D80BF",
+    "secondaryColor": "#000000"
+  },
+  {
+    "id": "internacional",
+    "name": "Internacional",
+    "shortName": "INT",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#E5050F",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "atletico-mg",
+    "name": "Atlético Mineiro",
+    "shortName": "CAM",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#000000",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "botafogo",
+    "name": "Botafogo",
+    "shortName": "BOT",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#000000",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "fluminense",
+    "name": "Fluminense",
+    "shortName": "FLU",
+    "leagueId": "brasileirao",
+    "country": "BR",
+    "primaryColor": "#7A0C2E",
+    "secondaryColor": "#00613C"
+  },
+  {
+    "id": "manchester-city",
+    "name": "Manchester City",
+    "shortName": "MCI",
+    "leagueId": "premier-league",
+    "country": "GB",
+    "primaryColor": "#6CABDD",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "liverpool",
+    "name": "Liverpool",
+    "shortName": "LIV",
+    "leagueId": "premier-league",
+    "country": "GB",
+    "primaryColor": "#C8102E",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "arsenal",
+    "name": "Arsenal",
+    "shortName": "ARS",
+    "leagueId": "premier-league",
+    "country": "GB",
+    "primaryColor": "#EF0107",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "real-madrid",
+    "name": "Real Madrid",
+    "shortName": "RMA",
+    "leagueId": "la-liga",
+    "country": "ES",
+    "primaryColor": "#FFFFFF",
+    "secondaryColor": "#FEBE10"
+  },
+  {
+    "id": "barcelona",
+    "name": "Barcelona",
+    "shortName": "BAR",
+    "leagueId": "la-liga",
+    "country": "ES",
+    "primaryColor": "#A50044",
+    "secondaryColor": "#004D98"
+  },
+  {
+    "id": "inter-milan",
+    "name": "Inter de Milão",
+    "shortName": "IMI",
+    "leagueId": "serie-a-it",
+    "country": "IT",
+    "primaryColor": "#0068A8",
+    "secondaryColor": "#000000"
+  },
+  {
+    "id": "bayern-munich",
+    "name": "Bayern de Munique",
+    "shortName": "BAY",
+    "leagueId": "bundesliga",
+    "country": "DE",
+    "primaryColor": "#DC052D",
+    "secondaryColor": "#FFFFFF"
+  },
+  {
+    "id": "psg",
+    "name": "Paris Saint-Germain",
+    "shortName": "PSG",
+    "leagueId": "ligue-1",
+    "country": "FR",
+    "primaryColor": "#004170",
+    "secondaryColor": "#DA291C"
+  },
+  {
+    "id": "icons",
+    "name": "Lendas",
+    "shortName": "LND",
+    "leagueId": "legends",
+    "country": "ZZ",
+    "primaryColor": "#D4AF37",
+    "secondaryColor": "#111111"
+  }
+]

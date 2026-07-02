@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "validate": "tsx scripts/validate.ts",
-    "generate": "tsx scripts/generate-filler.ts && tsx scripts/generate-cards.ts"
+    "generate": "tsx scripts/generate-filler.ts && tsx scripts/generate-cards.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "tsx": "^4.19.1",
     "typescript": "~5.9.2",
     "zod": "^3.23.8"
+  },
+  "dependencies": {
+    "@squad-dynasty/engine": "^0.1.0"
   }
 }
