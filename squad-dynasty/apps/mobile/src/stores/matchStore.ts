@@ -24,6 +24,7 @@ import { CARDS, CATALOG, getCatalog, PLAYERS } from '../services/catalog';
 import { useEconomyStore } from './economyStore';
 import { useEventsStore, countThemeStarters } from './eventsStore';
 import { useObjectivesStore } from './objectivesStore';
+import { useProfileStore } from './profileStore';
 
 export type MatchPhase = 'idle' | 'playing' | 'decision' | 'finished';
 export type MatchSpeed = 'normal' | 'fast';
@@ -232,6 +233,7 @@ export const useMatchStore = create<MatchState>()((set, get) => ({
           )
         : 0;
       useEventsStore.getState().recordMatch(state.result, 'home', themeStarters);
+      useProfileStore.getState().recordMatch(state.result, 'home');
       set({ playbackMinute: state.result.totalMinutes, phase: 'finished', reward });
       return;
     }

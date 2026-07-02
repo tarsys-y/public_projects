@@ -11,6 +11,7 @@ import { cardOverall, playerById } from '../services/catalog';
 import { useEconomyStore } from '../stores/economyStore';
 import { useEventsStore } from '../stores/eventsStore';
 import { usePacksStore, type OpeningResult } from '../stores/packsStore';
+import { feedback } from '../services/feedback';
 
 const RARITY_RANK: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'icon'];
 const bestRarity = (cards: CardDefinition[]): Rarity =>
@@ -130,7 +131,16 @@ export default function ShopScreen() {
           </Animated.View>
           <Pressable
             style={styles.cardsArea}
-            onPress={() => opening && setRevealed((r) => Math.min(r + 1, opening.cards.length))}
+            onPress={() => {
+              if (!opening) return;
+              const next = Math.min(revealed + 1, opening.cards.length);
+              if (next > revealed) {
+                const card = opening.cards[next - 1];
+                if (card && ['epic', 'legendary', 'icon'].includes(card.rarity)) feedback.rareReveal();
+                else feedback.cardFlip();
+              }
+              setRevealed(next);
+            }}
           >
             <View style={styles.cardsRow}>
               {opening?.cards.map((card, i) => {

@@ -20,6 +20,8 @@ import { useCollectionStore, ownedCardsMap } from '../stores/collectionStore';
 import { useEconomyStore } from '../stores/economyStore';
 import { usePacksStore } from '../stores/packsStore';
 import { useSquadStore } from '../stores/squadStore';
+import { useProfileStore } from '../stores/profileStore';
+import { feedback } from '../services/feedback';
 import { assignCard, emptyDraft, resolveDraft, type DraftSquad } from '../stores/squadLogic';
 import { DEFAULT_TACTICS, FORMATIONS } from '@squad-dynasty/engine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -114,6 +116,8 @@ export default function SbcScreen() {
               packNote = ` Pacote: ${opening.cards.map((c) => c.rarity).join(', ')}.`;
             }
             if (!challenge.repeatable) markDone(challenge.id);
+            useProfileStore.getState().recordSbc();
+            feedback.reward();
             setMessage(`✅ ${challenge.name} concluído!${packNote}`);
             setChallenge(null);
             setDraft(null);

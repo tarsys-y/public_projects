@@ -10,5 +10,8 @@ module.exports = {
   moduleNameMapper: {
     '^@react-native-async-storage/async-storage$':
       '@react-native-async-storage/async-storage/jest/async-storage-mock',
+    '^expo-haptics$': '<rootDir>/__mocks__/expo-haptics.js',
+    '^expo-audio$': '<rootDir>/__mocks__/expo-audio.js',
+    '\\.(wav|png|svg)$': '<rootDir>/__mocks__/asset-mock.js',
   },
 };

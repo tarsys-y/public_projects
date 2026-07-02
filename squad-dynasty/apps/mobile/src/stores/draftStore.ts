@@ -23,6 +23,7 @@ import {
 } from '@squad-dynasty/engine';
 import { CARDS, cardOverall, getAllCards, PLAYERS, playerById } from '../services/catalog';
 import { useEconomyStore } from './economyStore';
+import { useProfileStore } from './profileStore';
 
 export const DRAFT_ENTRY_COINS = 1500;
 export const DRAFT_REWARDS_BY_WINS = [500, 1500, 2800, 4500, 6500];
@@ -216,6 +217,7 @@ export const useDraftStore = create<DraftState>()(
         const coins = DRAFT_REWARDS_BY_WINS[wins] ?? 0;
         const gems = wins === GAUNTLET ? DRAFT_PERFECT_GEMS : 0;
         useEconomyStore.getState().earn({ coins, gems });
+        if (wins === GAUNTLET) useProfileStore.getState().recordPerfectDraft();
         set({ claimed: true, phase: 'idle', picks: [], results: s.results });
         return { coins, gems };
       },

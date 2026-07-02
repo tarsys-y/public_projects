@@ -37,6 +37,7 @@ import { ownedCardsMap, useCollectionStore, type AgingSummaryEntry } from './col
 import { useDynamicCardsStore } from './dynamicCardsStore';
 import { useEconomyStore } from './economyStore';
 import { useMatchStore } from './matchStore';
+import { useProfileStore } from './profileStore';
 import { toSquad, type DraftSquad } from './squadLogic';
 import { useSquadStore } from './squadStore';
 
@@ -600,6 +601,7 @@ function finishLeagueRound(set: Set, get: Get, s: CareerState, userResult: Match
   useEconomyStore.getState().earn({ coins: prizeCoins, gems: prizeGems });
 
   const aging = useCollectionStore.getState().applySeasonAging(s.seasonSeed + 777);
+  useProfileStore.getState().recordSeason(placement === 1, cup?.champion === s.userClubId);
 
   const summary: SeasonSummary = {
     season: s.season,

@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { colors } from '../constants/theme';
+import { Onboarding } from '../components/Onboarding';
 import { useCareerStore } from '../stores/careerStore';
 import { useCollectionStore } from '../stores/collectionStore';
 import { useMatchStore } from '../stores/matchStore';
@@ -94,8 +95,10 @@ export default function RootLayout() {
         />
         <Tabs.Screen name="card/[id]" options={{ href: null, title: 'CARTA' }} />
         <Tabs.Screen name="sbc" options={{ href: null, title: 'DESAFIOS' }} />
+        <Tabs.Screen name="profile" options={{ href: null, title: 'PERFIL' }} />
         <Tabs.Screen name="draft" options={{ href: null, title: 'DRAFT' }} />
       </Tabs>
+      <Onboarding />
       <StatusBar style="light" />
     </ThemeProvider>
   );

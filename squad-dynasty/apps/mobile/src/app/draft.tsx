@@ -12,6 +12,7 @@ import {
   DRAFT_REWARDS_BY_WINS,
   useDraftStore,
 } from '../stores/draftStore';
+import { feedback } from '../services/feedback';
 
 export default function DraftScreen() {
   const draft = useDraftStore();
@@ -87,7 +88,8 @@ export default function DraftScreen() {
           style={styles.cta}
           onPress={() => {
             const reward = draft.claimRewards();
-            if (!reward) draft.reset();
+            if (reward) feedback.reward();
+            else draft.reset();
           }}
         >
           <Text style={styles.ctaText}>

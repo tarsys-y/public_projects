@@ -18,6 +18,7 @@ import { useCollectionStore } from './collectionStore';
 import { useDynamicCardsStore } from './dynamicCardsStore';
 import { useEconomyStore } from './economyStore';
 import { usePacksStore } from './packsStore';
+import { useProfileStore } from './profileStore';
 import type { OpeningResult } from './packsStore';
 
 interface EventsState {
@@ -138,6 +139,7 @@ export const useEventsStore = create<EventsState>()(
           if (granted) ownedIds.push(granted.id);
         }
         usePacksStore.setState((s) => ({ pity: opening.pity, totalOpened: s.totalOpened + 1 }));
+        useProfileStore.getState().recordPack();
         return { cards: opening.cards, ownedIds, pityTriggered: opening.pityTriggered };
       },
     }),

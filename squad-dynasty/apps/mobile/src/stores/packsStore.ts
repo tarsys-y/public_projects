@@ -16,6 +16,7 @@ import {
 import { getAllCards } from '../services/catalog';
 import { useCollectionStore } from './collectionStore';
 import { useEconomyStore } from './economyStore';
+import { useProfileStore } from './profileStore';
 
 export interface OpeningResult {
   cards: CardDefinition[];
@@ -55,6 +56,7 @@ export const usePacksStore = create<PacksState>()(
           if (owned) ownedIds.push(owned.id);
         }
         set((s) => ({ pity: opening.pity, totalOpened: s.totalOpened + 1 }));
+        useProfileStore.getState().recordPack();
         return { cards: opening.cards, ownedIds, pityTriggered: opening.pityTriggered };
       },
 

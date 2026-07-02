@@ -5,6 +5,7 @@ import { colors } from '../constants/theme';
 import { getCatalog } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { useEconomyStore } from '../stores/economyStore';
+import { levelForXp, useProfileStore } from '../stores/profileStore';
 import { useEventsStore } from '../stores/eventsStore';
 import { DAILY_OBJECTIVES, useObjectivesStore } from '../stores/objectivesStore';
 import { resolveDraft } from '../stores/squadLogic';
@@ -15,6 +16,8 @@ export default function HomeScreen() {
   const draft = useSquadStore((s) => s.draft);
   const view = resolveDraft(draft, collection, getCatalog());
   const { coins, gems } = useEconomyStore();
+  const coachName = useProfileStore((s) => s.coachName);
+  const coachLevel = useProfileStore((s) => levelForXp(s.xp));
   const objectives = useObjectivesStore();
   const events = useEventsStore();
   const event = events.currentEvent();
@@ -35,6 +38,9 @@ export default function HomeScreen() {
       <View style={styles.wallet}>
         <Text style={styles.walletText}>🪙 {coins.toLocaleString('pt-BR')}</Text>
         <Text style={styles.walletText}>💎 {gems}</Text>
+        <Link href="/profile" style={{ marginLeft: 'auto' }}>
+          <Text style={styles.walletText}>👔 {coachName} · nv {coachLevel}</Text>
+        </Link>
       </View>
 
       {/* Evento da semana */}

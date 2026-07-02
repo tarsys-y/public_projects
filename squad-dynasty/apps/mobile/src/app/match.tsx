@@ -19,6 +19,7 @@ import {
   type Snowflake,
   type Tactics,
 } from '@squad-dynasty/engine';
+import { GoalOverlay } from '../components/GoalOverlay';
 import { PitchView } from '../components/PitchView';
 import { RadarChart } from '../components/RadarChart';
 import { TacticsPanel } from '../components/TacticsPanel';
@@ -28,6 +29,7 @@ import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft, toSquad } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
 import { SPEED_FACTOR, useMatchStore } from '../stores/matchStore';
+import { feedback } from '../services/feedback';
 
 const OPPONENTS = CLUBS.filter((c) => c.id !== 'icons');
 const CATEGORIES = Object.keys(categoryLabel) as Array<keyof typeof categoryLabel>;
@@ -58,6 +60,30 @@ export default function MatchScreen() {
 
   const minute = Math.floor(match.playbackMinute);
   const result = match.result;
+
+  // Último gol dentro da janela de playback → overlay + som (M8)
+  const lastGoal = useMemo(() => {
+    if (!result) return null;
+    const goals = result.events.filter((e) => e.type === 'goal' && e.minute <= match.playbackMinute);
+    return goals.length > 0 ? goals[goals.length - 1]! : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, minute]);
+  const goalKey = lastGoal ? `${lastGoal.minute}-${lastGoal.side}-${lastGoal.playerId}` : null;
+  const [seenGoalKey, setSeenGoalKey] = useState<string | null>(null);
+  useEffect(() => {
+    if (!goalKey || goalKey === seenGoalKey) return;
+    setSeenGoalKey(goalKey);
+    if (match.phase === 'playing' || match.phase === 'decision') feedback.goal();
+  }, [goalKey, seenGoalKey, match.phase]);
+  useEffect(() => {
+    if (match.phase === 'playing' && match.playbackMinute === 0) feedback.kickoff();
+    if (match.phase === 'finished' && result) {
+      const [h, a] = result.score;
+      if (h > a) feedback.victory();
+      else feedback.fulltime();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match.phase]);
 
   const visibleEvents = useMemo(
     () =>
@@ -248,6 +274,7 @@ export default function MatchScreen() {
         </Text>
         <Text style={styles.minuteText}>{minute}'</Text>
       </View>
+      <GoalOverlay trigger={goalKey} isUserGoal={lastGoal?.side === 'home'} />
 
       <View style={styles.actionsRow}>
         <Pressable style={styles.actionButton} onPress={() => setShowTactics(true)}>
