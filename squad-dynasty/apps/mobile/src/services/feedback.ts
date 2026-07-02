@@ -26,7 +26,15 @@ export const useFeedbackSettings = create<FeedbackSettings>()(
   ),
 );
 
-type SoundName = 'whistle' | 'goal' | 'card-flip' | 'rare-reveal' | 'victory';
+type SoundName =
+  | 'whistle'
+  | 'goal'
+  | 'card-flip'
+  | 'rare-reveal'
+  | 'victory'
+  | 'pack-tear'
+  | 'buildup'
+  | 'cinematic-hit';
 
 const SOURCES: Record<SoundName, number> = {
   whistle: require('../../assets/sounds/whistle.wav'),
@@ -34,6 +42,9 @@ const SOURCES: Record<SoundName, number> = {
   'card-flip': require('../../assets/sounds/card-flip.wav'),
   'rare-reveal': require('../../assets/sounds/rare-reveal.wav'),
   victory: require('../../assets/sounds/victory.wav'),
+  'pack-tear': require('../../assets/sounds/pack-tear.wav'),
+  buildup: require('../../assets/sounds/buildup.wav'),
+  'cinematic-hit': require('../../assets/sounds/cinematic-hit.wav'),
 };
 
 const players = new Map<SoundName, AudioPlayer>();
@@ -101,5 +112,20 @@ export const feedback = {
   reward: () => {
     play('victory');
     haptic('success');
+  },
+  /** rasgo do pacote na abertura. */
+  packTear: () => {
+    play('pack-tear');
+    haptic('heavy');
+  },
+  /** riser de suspense antes de uma carta cinemática (não revela raridade). */
+  buildup: () => {
+    play('buildup');
+    haptic('medium');
+  },
+  /** impacto da revelação cinemática. */
+  cinematicHit: () => {
+    play('cinematic-hit');
+    haptic('heavy');
   },
 };

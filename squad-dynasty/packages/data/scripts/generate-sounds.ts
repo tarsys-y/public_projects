@@ -112,4 +112,71 @@ writeWav('rare-reveal.wav', concat(tone([659.25], 0.1), tone([830.61], 0.1), ton
 // vinheta de vitória (cadência)
 writeWav('victory.wav', concat(tone([523.25, 659.25], 0.18), tone([587.33, 739.99], 0.18), tone([659.25, 783.99], 0.2), tone([783.99, 987.77, 1046.5], 0.7, { gain: 0.9 })));
 
+// rasgo do pacote: burst de ruído áspero com pitch caindo
+{
+  const n = seconds(0.4);
+  const out = new Float32Array(n);
+  let x = 987654;
+  const rand = () => {
+    x = (x * 1103515245 + 12345) & 0x7fffffff;
+    return x / 0x7fffffff - 0.5;
+  };
+  let last = 0;
+  for (let i = 0; i < n; i++) {
+    const p = i / n;
+    const lowpass = 0.6 - p * 0.45; // vai abafando (o rasgo "desce")
+    last = last + lowpass * (rand() * 2 - last);
+    const crackle = rand() > 0.495 - p * 0.2 ? rand() * 0.8 : 0;
+    out[i] = (last * 0.9 + crackle * 0.5) * env(i, n, 0.005, 0.18);
+  }
+  writeWav('pack-tear.wav', out);
+}
+
+// build-up cinemático: riser senoidal 220→880Hz + shimmer (NÃO revela raridade)
+{
+  const n = seconds(1.4);
+  const out = new Float32Array(n);
+  let phase = 0;
+  let x = 424242;
+  const rand = () => {
+    x = (x * 1103515245 + 12345) & 0x7fffffff;
+    return x / 0x7fffffff - 0.5;
+  };
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    const p = i / n;
+    const f = 220 * Math.pow(4, p); // sobe duas oitavas
+    phase += (2 * Math.PI * f) / SAMPLE_RATE;
+    const shimmer = Math.sin(2 * Math.PI * (f * 3.01) * t) * 0.18 * p;
+    const sparkle = rand() * 0.06 * p;
+    out[i] = (Math.sin(phase) * 0.55 + shimmer + sparkle) * (0.25 + 0.75 * p) * env(i, n, 0.05, 0.08);
+  }
+  writeWav('buildup.wav', out);
+}
+
+// impacto da cinemática: grave + brilho (a "chegada" da carta rara)
+{
+  const boom = (() => {
+    const n = seconds(1.2);
+    const out = new Float32Array(n);
+    let phase = 0;
+    for (let i = 0; i < n; i++) {
+      const p = i / n;
+      const f = 130 * Math.pow(0.5, p * 1.5); // grave descendo
+      phase += (2 * Math.PI * f) / SAMPLE_RATE;
+      out[i] = Math.sin(phase) * 0.9 * env(i, n, 0.004, 0.9);
+    }
+    return out;
+  })();
+  const sparkle = concat(
+    new Float32Array(seconds(0.05)),
+    tone([1567.98], 0.1, { gain: 0.35 }),
+    tone([2093.0, 1046.5], 0.7, { gain: 0.4 }),
+  );
+  const n = Math.max(boom.length, sparkle.length);
+  const mix = new Float32Array(n);
+  for (let i = 0; i < n; i++) mix[i] = (boom[i] ?? 0) + (sparkle[i] ?? 0) * 0.8;
+  writeWav('cinematic-hit.wav', mix);
+}
+
 console.log('✓ sons gerados');

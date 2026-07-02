@@ -1,33 +1,22 @@
-// Loja de pacotes (SPEC tela 5): compra, abertura com suspense por raridade
-// (brilho/cor antes de revelar) e contador de pity visível.
+// Loja de pacotes (SPEC tela 5): compra, abertura cinematográfica (PackOpening)
+// e contador de pity visível.
 import { useMemo, useState } from 'react';
 import { Link } from 'expo-router';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FlipInYRight } from 'react-native-reanimated';
-import { CONFIG, type CardDefinition, type Rarity } from '@squad-dynasty/engine';
-import { CardView } from '../components/CardView';
-import { CARD_DIMENSIONS } from '../services/cardTheme';
-import { colors, rarityColors, rarityLabel } from '../constants/theme';
-import { cardOverall, playerById } from '../services/catalog';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CONFIG, type Rarity } from '@squad-dynasty/engine';
+import { PackOpening } from '../components/PackOpening';
+import type { PackArt } from '../components/PackArtwork';
+import { colors, rarityLabel } from '../constants/theme';
 import { useEconomyStore } from '../stores/economyStore';
 import { useEventsStore } from '../stores/eventsStore';
 import { usePacksStore, type OpeningResult } from '../stores/packsStore';
-import { feedback } from '../services/feedback';
-
-const RARITY_RANK: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'icon'];
-const bestRarity = (cards: CardDefinition[]): Rarity =>
-  cards.reduce<Rarity>(
-    (best, c) => (RARITY_RANK.indexOf(c.rarity) > RARITY_RANK.indexOf(best) ? c.rarity : best),
-    'common',
-  );
 
 export default function ShopScreen() {
   const { coins, gems } = useEconomyStore();
   const { pity, totalOpened, buyAndOpen } = usePacksStore();
   const events = useEventsStore();
   const event = events.currentEvent();
-  const [opening, setOpening] = useState<OpeningResult | null>(null);
-  const [revealed, setRevealed] = useState(0); // quantas cartas já viradas
+  const [opening, setOpening] = useState<{ result: OpeningResult; art: PackArt } | null>(null);
 
   const packTypes = useMemo(
     () =>
@@ -40,13 +29,8 @@ export default function ShopScreen() {
 
   const open = (type: keyof typeof CONFIG.packs.types) => {
     const result = buyAndOpen(type);
-    if (result) {
-      setOpening(result);
-      setRevealed(0);
-    }
+    if (result) setOpening({ result, art: type === 'basic' ? 'basic' : 'premium' });
   };
-
-  const suspenseColor = opening ? rarityColors[bestRarity(opening.cards)].frame : colors.border;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -70,10 +54,7 @@ export default function ShopScreen() {
           style={styles.buyButton}
           onPress={() => {
             const result = events.buyEventPack();
-            if (result) {
-              setOpening(result);
-              setRevealed(0);
-            }
+            if (result) setOpening({ result, art: 'event' });
           }}
         >
           <Text style={styles.buyText}>
@@ -122,55 +103,15 @@ export default function ShopScreen() {
         <Text style={styles.pityMeta}>Pacotes abertos: {totalOpened}</Text>
       </View>
 
-      {/* Abertura com suspense */}
-      <Modal visible={opening !== null} transparent animationType="fade">
-        <View style={[styles.openBackdrop, { borderColor: suspenseColor }]}>
-          <Animated.View entering={FadeIn} style={[styles.glow, { shadowColor: suspenseColor, borderColor: suspenseColor }]}>
-            <Text style={[styles.suspense, { color: suspenseColor }]}>
-              {opening && revealed < opening.cards.length ? 'Toque para revelar…' : 'Pacote aberto!'}
-            </Text>
-          </Animated.View>
-          <Pressable
-            style={styles.cardsArea}
-            onPress={() => {
-              if (!opening) return;
-              const next = Math.min(revealed + 1, opening.cards.length);
-              if (next > revealed) {
-                const card = opening.cards[next - 1];
-                if (card && ['epic', 'legendary', 'icon'].includes(card.rarity)) feedback.rareReveal();
-                else feedback.cardFlip();
-              }
-              setRevealed(next);
-            }}
-          >
-            <View style={styles.cardsRow}>
-              {opening?.cards.map((card, i) => {
-                const player = playerById.get(card.basePlayerId);
-                if (!player) return null;
-                return i < revealed ? (
-                  <Animated.View key={`${card.id}-${i}`} entering={FlipInYRight.duration(400)}>
-                    <CardView card={card} player={player} overall={cardOverall(card)} size="sm" />
-                  </Animated.View>
-                ) : (
-                  <View key={`${card.id}-${i}`} style={[styles.cardBack, { borderColor: suspenseColor }]}>
-                    <Text style={{ color: suspenseColor, fontSize: 22 }}>?</Text>
-                  </View>
-                );
-              })}
-            </View>
-          </Pressable>
-          {opening?.pityTriggered ? (
-            <Text style={styles.pityTriggered}>
-              ✨ Garantia ativada: {opening.pityTriggered === 'icon' ? 'Ícone' : 'Lendária'}!
-            </Text>
-          ) : null}
-          {opening && revealed >= opening.cards.length ? (
-            <Pressable style={styles.closeButton} onPress={() => setOpening(null)}>
-              <Text style={styles.buyText}>Continuar</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </Modal>
+      {/* Abertura cinematográfica */}
+      {opening ? (
+        <PackOpening
+          result={opening.result}
+          packArt={opening.art}
+          eventEmoji={opening.art === 'event' ? event.emoji : undefined}
+          onClose={() => setOpening(null)}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -215,35 +156,4 @@ const styles = StyleSheet.create({
   pityTitle: { color: colors.text, fontWeight: '900', fontSize: 13, textTransform: 'uppercase' },
   pityLine: { color: colors.textDim, fontSize: 12 },
   pityMeta: { color: colors.textDim, fontSize: 11, marginTop: 4 },
-  openBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(4,6,10,0.96)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-    padding: 20,
-  },
-  glow: {
-    borderWidth: 2,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 22,
-    shadowOpacity: 0.9,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  suspense: { fontSize: 16, fontWeight: '900', letterSpacing: 1 },
-  cardsArea: { minHeight: 140 },
-  cardsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
-  cardBack: {
-    width: CARD_DIMENSIONS.sm.width,
-    minHeight: CARD_DIMENSIONS.sm.height,
-    borderRadius: 10,
-    borderWidth: 2,
-    backgroundColor: colors.bgCard,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pityTriggered: { color: colors.warning, fontWeight: '900', fontSize: 14 },
-  closeButton: { backgroundColor: colors.accent, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 28 },
 });
