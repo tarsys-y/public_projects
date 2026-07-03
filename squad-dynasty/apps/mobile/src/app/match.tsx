@@ -17,6 +17,7 @@ import {
   computeRatingsAt,
   fatigueFactor,
   isGkAttributes,
+  resolveOwnedCard,
   resolveSquad,
   staminaOf,
   type PlayerParticipation,
@@ -26,11 +27,13 @@ import {
   type Tactics,
 } from '@squad-dynasty/engine';
 import { GoalOverlay } from '../components/GoalOverlay';
+import { LineupPreviewModal, type PreviewSlot } from '../components/LineupPreviewModal';
 import { PitchView } from '../components/PitchView';
 import { RadarChart } from '../components/RadarChart';
 import { TacticsPanel } from '../components/TacticsPanel';
-import { ClubCrest } from '../components/ClubCrest';
+import { ClubCrest, MonogramCrest } from '../components/ClubCrest';
 import { categoryLabel, colors } from '../constants/theme';
+import { crestPaletteById } from '../constants/crestPalettes';
 import { CATALOG, CARDS, clubById, CLUBS, LEAGUES, PLAYERS } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { useProfileStore } from '../stores/profileStore';
@@ -49,6 +52,7 @@ export default function MatchScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
   const teamName = useProfileStore((s) => s.teamName) || 'Meu Time';
+  const teamCrestId = useProfileStore((s) => s.teamCrestId);
   const match = useMatchStore();
   const router = useRouter();
   const [opponent, setOpponent] = useState(OPPONENTS[0]!.id);
@@ -56,19 +60,57 @@ export default function MatchScreen() {
   const [showTactics, setShowTactics] = useState(false);
   const [showSubs, setShowSubs] = useState(false);
   const [showOpponentPreview, setShowOpponentPreview] = useState(false);
+  const [showPreMatch, setShowPreMatch] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState(LEAGUES[0]!.id);
 
   const draftView = useMemo(() => resolveDraft(draft, collection, CATALOG), [draft, collection]);
 
   const opponentPreview = useMemo((): ResolvedSquad | null => {
-    if (!showOpponentPreview) return null;
+    if (!showOpponentPreview && !showPreMatch) return null;
     const clubPlayers = PLAYERS.filter((p) => p.clubId === opponent);
     const ids = new Set(clubPlayers.map((p) => p.id));
     const baseCards = CARDS.filter((c) => c.version === 'base' && ids.has(c.basePlayerId));
     if (clubPlayers.length === 0) return null;
     const { squad, ownedCards } = buildAutoSquad(clubPlayers, baseCards, '4-3-3', { ownerId: `preview-${opponent}` });
     return resolveSquad(squad, new Map(ownedCards.map((o) => [o.id, o])), CATALOG);
-  }, [showOpponentPreview, opponent]);
+  }, [showOpponentPreview, showPreMatch, opponent]);
+
+  const homePreviewSlots: PreviewSlot[] = useMemo(
+    () =>
+      draftView.slots
+        .filter((s) => s.player)
+        .map((s) => ({ position: s.position, name: s.player!.basePlayer.name, overall: s.player!.overall })),
+    [draftView],
+  );
+  const homePreviewBench: PreviewSlot[] = useMemo(
+    () =>
+      draft.bench
+        .map((id) => collection.get(id))
+        .filter((o): o is NonNullable<typeof o> => Boolean(o))
+        .map((owned) => {
+          const player = resolveOwnedCard(owned, CATALOG);
+          return { position: player.basePlayer.positions[0] ?? '?', name: player.basePlayer.name, overall: player.overall };
+        }),
+    [draft.bench, collection],
+  );
+  const awayPreviewSlots: PreviewSlot[] = useMemo(
+    () =>
+      opponentPreview
+        ? opponentPreview.slots.map((s) => ({ position: s.position, name: s.player.basePlayer.name, overall: s.player.overall }))
+        : [],
+    [opponentPreview],
+  );
+  const awayPreviewBench: PreviewSlot[] = useMemo(
+    () =>
+      opponentPreview
+        ? opponentPreview.bench.map((b) => ({
+            position: b.basePlayer.positions[0] ?? '?',
+            name: b.basePlayer.name,
+            overall: b.overall,
+          }))
+        : [],
+    [opponentPreview],
+  );
 
   // Relógio do playback.
   useEffect(() => {
@@ -220,7 +262,7 @@ export default function MatchScreen() {
         </Pressable>
         <Pressable
           disabled={!draftView.isComplete}
-          onPress={() => match.startFriendly(toSquad(draft), collection, opponent)}
+          onPress={() => setShowPreMatch(true)}
           style={[styles.cta, !draftView.isComplete && { opacity: 0.4 }]}
         >
           <Text style={styles.ctaText}>Começar partida</Text>
@@ -278,6 +320,39 @@ export default function MatchScreen() {
             </View>
           </View>
         </Modal>
+        <LineupPreviewModal
+          visible={showPreMatch}
+          confirmLabel="Iniciar Partida"
+          onClose={() => setShowPreMatch(false)}
+          onConfirm={() => {
+            setShowPreMatch(false);
+            match.startFriendly(toSquad(draft), collection, opponent);
+          }}
+          home={{
+            crest: (
+              <MonogramCrest
+                width={34}
+                height={44}
+                primary={crestPaletteById(teamCrestId).primary}
+                secondary={crestPaletteById(teamCrestId).secondary}
+                initials={teamName}
+              />
+            ),
+            name: teamName,
+            overall: draftView.teamOverall,
+            slots: homePreviewSlots,
+            bench: homePreviewBench,
+          }}
+          away={{
+            crest: <ClubCrest clubId={opponent} size={44} />,
+            name: clubById.get(opponent)?.name ?? opponent,
+            overall: awayPreviewSlots.length
+              ? Math.round(awayPreviewSlots.reduce((sum, s) => sum + s.overall, 0) / awayPreviewSlots.length)
+              : 0,
+            slots: awayPreviewSlots,
+            bench: awayPreviewBench,
+          }}
+        />
       </ScrollView>
     );
   }

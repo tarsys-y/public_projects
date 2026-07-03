@@ -5,6 +5,7 @@ import { MonogramCrest } from '../components/ClubCrest';
 import { colors } from '../constants/theme';
 import { crestPaletteById } from '../constants/crestPalettes';
 import { getCatalog } from '../services/catalog';
+import { useCareerStore } from '../stores/careerStore';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { useEconomyStore } from '../stores/economyStore';
 import { levelForXp, useProfileStore } from '../stores/profileStore';
@@ -22,6 +23,10 @@ export default function HomeScreen() {
   const coachLevel = useProfileStore((s) => levelForXp(s.xp));
   const teamName = useProfileStore((s) => s.teamName);
   const teamCrestId = useProfileStore((s) => s.teamCrestId);
+  const matchesPlayed = useProfileStore((s) => s.matches);
+  const packsOpened = useProfileStore((s) => s.packsOpened);
+  const careerActive = useCareerStore((s) => s.active);
+  const careerHistoryLength = useCareerStore((s) => s.history.length);
   const objectives = useObjectivesStore();
   const events = useEventsStore();
   const event = events.currentEvent();
@@ -30,6 +35,17 @@ export default function HomeScreen() {
     events.ensureWeek();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Indicador de próxima ação (4.3): guia o jogador nas primeiras ações do jogo.
+  const nextStep = !view.isComplete
+    ? { message: 'Monte seu time para jogar!', href: '/squad' as const }
+    : matchesPlayed === 0
+      ? { message: 'Jogue sua primeira partida!', href: '/match' as const }
+      : packsOpened === 0
+        ? { message: 'Abra seu primeiro pacote!', href: '/shop' as const }
+        : !careerActive && careerHistoryLength === 0
+          ? { message: 'Comece uma carreira!', href: '/league' as const }
+          : null;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -52,6 +68,13 @@ export default function HomeScreen() {
           <Text style={styles.teamName}>{teamName}</Text>
         </View>
       ) : null}
+
+      {nextStep ? (
+        <Link href={nextStep.href} style={styles.nextStepBanner}>
+          <Text style={styles.nextStepText}>👉 {nextStep.message}</Text>
+        </Link>
+      ) : null}
+
       <View style={styles.wallet}>
         <Text style={styles.walletText}>🪙 {coins.toLocaleString('pt-BR')}</Text>
         <Text style={styles.walletText}>💎 {gems}</Text>
@@ -173,6 +196,13 @@ const styles = StyleSheet.create({
   teamName: { color: colors.text, fontSize: 16, fontWeight: '800' },
   wallet: { flexDirection: 'row', gap: 16 },
   walletText: { color: colors.text, fontWeight: '900', fontSize: 16 },
+  nextStepBanner: {
+    backgroundColor: colors.accent,
+    borderRadius: 12,
+    padding: 14,
+    overflow: 'hidden',
+  },
+  nextStepText: { color: '#fff', fontWeight: '900', fontSize: 14 },
   eventBanner: {
     backgroundColor: '#1d2a3a',
     borderRadius: 12,

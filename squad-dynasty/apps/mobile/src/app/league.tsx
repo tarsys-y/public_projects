@@ -3,9 +3,11 @@
 import { useMemo, useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { buildAutoSquad, resolveOwnedCard, resolveSquad, type ResolvedSquad } from '@squad-dynasty/engine';
 import { ClubCrest } from '../components/ClubCrest';
+import { LineupPreviewModal, type PreviewSlot } from '../components/LineupPreviewModal';
 import { colors } from '../constants/theme';
-import { clubById, CLUBS, LEAGUES } from '../services/catalog';
+import { CARDS, clubById, CLUBS, LEAGUES, PLAYERS } from '../services/catalog';
 import { useCareerStore } from '../stores/careerStore';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft } from '../stores/squadLogic';
@@ -16,12 +18,11 @@ export default function LeagueScreen() {
   const career = useCareerStore();
   const router = useRouter();
   const [pickLeague, setPickLeague] = useState('brasileirao');
+  const [showPreRound, setShowPreRound] = useState(false);
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
-  const squadReady = useMemo(
-    () => resolveDraft(draft, collection, getCatalog()).isComplete,
-    [draft, collection],
-  );
+  const draftView = useMemo(() => resolveDraft(draft, collection, getCatalog()), [draft, collection]);
+  const squadReady = draftView.isComplete;
 
   // ---------- sem carreira: escolher clube ----------
   if (!career.active) {
@@ -67,6 +68,39 @@ export default function LeagueScreen() {
   const userRow = standings.findIndex((r) => r.clubId === career.userClubId) + 1;
   const totalRounds = career.fixtures.length > 0 ? Math.max(...career.fixtures.map((f) => f.round)) : 0;
 
+  const opponentPreview: ResolvedSquad | null = (() => {
+    if (!showPreRound || !match) return null;
+    const clubPlayers = PLAYERS.filter((p) => p.clubId === match.opponentClubId);
+    if (clubPlayers.length === 0) return null;
+    const ids = new Set(clubPlayers.map((p) => p.id));
+    const baseCards = CARDS.filter((c) => c.version === 'base' && ids.has(c.basePlayerId));
+    const { squad, ownedCards } = buildAutoSquad(clubPlayers, baseCards, '4-3-3', {
+      ownerId: `preview-${match.opponentClubId}`,
+    });
+    return resolveSquad(squad, new Map(ownedCards.map((o) => [o.id, o])), getCatalog());
+  })();
+
+  const homePreviewSlots: PreviewSlot[] = draftView.slots
+    .filter((s) => s.player)
+    .map((s) => ({ position: s.position, name: s.player!.basePlayer.name, overall: s.player!.overall }));
+  const homePreviewBench: PreviewSlot[] = draft.bench
+    .map((id) => collection.get(id))
+    .filter((o): o is NonNullable<typeof o> => Boolean(o))
+    .map((owned) => {
+      const player = resolveOwnedCard(owned, getCatalog());
+      return { position: player.basePlayer.positions[0] ?? '?', name: player.basePlayer.name, overall: player.overall };
+    });
+  const awayPreviewSlots: PreviewSlot[] = opponentPreview
+    ? opponentPreview.slots.map((s) => ({ position: s.position, name: s.player.basePlayer.name, overall: s.player.overall }))
+    : [];
+  const awayPreviewBench: PreviewSlot[] = opponentPreview
+    ? opponentPreview.bench.map((b) => ({
+        position: b.basePlayer.positions[0] ?? '?',
+        name: b.basePlayer.name,
+        overall: b.overall,
+      }))
+    : [];
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.headerRow}>
@@ -107,9 +141,7 @@ export default function LeagueScreen() {
             <Pressable
               disabled={!squadReady}
               style={[styles.cta, { flex: 1 }, !squadReady && { opacity: 0.4 }]}
-              onPress={() => {
-                if (career.playUserMatch()) router.push('/match');
-              }}
+              onPress={() => setShowPreRound(true)}
             >
               <Text style={styles.ctaText}>Jogar ao vivo</Text>
             </Pressable>
@@ -121,6 +153,34 @@ export default function LeagueScreen() {
             </Pressable>
           </View>
         </View>
+      ) : null}
+
+      {match ? (
+        <LineupPreviewModal
+          visible={showPreRound}
+          confirmLabel="Jogar Rodada"
+          onClose={() => setShowPreRound(false)}
+          onConfirm={() => {
+            setShowPreRound(false);
+            if (career.playUserMatch()) router.push('/match');
+          }}
+          home={{
+            crest: <ClubCrest clubId={career.userClubId!} size={44} />,
+            name: clubById.get(career.userClubId!)?.name ?? career.userClubId!,
+            overall: draftView.teamOverall,
+            slots: homePreviewSlots,
+            bench: homePreviewBench,
+          }}
+          away={{
+            crest: <ClubCrest clubId={match.opponentClubId} size={44} />,
+            name: clubById.get(match.opponentClubId)?.name ?? match.opponentClubId,
+            overall: awayPreviewSlots.length
+              ? Math.round(awayPreviewSlots.reduce((sum, s) => sum + s.overall, 0) / awayPreviewSlots.length)
+              : 0,
+            slots: awayPreviewSlots,
+            bench: awayPreviewBench,
+          }}
+        />
       ) : null}
 
       {career.cup && !career.cup.champion ? (
