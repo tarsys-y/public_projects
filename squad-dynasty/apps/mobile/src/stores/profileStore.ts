@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { MatchResult, Side } from '@squad-dynasty/engine';
+import { DEFAULT_CREST_ID } from '../constants/crestPalettes';
 
 const XP = { match: 10, win: 15, goal: 2, title: 200, cup: 150, perfectDraft: 100, sbc: 30 };
 
@@ -22,7 +23,13 @@ export interface ProfileCounters {
 interface ProfileState extends ProfileCounters {
   coachName: string;
   xp: number;
+  teamName: string;
+  teamCrestId: string;
+  setupDone: boolean;
   setCoachName: (name: string) => void;
+  setTeamName: (name: string) => void;
+  setTeamCrestId: (id: string) => void;
+  markSetupDone: () => void;
   recordMatch: (result: MatchResult, side: Side) => void;
   recordSeason: (wonLeague: boolean, wonCup: boolean) => void;
   recordPack: () => void;
@@ -48,9 +55,15 @@ export const useProfileStore = create<ProfileState>()(
     (set) => ({
       coachName: 'Técnico',
       xp: 0,
+      teamName: '',
+      teamCrestId: DEFAULT_CREST_ID,
+      setupDone: false,
       ...ZERO,
 
       setCoachName: (coachName) => set({ coachName: coachName.slice(0, 20) || 'Técnico' }),
+      setTeamName: (teamName) => set({ teamName: teamName.slice(0, 25) }),
+      setTeamCrestId: (teamCrestId) => set({ teamCrestId }),
+      markSetupDone: () => set({ setupDone: true }),
 
       recordMatch: (result, side) => {
         const [h, a] = result.score;
@@ -78,7 +91,15 @@ export const useProfileStore = create<ProfileState>()(
         set((s) => ({ perfectDrafts: s.perfectDrafts + 1, xp: s.xp + XP.perfectDraft })),
       recordSbc: () => set((s) => ({ sbcsCompleted: s.sbcsCompleted + 1, xp: s.xp + XP.sbc })),
 
-      reset: () => set({ coachName: 'Técnico', xp: 0, ...ZERO }),
+      reset: () =>
+        set({
+          coachName: 'Técnico',
+          xp: 0,
+          teamName: '',
+          teamCrestId: DEFAULT_CREST_ID,
+          setupDone: false,
+          ...ZERO,
+        }),
     }),
     { name: 'squad-dynasty/profile', storage: createJSONStorage(() => AsyncStorage) },
   ),

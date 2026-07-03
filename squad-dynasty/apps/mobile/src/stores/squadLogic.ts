@@ -2,9 +2,11 @@
 // O aceite do M3 — montar um 4-3-3 e ver overall/química reagirem — é
 // verificado em cima destas funções.
 import {
+  computeOverall,
   computeRoleFit,
   computeSquadChemistry,
   FORMATIONS,
+  positionGroup,
   resolveOwnedCard,
   rolesForPosition,
   isGkAttributes,
@@ -103,6 +105,69 @@ export function setTactics(draft: DraftSquad, tactics: Partial<Tactics>): DraftS
 export function setBench(draft: DraftSquad, bench: string[]): DraftSquad {
   const starters = new Set(draft.slots.map((s) => s.ownedCardId));
   return { ...draft, bench: bench.filter((id) => !starters.has(id)).slice(0, 7) };
+}
+
+/**
+ * Preenche cada slot com o melhor jogador disponível da coleção (overall,
+ * com desconto fora de posição), a função de melhor fit por slot.
+ * `collection` já deve vir filtrada (ex.: sem cartas aposentadas).
+ */
+export function autoFillDraft(
+  draft: DraftSquad,
+  collection: Map<string, OwnedCard>,
+  catalog: Catalog,
+): DraftSquad {
+  const formation = FORMATIONS[draft.formation];
+  if (!formation) throw new Error(`Formação desconhecida: ${draft.formation}`);
+
+  const pool = [...collection.values()]
+    .map((owned) => {
+      const card = catalog.cards.get(owned.cardDefId);
+      const player = card && catalog.players.get(card.basePlayerId);
+      if (!card || !player) return null;
+      const overall = computeOverall(card.attributes, player.positions[0] ?? 'ST');
+      return { owned, card, player, overall, gk: isGkAttributes(card.attributes) };
+    })
+    .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  const used = new Set<string>();
+  let next: DraftSquad = { ...draft, slots: draft.slots.map((s) => ({ ...s })) };
+  const slotOrder = formation.slots
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => (a.s.position === 'GK' ? -1 : 0) - (b.s.position === 'GK' ? -1 : 0));
+
+  for (const { s, i } of slotOrder) {
+    let best: (typeof pool)[number] | null = null;
+    let bestScore = -1;
+    for (const entry of pool) {
+      if (used.has(entry.owned.id)) continue;
+      if (entry.gk !== (s.position === 'GK')) continue;
+      const natural = entry.player.positions.includes(s.position);
+      const sameGroup =
+        !natural && positionGroup(entry.player.positions[0] ?? 'ST') === positionGroup(s.position);
+      const score = entry.overall * (natural ? 1 : sameGroup ? 0.8 : 0.55);
+      if (score > bestScore) {
+        bestScore = score;
+        best = entry;
+      }
+    }
+    if (best) {
+      used.add(best.owned.id);
+      next = assignCard(next, i, best.owned.id);
+      const roles = rolesForPosition(s.position);
+      let bestRole = roles[0]!.id;
+      let bestFit = -1;
+      for (const role of roles) {
+        const fit = computeRoleFit(best.card.attributes, role.id);
+        if (fit > bestFit) {
+          bestFit = fit;
+          bestRole = role.id;
+        }
+      }
+      next = setRole(next, i, bestRole);
+    }
+  }
+  return next;
 }
 
 // --- derivados (sempre calculados, nunca persistidos — SPEC 10.3) -----------

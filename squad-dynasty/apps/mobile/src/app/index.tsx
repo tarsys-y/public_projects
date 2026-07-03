@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { MonogramCrest } from '../components/ClubCrest';
 import { colors } from '../constants/theme';
+import { crestPaletteById } from '../constants/crestPalettes';
 import { getCatalog } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { useEconomyStore } from '../stores/economyStore';
@@ -18,6 +20,8 @@ export default function HomeScreen() {
   const { coins, gems } = useEconomyStore();
   const coachName = useProfileStore((s) => s.coachName);
   const coachLevel = useProfileStore((s) => levelForXp(s.xp));
+  const teamName = useProfileStore((s) => s.teamName);
+  const teamCrestId = useProfileStore((s) => s.teamCrestId);
   const objectives = useObjectivesStore();
   const events = useEventsStore();
   const event = events.currentEvent();
@@ -35,6 +39,19 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>Monte seu elenco. Domine a liga.</Text>
         </View>
       </View>
+
+      {teamName ? (
+        <View style={styles.teamRow}>
+          <MonogramCrest
+            width={34}
+            height={44}
+            primary={crestPaletteById(teamCrestId).primary}
+            secondary={crestPaletteById(teamCrestId).secondary}
+            initials={teamName}
+          />
+          <Text style={styles.teamName}>{teamName}</Text>
+        </View>
+      ) : null}
       <View style={styles.wallet}>
         <Text style={styles.walletText}>🪙 {coins.toLocaleString('pt-BR')}</Text>
         <Text style={styles.walletText}>💎 {gems}</Text>
@@ -152,6 +169,8 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: 2, marginTop: 8 },
   subtitle: { color: colors.textDim, fontSize: 14, marginBottom: 8 },
+  teamRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  teamName: { color: colors.text, fontSize: 16, fontWeight: '800' },
   wallet: { flexDirection: 'row', gap: 16 },
   walletText: { color: colors.text, fontWeight: '900', fontSize: 16 },
   eventBanner: {

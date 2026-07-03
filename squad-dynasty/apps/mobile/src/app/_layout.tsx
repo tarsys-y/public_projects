@@ -5,10 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../constants/theme';
+import { FirstLoginSetup } from '../components/FirstLoginSetup';
 import { Onboarding } from '../components/Onboarding';
 import { useCareerStore } from '../stores/careerStore';
 import { useCollectionStore } from '../stores/collectionStore';
 import { useMatchStore } from '../stores/matchStore';
+import { useProfileStore } from '../stores/profileStore';
 
 import type { ColorValue } from 'react-native';
 
@@ -17,10 +19,11 @@ function TabIcon({ glyph, color }: { glyph: string; color: ColorValue }) {
 }
 
 export default function RootLayout() {
+  const setupDone = useProfileStore((s) => s.setupDone);
   const seedDemoCollection = useCollectionStore((s) => s.seedDemoCollection);
   useEffect(() => {
-    seedDemoCollection();
-  }, [seedDemoCollection]);
+    if (setupDone) seedDemoCollection();
+  }, [setupDone, seedDemoCollection]);
 
   // Partida de carreira concluída → registra rodada na liga (uma vez).
   useEffect(
@@ -101,7 +104,8 @@ export default function RootLayout() {
         <Tabs.Screen name="draft" options={{ href: null, title: 'DRAFT' }} />
         <Tabs.Screen name="friends-league" options={{ href: null, title: 'LIGA DE AMIGOS' }} />
       </Tabs>
-        <Onboarding />
+        <FirstLoginSetup />
+        {setupDone ? <Onboarding /> : null}
         <StatusBar style="light" />
       </ThemeProvider>
     </GestureHandlerRootView>

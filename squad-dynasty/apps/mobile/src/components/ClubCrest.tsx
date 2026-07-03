@@ -30,28 +30,38 @@ export function ClubCrest({ clubId, size = 24 }: Props) {
   return <MonogramCrest clubId={clubId} width={width} height={size} />;
 }
 
-function MonogramCrest({ clubId, width, height }: { clubId: string; width: number; height: number }) {
-  const club = clubById.get(clubId);
-  const primary = club?.primaryColor ?? '#444444';
-  const secondary = club?.secondaryColor ?? '#cccccc';
-  const initials = (club?.shortName ?? '?').slice(0, 3).toUpperCase();
+interface MonogramProps {
+  width: number;
+  height: number;
+  clubId?: string;
+  primary?: string;
+  secondary?: string;
+  initials?: string;
+}
+
+/** Escudo genérico (usado por clubes sem escudo real e pelo escudo do time do jogador). */
+export function MonogramCrest({ clubId, width, height, primary, secondary, initials }: MonogramProps) {
+  const club = clubId ? clubById.get(clubId) : undefined;
+  const finalPrimary = primary ?? club?.primaryColor ?? '#444444';
+  const finalSecondary = secondary ?? club?.secondaryColor ?? '#cccccc';
+  const finalInitials = (initials ?? club?.shortName ?? '?').slice(0, 3).toUpperCase();
   return (
     <Svg width={width} height={height} viewBox="0 0 100 130">
       <Path
         d="M50 4 L92 18 L92 66 C92 96 74 116 50 126 C26 116 8 96 8 66 L8 18 Z"
-        fill={primary}
-        stroke={secondary}
+        fill={finalPrimary}
+        stroke={finalSecondary}
         strokeWidth={7}
       />
       <SvgText
         x={50}
         y={72}
-        fontSize={initials.length > 2 ? 30 : 38}
+        fontSize={finalInitials.length > 2 ? 30 : 38}
         fontWeight="bold"
-        fill={secondary}
+        fill={finalSecondary}
         textAnchor="middle"
       >
-        {initials}
+        {finalInitials}
       </SvgText>
     </Svg>
   );

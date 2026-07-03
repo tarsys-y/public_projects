@@ -33,12 +33,13 @@ import { ClubCrest } from '../components/ClubCrest';
 import { categoryLabel, colors } from '../constants/theme';
 import { CATALOG, CARDS, clubById, CLUBS, LEAGUES, PLAYERS } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
+import { useProfileStore } from '../stores/profileStore';
 import { resolveDraft, toSquad } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
 import { SPEED_FACTOR, useMatchStore } from '../stores/matchStore';
 import { feedback } from '../services/feedback';
 
-const OPPONENTS = CLUBS.filter((c) => c.id !== 'icons');
+const OPPONENTS = CLUBS.filter((c) => c.id !== 'icons' && c.id !== 'master-liga');
 const CATEGORIES = Object.keys(categoryLabel) as Array<keyof typeof categoryLabel>;
 
 const ratingColor = (r: number) =>
@@ -47,6 +48,7 @@ const ratingColor = (r: number) =>
 export default function MatchScreen() {
   const collection = useCollectionStore(ownedCardsMap);
   const draft = useSquadStore((s) => s.draft);
+  const teamName = useProfileStore((s) => s.teamName) || 'Meu Time';
   const match = useMatchStore();
   const router = useRouter();
   const [opponent, setOpponent] = useState(OPPONENTS[0]!.id);
@@ -295,7 +297,7 @@ export default function MatchScreen() {
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <Text style={styles.h1}>Fim de jogo</Text>
         <Text style={styles.bigScore}>
-          Meu Time {result.score[0]} x {result.score[1]} {opponentName}
+          {teamName} {result.score[0]} x {result.score[1]} {opponentName}
         </Text>
         <Text style={styles.meta}>
           Posse {result.stats.home.possession}% x {result.stats.away.possession}% · Chutes{' '}
@@ -359,7 +361,7 @@ export default function MatchScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.scoreboard}>
         <Text style={styles.scoreText}>
-          Meu Time {score[0]} x {score[1]} {opponentName}
+          {teamName} {score[0]} x {score[1]} {opponentName}
         </Text>
         <Text style={styles.minuteText}>{minute}'</Text>
       </View>
