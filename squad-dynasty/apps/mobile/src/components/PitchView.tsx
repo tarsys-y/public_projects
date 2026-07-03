@@ -15,15 +15,28 @@ export interface PitchSlotView {
   detail?: string; // linha extra (ex: nota)
 }
 
+export interface ChemistryLink {
+  from: number;
+  to: number;
+  strength: 'strong' | 'medium' | 'weak';
+}
+
+const LINK_COLORS: Record<ChemistryLink['strength'], string> = {
+  strong: '#2ea043',
+  medium: '#d29922',
+  weak: '#da3633',
+};
+
 interface Props {
   formationId: string;
   slots: PitchSlotView[];
   selectedIndex?: number | null;
   onPressSlot?: (index: number) => void;
   height?: number;
+  links?: ChemistryLink[];
 }
 
-export function PitchView({ formationId, slots, selectedIndex, onPressSlot, height = 420 }: Props) {
+export function PitchView({ formationId, slots, selectedIndex, onPressSlot, height = 420, links }: Props) {
   const formation = FORMATIONS[formationId];
   if (!formation) return null;
   const width = height * 0.72;
@@ -47,6 +60,24 @@ export function PitchView({ formationId, slots, selectedIndex, onPressSlot, heig
         {/* áreas */}
         <Rect x={width * 0.25} y={2} width={width * 0.5} height={height * 0.11} stroke={colors.pitchLines} strokeWidth={2} fill="none" />
         <Rect x={width * 0.25} y={height - height * 0.11 - 2} width={width * 0.5} height={height * 0.11} stroke={colors.pitchLines} strokeWidth={2} fill="none" />
+        {links?.map((link, li) => {
+          const fromSlot = formation.slots[link.from];
+          const toSlot = formation.slots[link.to];
+          if (!fromSlot || !toSlot) return null;
+          const x1 = fromSlot.x * width;
+          const y1 = (1 - fromSlot.y) * (height - 64) + 6 + 26;
+          const x2 = toSlot.x * width;
+          const y2 = (1 - toSlot.y) * (height - 64) + 6 + 26;
+          return (
+            <Line
+              key={`link-${li}`}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={LINK_COLORS[link.strength]}
+              strokeWidth={2}
+              opacity={0.7}
+            />
+          );
+        })}
       </Svg>
       {formation.slots.map((slot, i) => {
         const view = slots[i];

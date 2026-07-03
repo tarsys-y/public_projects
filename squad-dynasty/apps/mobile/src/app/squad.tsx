@@ -5,17 +5,22 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   computeRoleFit,
+  computeOverall,
   FORMATION_IDS,
+  FORMATIONS,
+  getNeighborMap,
   ROLES,
   rolesForPosition,
   isGkAttributes,
   resolveOwnedCard,
+  positionGroup,
   type Position,
 } from '@squad-dynasty/engine';
-import { PitchView } from '../components/PitchView';
+import { PitchView, type ChemistryLink } from '../components/PitchView';
 import { TacticsPanel } from '../components/TacticsPanel';
 import { colors } from '../constants/theme';
 import { getCatalog } from '../services/catalog';
+import { feedback } from '../services/feedback';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
@@ -28,6 +33,87 @@ export default function SquadScreen() {
   const [showTactics, setShowTactics] = useState(false);
 
   const view = useMemo(() => resolveDraft(draft, collection, getCatalog()), [draft, collection]);
+
+  const autoFill = () => {
+    const catalog = getCatalog();
+    const formation = FORMATIONS[draft.formation];
+    if (!formation) return;
+    const retired = useCollectionStore.getState().retired;
+    const pool = [...collection.values()]
+      .filter((o) => !retired[o.id])
+      .map((o) => {
+        const card = catalog.cards.get(o.cardDefId);
+        const player = card && catalog.players.get(card.basePlayerId);
+        if (!card || !player) return null;
+        const overall = computeOverall(card.attributes, player.positions[0] ?? 'ST');
+        const gk = isGkAttributes(card.attributes);
+        return { owned: o, card, player, overall, gk };
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null);
+
+    const used = new Set<string>();
+    const slotOrder = formation.slots
+      .map((s, i) => ({ s, i }))
+      .sort((a, b) => (a.s.position === 'GK' ? -1 : 0) - (b.s.position === 'GK' ? -1 : 0));
+
+    for (const { s, i } of slotOrder) {
+      let best: (typeof pool)[number] | null = null;
+      let bestScore = -1;
+      for (const entry of pool) {
+        if (used.has(entry.owned.id)) continue;
+        if (entry.gk !== (s.position === 'GK')) continue;
+        const natural = entry.player.positions.includes(s.position);
+        const sameGroup = !natural && positionGroup(entry.player.positions[0] ?? 'ST') === positionGroup(s.position);
+        const score = entry.overall * (natural ? 1 : sameGroup ? 0.8 : 0.55);
+        if (score > bestScore) { bestScore = score; best = entry; }
+      }
+      if (best) {
+        used.add(best.owned.id);
+        assign(i, best.owned.id);
+        const roles = rolesForPosition(s.position);
+        let bestRole = roles[0]!.id;
+        let bestFit = -1;
+        for (const role of roles) {
+          const fit = computeRoleFit(best.card.attributes, role.id);
+          if (fit > bestFit) { bestFit = fit; bestRole = role.id; }
+        }
+        changeRole(i, bestRole);
+      }
+    }
+    feedback.cardFlip();
+  };
+
+  const chemLinks = useMemo((): ChemistryLink[] => {
+    const formation = FORMATIONS[draft.formation];
+    if (!formation) return [];
+    const neighborMap = getNeighborMap(formation);
+    const links: ChemistryLink[] = [];
+    const seen = new Set<string>();
+    for (let i = 0; i < neighborMap.length; i++) {
+      const playerA = view.slots[i]?.player;
+      if (!playerA) continue;
+      for (const j of neighborMap[i]!) {
+        const key = `${Math.min(i, j)}-${Math.max(i, j)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const playerB = view.slots[j]?.player;
+        if (!playerB) continue;
+        const sameClub = playerA.basePlayer.clubId === playerB.basePlayer.clubId;
+        const sameNation = playerA.basePlayer.nationality === playerB.basePlayer.nationality;
+        const sameLeague = playerA.basePlayer.leagueId === playerB.basePlayer.leagueId;
+        let strength: ChemistryLink['strength'];
+        if (sameClub || (sameNation && sameLeague)) {
+          strength = 'strong';
+        } else if (sameNation || sameLeague) {
+          strength = 'medium';
+        } else {
+          strength = 'weak';
+        }
+        links.push({ from: i, to: j, strength });
+      }
+    }
+    return links;
+  }, [draft.formation, view.slots]);
 
   const slotPosition: Position | null =
     selectedSlot !== null ? (view.slots[selectedSlot]?.position as Position) : null;
@@ -76,6 +162,9 @@ export default function SquadScreen() {
           <Text style={styles.headerValue}>{view.filledCount}/11</Text>
           <Text style={styles.headerLabel}>Escalados</Text>
         </View>
+        <Pressable style={styles.autoFillButton} onPress={autoFill}>
+          <Text style={styles.autoFillButtonText}>Melhor XI</Text>
+        </Pressable>
         <Pressable style={styles.tacticsButton} onPress={() => setShowTactics((v) => !v)}>
           <Text style={styles.tacticsButtonText}>{showTactics ? 'Campo' : 'Tática'}</Text>
         </Pressable>
@@ -104,6 +193,7 @@ export default function SquadScreen() {
           formationId={draft.formation}
           selectedIndex={selectedSlot}
           onPressSlot={(i) => setSelectedSlot(selectedSlot === i ? null : i)}
+          links={chemLinks}
           slots={view.slots.map((slot) => ({
             label: slot.player ? slot.player.basePlayer.name.split(' ').slice(-1)[0]! : slot.position,
             overall: slot.player?.overall,
@@ -206,8 +296,15 @@ const styles = StyleSheet.create({
   },
   headerValue: { color: colors.text, fontSize: 18, fontWeight: '900' },
   headerLabel: { color: colors.textDim, fontSize: 10, fontWeight: '700' },
-  tacticsButton: {
+  autoFillButton: {
     marginLeft: 'auto',
+    backgroundColor: '#1d4ed8',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  autoFillButtonText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+  tacticsButton: {
     backgroundColor: colors.accent,
     borderRadius: 10,
     paddingVertical: 10,

@@ -199,5 +199,16 @@ export const useCollectionStore = create<CollectionState>()(
   ),
 );
 
-export const ownedCardsMap = (state: CollectionState): Map<string, OwnedCard> =>
-  new Map(Object.entries(state.ownedCards));
+// Memoizado por identidade de `state.ownedCards`: o Zustand chama esse
+// selector a cada notificação, e um Map novo a cada vez quebra a
+// comparação por referência do useSyncExternalStore (loop infinito de
+// render — "Maximum update depth exceeded").
+const ownedCardsMapCache = new WeakMap<Record<string, OwnedCard>, Map<string, OwnedCard>>();
+
+export const ownedCardsMap = (state: CollectionState): Map<string, OwnedCard> => {
+  const cached = ownedCardsMapCache.get(state.ownedCards);
+  if (cached) return cached;
+  const map = new Map(Object.entries(state.ownedCards));
+  ownedCardsMapCache.set(state.ownedCards, map);
+  return map;
+};

@@ -13,9 +13,15 @@ import {
   View,
 } from 'react-native';
 import {
+  buildAutoSquad,
   computeRatingsAt,
+  fatigueFactor,
   isGkAttributes,
+  resolveSquad,
+  staminaOf,
   type PlayerParticipation,
+  type ResolvedPlayer,
+  type ResolvedSquad,
   type Snowflake,
   type Tactics,
 } from '@squad-dynasty/engine';
@@ -23,8 +29,9 @@ import { GoalOverlay } from '../components/GoalOverlay';
 import { PitchView } from '../components/PitchView';
 import { RadarChart } from '../components/RadarChart';
 import { TacticsPanel } from '../components/TacticsPanel';
+import { ClubCrest } from '../components/ClubCrest';
 import { categoryLabel, colors } from '../constants/theme';
-import { CATALOG, clubById, CLUBS } from '../services/catalog';
+import { CATALOG, CARDS, clubById, CLUBS, LEAGUES, PLAYERS } from '../services/catalog';
 import { ownedCardsMap, useCollectionStore } from '../stores/collectionStore';
 import { resolveDraft, toSquad } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
@@ -46,8 +53,20 @@ export default function MatchScreen() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showTactics, setShowTactics] = useState(false);
   const [showSubs, setShowSubs] = useState(false);
+  const [showOpponentPreview, setShowOpponentPreview] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState(LEAGUES[0]!.id);
 
   const draftView = useMemo(() => resolveDraft(draft, collection, CATALOG), [draft, collection]);
+
+  const opponentPreview = useMemo((): ResolvedSquad | null => {
+    if (!showOpponentPreview) return null;
+    const clubPlayers = PLAYERS.filter((p) => p.clubId === opponent);
+    const ids = new Set(clubPlayers.map((p) => p.id));
+    const baseCards = CARDS.filter((c) => c.version === 'base' && ids.has(c.basePlayerId));
+    if (clubPlayers.length === 0) return null;
+    const { squad, ownedCards } = buildAutoSquad(clubPlayers, baseCards, '4-3-3', { ownerId: `preview-${opponent}` });
+    return resolveSquad(squad, new Map(ownedCards.map((o) => [o.id, o])), CATALOG);
+  }, [showOpponentPreview, opponent]);
 
   // Relógio do playback.
   useEffect(() => {
@@ -150,13 +169,27 @@ export default function MatchScreen() {
           <Text style={styles.warn}>Complete seu 11 em “Meu Time” para jogar.</Text>
         ) : null}
         <Text style={styles.label}>Adversário</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+          {LEAGUES.map((league) => (
+            <Pressable
+              key={league.id}
+              onPress={() => setSelectedLeague(league.id)}
+              style={[styles.chip, selectedLeague === league.id && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, selectedLeague === league.id && styles.chipTextActive]}>
+                {league.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
         <View style={styles.chips}>
-          {OPPONENTS.map((club) => (
+          {OPPONENTS.filter((c) => c.leagueId === selectedLeague).map((club) => (
             <Pressable
               key={club.id}
               onPress={() => setOpponent(club.id)}
-              style={[styles.chip, opponent === club.id && styles.chipActive]}
+              style={[styles.chip, opponent === club.id && styles.chipActive, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}
             >
+              <ClubCrest clubId={club.id} size={16} />
               <Text style={[styles.chipText, opponent === club.id && styles.chipTextActive]}>
                 {club.shortName}
               </Text>
@@ -178,6 +211,12 @@ export default function MatchScreen() {
           ))}
         </View>
         <Pressable
+          onPress={() => setShowOpponentPreview(true)}
+          style={styles.actionButton}
+        >
+          <Text style={styles.actionText}>Ver Elenco</Text>
+        </Pressable>
+        <Pressable
           disabled={!draftView.isComplete}
           onPress={() => match.startFriendly(toSquad(draft), collection, opponent)}
           style={[styles.cta, !draftView.isComplete && { opacity: 0.4 }]}
@@ -187,6 +226,56 @@ export default function MatchScreen() {
         <Link href="/draft" style={styles.draftLink}>
           <Text style={styles.draftLinkText}>🎲 Modo Draft: monte um XI de sorte e encare a série →</Text>
         </Link>
+        <Modal visible={showOpponentPreview} transparent animationType="slide" onRequestClose={() => setShowOpponentPreview(false)}>
+          <View style={styles.sheetBackdrop}>
+            <View style={[styles.sheet, { maxHeight: '90%' }]}>
+              <ScrollView>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <ClubCrest clubId={opponent} size={32} />
+                  <Text style={styles.h2}>{clubById.get(opponent)?.name ?? opponent}</Text>
+                </View>
+                {opponentPreview ? (
+                  <>
+                    <PitchView
+                      formationId={opponentPreview.formation}
+                      height={320}
+                      slots={opponentPreview.slots.map((s) => ({
+                        label: s.player.basePlayer.name.split(' ').slice(-1)[0]!,
+                        overall: s.player.overall,
+                        filled: true,
+                      }))}
+                    />
+                    <Text style={[styles.label, { marginTop: 8 }]}>Titulares</Text>
+                    {opponentPreview.slots.map((s, i) => (
+                      <View key={i} style={[styles.subCard, { marginTop: 4 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                          <Text style={styles.subPos}>{s.position}</Text>
+                          <Text style={styles.subName} numberOfLines={1}>{s.player.basePlayer.name}</Text>
+                        </View>
+                        <Text style={styles.subOverall}>{s.player.overall}</Text>
+                      </View>
+                    ))}
+                    <Text style={[styles.label, { marginTop: 12 }]}>Banco</Text>
+                    {opponentPreview.bench.map((b, i) => (
+                      <View key={i} style={[styles.subCard, { marginTop: 4 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                          <Text style={styles.subPos}>{b.basePlayer.positions[0]}</Text>
+                          <Text style={styles.subName} numberOfLines={1}>{b.basePlayer.name}</Text>
+                        </View>
+                        <Text style={styles.subOverall}>{b.overall}</Text>
+                      </View>
+                    ))}
+                  </>
+                ) : (
+                  <Text style={styles.meta}>Carregando...</Text>
+                )}
+                <Pressable onPress={() => setShowOpponentPreview(false)} style={[styles.cta, { marginTop: 12 }]}>
+                  <Text style={styles.ctaText}>Fechar</Text>
+                </Pressable>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     );
   }
@@ -282,6 +371,9 @@ export default function MatchScreen() {
         </Pressable>
         <Pressable style={styles.actionButton} onPress={() => setShowSubs(true)}>
           <Text style={styles.actionText}>Substituir</Text>
+        </Pressable>
+        <Pressable style={styles.actionButton} onPress={() => setShowOpponentPreview(true)}>
+          <Text style={styles.actionText}>Adversário</Text>
         </Pressable>
         <Pressable
           style={styles.actionButton}
@@ -409,12 +501,47 @@ export default function MatchScreen() {
             <SubPicker
               onDone={() => setShowSubs(false)}
               onPitch={[...onPitchBySlot.values()]}
-              bench={benchAvailable.map((b) => ({
-                id: b.ownedCardId,
-                name: b.basePlayer.name,
-                gk: isGkAttributes(b.attributes),
-              }))}
+              bench={benchAvailable}
+              liveRatings={liveRatings}
+              minute={minute}
+              highPressing={currentTactics.pressing === 3}
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Adversário ao vivo */}
+      <Modal visible={showOpponentPreview} transparent animationType="slide" onRequestClose={() => setShowOpponentPreview(false)}>
+        <View style={styles.sheetBackdrop}>
+          <View style={[styles.sheet, { maxHeight: '80%' }]}>
+            <ScrollView>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <ClubCrest clubId={match.opponentClubId ?? ''} size={28} />
+                <Text style={styles.h2}>{opponentName}</Text>
+              </View>
+              <Text style={styles.label}>Jogadores em campo</Text>
+              {result.participations
+                .filter((p) => p.side === 'away' && p.enteredMinute <= minute && (p.leftMinute === undefined || p.leftMinute > minute))
+                .map((p) => {
+                  const rating = liveRatings.get(p.playerId);
+                  return (
+                    <View key={p.playerId} style={[styles.subCard, { marginTop: 4 }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                        <Text style={styles.subPos}>{p.position}</Text>
+                        <Text style={styles.subName} numberOfLines={1}>{p.name}</Text>
+                      </View>
+                      {rating ? (
+                        <Text style={[styles.subRating, { color: ratingColor(rating.rating) }]}>
+                          {rating.rating.toFixed(1)}
+                        </Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              <Pressable onPress={() => setShowOpponentPreview(false)} style={[styles.cta, { marginTop: 12 }]}>
+                <Text style={styles.ctaText}>Fechar</Text>
+              </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -422,43 +549,94 @@ export default function MatchScreen() {
   );
 }
 
+const staminaColor = (pct: number) =>
+  pct > 70 ? '#2ea043' : pct > 40 ? '#d29922' : '#da3633';
+
 function SubPicker({
   onPitch,
   bench,
+  liveRatings,
+  minute,
+  highPressing,
   onDone,
 }: {
   onPitch: PlayerParticipation[];
-  bench: Array<{ id: string; name: string; gk: boolean }>;
+  bench: ResolvedPlayer[];
+  liveRatings: Map<string, { rating: number; snowflake: Snowflake }>;
+  minute: number;
+  highPressing: boolean;
   onDone: () => void;
 }) {
   const [outId, setOutId] = useState<string | null>(null);
   const intervene = useMatchStore((s) => s.intervene);
+  const home = useMatchStore((s) => s.home);
+
   return (
     <View style={{ gap: 8 }}>
       <Text style={styles.label}>{outId ? 'Quem entra?' : 'Quem sai?'}</Text>
-      <View style={styles.chips}>
-        {(outId === null ? onPitch.map((p) => ({ id: p.playerId, name: p.name })) : bench).map(
-          (p) => (
-            <Pressable
-              key={p.id}
-              style={styles.chip}
-              onPress={() => {
-                if (outId === null) {
-                  setOutId(p.id);
-                } else {
-                  intervene(undefined, [{ outOwnedCardId: outId, inOwnedCardId: p.id }]);
+      {outId === null ? (
+        <View style={{ gap: 6 }}>
+          {onPitch.map((p) => {
+            const minutesPlayed = minute - p.enteredMinute;
+            const resolvedPlayer = home?.slots.find((s) => s.player.ownedCardId === p.playerId)?.player
+              ?? home?.bench.find((b) => b.ownedCardId === p.playerId);
+            const stamina = resolvedPlayer ? staminaOf(resolvedPlayer) : 70;
+            const energy = Math.round(fatigueFactor(stamina, minutesPlayed, highPressing) * 100);
+            const rating = liveRatings.get(p.playerId);
+            return (
+              <Pressable key={p.playerId} style={styles.subCard} onPress={() => setOutId(p.playerId)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Text style={styles.subPos}>{p.position}</Text>
+                  <Text style={styles.subName} numberOfLines={1}>{p.name}</Text>
+                  {rating && (
+                    <Text style={[styles.subRating, { color: ratingColor(rating.rating) }]}>
+                      {rating.rating.toFixed(1)}
+                    </Text>
+                  )}
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.subEnergy, { color: staminaColor(energy) }]}>{energy}%</Text>
+                  <View style={styles.staminaBarBg}>
+                    <View style={[styles.staminaBarFill, { width: `${energy}%`, backgroundColor: staminaColor(energy) }]} />
+                  </View>
+                  <Text style={styles.subMinutes}>{minutesPlayed}'</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
+        <View style={{ gap: 6 }}>
+          {bench.map((b) => {
+            const stamina = staminaOf(b);
+            return (
+              <Pressable
+                key={b.ownedCardId}
+                style={styles.subCard}
+                onPress={() => {
+                  intervene(undefined, [{ outOwnedCardId: outId, inOwnedCardId: b.ownedCardId }]);
                   onDone();
-                }
-              }}
-            >
-              <Text style={styles.chipText}>{p.name}</Text>
-            </Pressable>
-          ),
-        )}
-        {outId !== null && bench.length === 0 ? (
-          <Text style={styles.meta}>Banco vazio ou já utilizado.</Text>
-        ) : null}
-      </View>
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Text style={styles.subPos}>{b.basePlayer.positions[0] ?? '?'}</Text>
+                  <Text style={styles.subName} numberOfLines={1}>{b.basePlayer.name}</Text>
+                  <Text style={styles.subOverall}>{b.overall}</Text>
+                </View>
+                <Text style={[styles.subEnergy, { color: staminaColor(Math.round(stamina / 99 * 100)) }]}>
+                  STA {stamina}
+                </Text>
+              </Pressable>
+            );
+          })}
+          {bench.length === 0 ? (
+            <Text style={styles.meta}>Banco vazio ou já utilizado.</Text>
+          ) : null}
+          <Pressable onPress={() => setOutId(null)}>
+            <Text style={[styles.meta, { textDecorationLine: 'underline' }]}>Voltar</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -568,4 +746,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   draftLinkText: { color: colors.text, fontWeight: '700', fontSize: 13 },
+  subCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.bgCard,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  subPos: { color: colors.textDim, fontSize: 10, fontWeight: '800', width: 24 },
+  subName: { color: colors.text, fontSize: 13, fontWeight: '700', flexShrink: 1 },
+  subRating: { fontSize: 14, fontWeight: '900' },
+  subOverall: { color: colors.accent, fontSize: 14, fontWeight: '900' },
+  subEnergy: { fontSize: 12, fontWeight: '800' },
+  subMinutes: { color: colors.textDim, fontSize: 10, fontWeight: '700' },
+  staminaBarBg: {
+    width: 40,
+    height: 6,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  staminaBarFill: { height: '100%', borderRadius: 3 },
 });
