@@ -11,6 +11,7 @@ import { useEconomyStore } from '../stores/economyStore';
 import { levelForXp, useProfileStore } from '../stores/profileStore';
 import { useEventsStore } from '../stores/eventsStore';
 import { DAILY_OBJECTIVES, useObjectivesStore } from '../stores/objectivesStore';
+import { QUESTS, useQuestStore } from '../stores/questStore';
 import { resolveDraft } from '../stores/squadLogic';
 import { useSquadStore } from '../stores/squadStore';
 
@@ -30,11 +31,16 @@ export default function HomeScreen() {
   const objectives = useObjectivesStore();
   const events = useEventsStore();
   const event = events.currentEvent();
+  const quests = useQuestStore();
   useEffect(() => {
     objectives.ensureToday();
     events.ensureWeek();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    if (view.teamChemistry >= 40) quests.markChemistryAchieved();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.teamChemistry]);
 
   // Indicador de próxima ação (4.3): guia o jogador nas primeiras ações do jogo.
   const nextStep = !view.isComplete
@@ -122,6 +128,30 @@ export default function HomeScreen() {
           );
         })}
       </View>
+
+      {/* Missões de Início (4.2) — some quando todas as 5 forem cumpridas */}
+      {QUESTS.some((q) => !quests.claimed[q.id]) ? (
+        <View style={styles.objectives}>
+          <Text style={styles.objectivesTitle}>🚀 Missões de Início</Text>
+          {QUESTS.filter((q) => !quests.claimed[q.id]).map((quest) => {
+            const done = quests.isDone(quest.id);
+            return (
+              <View key={quest.id} style={styles.objectiveRow}>
+                <Text style={styles.objectiveLabel}>
+                  {done ? '🎁' : '▫️'} {quest.label}
+                </Text>
+                <Pressable
+                  disabled={!done}
+                  onPress={() => quests.claim(quest.id)}
+                  style={[styles.claimButton, !done && { opacity: 0.35 }]}
+                >
+                  <Text style={styles.claimText}>{quest.rewardLabel}</Text>
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
 
       {/* Objetivos diários (SPEC 6) */}
       <View style={styles.objectives}>

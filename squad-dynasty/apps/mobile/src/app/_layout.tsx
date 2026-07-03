@@ -5,11 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../constants/theme';
+import { DailyReward } from '../components/DailyReward';
 import { FirstLoginSetup } from '../components/FirstLoginSetup';
 import { Onboarding } from '../components/Onboarding';
 import { useCareerStore } from '../stores/careerStore';
 import { useCollectionStore } from '../stores/collectionStore';
 import { useMatchStore } from '../stores/matchStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
 import { useProfileStore } from '../stores/profileStore';
 
 import type { ColorValue } from 'react-native';
@@ -20,6 +22,7 @@ function TabIcon({ glyph, color }: { glyph: string; color: ColorValue }) {
 
 export default function RootLayout() {
   const setupDone = useProfileStore((s) => s.setupDone);
+  const onboardingDone = useOnboardingStore((s) => s.done);
   const seedDemoCollection = useCollectionStore((s) => s.seedDemoCollection);
   useEffect(() => {
     if (setupDone) seedDemoCollection();
@@ -106,6 +109,7 @@ export default function RootLayout() {
       </Tabs>
         <FirstLoginSetup />
         {setupDone ? <Onboarding /> : null}
+        {setupDone && onboardingDone ? <DailyReward /> : null}
         <StatusBar style="light" />
       </ThemeProvider>
     </GestureHandlerRootView>
