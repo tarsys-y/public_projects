@@ -45,8 +45,9 @@ describe('leagueLogic (M7)', () => {
     expect(matchSeed('liga2', 1, 3, 'uidA', 'uidB')).not.toBe(s1);
   });
 
-  it('taxa do mercado: vendedor recebe 95%', () => {
-    expect(sellerNet(1000, CONFIG.economy.marketFeeRate)).toBe(950);
-    expect(sellerNet(333, CONFIG.economy.marketFeeRate)).toBe(316);
+  it('taxa do mercado: vendedor recebe (1 - taxa)% — taxa explícita, independe do CONFIG (zerado no período de teste)', () => {
+    expect(sellerNet(1000, 0.05)).toBe(950);
+    expect(sellerNet(333, 0.05)).toBe(316);
+    expect(sellerNet(1000, CONFIG.economy.marketFeeRate)).toBe(1000); // custos zerados no período de teste
   });
 });

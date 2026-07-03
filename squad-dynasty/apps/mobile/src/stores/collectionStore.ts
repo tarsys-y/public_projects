@@ -70,8 +70,7 @@ function makeOwned(cardDefId: string, id: string): OwnedCard | null {
   };
 }
 
-const DEMO_CLUBS = ['flamengo', 'palmeiras'];
-const DEMO_EXTRAS = ['vinicius-junior-ucl2024'];
+const DEMO_CLUBS = ['master-liga'];
 
 export const useCollectionStore = create<CollectionState>()(
   persist(
@@ -174,9 +173,7 @@ export const useCollectionStore = create<CollectionState>()(
       seedDemoCollection: () => {
         if (get().seeded) return;
         const starters = CARDS.filter(
-          (c) =>
-            (c.version === 'base' && DEMO_CLUBS.includes(playerById.get(c.basePlayerId)?.clubId ?? '')) ||
-            DEMO_EXTRAS.includes(c.id),
+          (c) => c.version === 'base' && DEMO_CLUBS.includes(playerById.get(c.basePlayerId)?.clubId ?? ''),
         );
         let nextId = get().nextId;
         const ownedCards = { ...get().ownedCards };

@@ -29,10 +29,10 @@ describe('matchReward (SPEC 6)', () => {
 });
 
 describe('evolução (SPEC 4.6)', () => {
-  it('custos por nível: duplicatas 1,1,2,2,3,3 + coins crescentes; nível 6 = teto', () => {
-    expect(evolutionCost(0)).toEqual({ duplicates: 1, coins: 400 });
-    expect(evolutionCost(2)).toEqual({ duplicates: 2, coins: 900 });
-    expect(evolutionCost(5)).toEqual({ duplicates: 3, coins: 2400 });
+  it('custos por nível: duplicatas 1,1,2,2,3,3; coins zerados no período de teste (Bloco 0)', () => {
+    expect(evolutionCost(0)).toEqual({ duplicates: 1, coins: 0 });
+    expect(evolutionCost(2)).toEqual({ duplicates: 2, coins: 0 });
+    expect(evolutionCost(5)).toEqual({ duplicates: 3, coins: 0 });
     expect(evolutionCost(6)).toBeNull();
   });
 

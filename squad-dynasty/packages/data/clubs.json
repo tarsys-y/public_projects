@@ -1807,5 +1807,14 @@
     "country": "ZZ",
     "primaryColor": "#d4af37",
     "secondaryColor": "#111111"
+  },
+  {
+    "id": "master-liga",
+    "name": "Master Liga FC",
+    "shortName": "MLG",
+    "leagueId": "legends",
+    "country": "XX",
+    "primaryColor": "#1a237e",
+    "secondaryColor": "#ffd600"
   }
 ]

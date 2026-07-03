@@ -48,7 +48,7 @@ export const EVENTS: GameEvent[] = [
     emoji: '🇧🇷',
     description: 'Só feras da Série A no pacote. Complete objetivos com seu time canarinho.',
     theme: { leagueIds: ['brasileirao'] },
-    pack: { costCoins: 2000, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
+    pack: { costCoins: 0, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
     objectives: [
       { id: 'br-win3', label: 'Vença 3 partidas', target: 3, kind: 'win', rewardCoins: 800 },
       {
@@ -67,7 +67,7 @@ export const EVENTS: GameEvent[] = [
     emoji: '🏟️',
     description: 'Premier League, La Liga e Serie A em destaque no pacote da semana.',
     theme: { leagueIds: ['premier-league', 'la-liga', 'serie-a-it'] },
-    pack: { costCoins: 2500, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
+    pack: { costCoins: 0, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
     objectives: [
       { id: 'eu-play4', label: 'Jogue 4 partidas', target: 4, kind: 'play', rewardCoins: 600 },
       {
@@ -86,7 +86,7 @@ export const EVENTS: GameEvent[] = [
     emoji: '👑',
     description: 'O pacote com maior chance de Ícones da temporada.',
     theme: { iconsOnly: true },
-    pack: { costCoins: 0, costGems: 40, cards: 3, guaranteedRarity: 'epic', epicPlusBoost: 4 },
+    pack: { costCoins: 0, costGems: 0, cards: 3, guaranteedRarity: 'epic', epicPlusBoost: 4 },
     objectives: [
       { id: 'lendas-goals', label: 'Marque 6 gols', target: 6, kind: 'goals', rewardCoins: 1000 },
       {
@@ -104,7 +104,7 @@ export const EVENTS: GameEvent[] = [
     emoji: '⚽',
     description: 'Brasileiros de todas as ligas brilham no pacote da semana.',
     theme: { nationalities: ['BR'] },
-    pack: { costCoins: 2200, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2.5 },
+    pack: { costCoins: 0, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2.5 },
     objectives: [
       { id: 'samba-goals', label: 'Marque 5 gols', target: 5, kind: 'goals', rewardCoins: 700 },
       {
@@ -123,7 +123,7 @@ export const EVENTS: GameEvent[] = [
     emoji: '🌍',
     description: 'As estrelas da Saudi Pro League e da MLS num pacote só.',
     theme: { leagueIds: ['saudi-pro-league', 'mls'] },
-    pack: { costCoins: 1800, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
+    pack: { costCoins: 0, costGems: 0, cards: 3, guaranteedRarity: 'rare', epicPlusBoost: 2 },
     objectives: [
       { id: 'golfo-play3', label: 'Jogue 3 partidas', target: 3, kind: 'play', rewardCoins: 500 },
       {

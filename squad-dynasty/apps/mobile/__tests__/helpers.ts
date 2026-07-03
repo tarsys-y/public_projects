@@ -23,11 +23,11 @@ export function own(cardDefId: string): OwnedCard {
   };
 }
 
-/** Coleção demo: cartas base do Flamengo + Palmeiras (como no app). */
+/** Coleção demo: cartas base do Master Liga FC (como no app). */
 export function demoCollection(): Map<string, OwnedCard> {
   const cards = CARDS.filter((c) => {
     const player = playerById.get(c.basePlayerId);
-    return c.version === 'base' && ['flamengo', 'palmeiras'].includes(player?.clubId ?? '');
+    return c.version === 'base' && player?.clubId === 'master-liga';
   });
   const map = new Map<string, OwnedCard>();
   for (const card of cards) {

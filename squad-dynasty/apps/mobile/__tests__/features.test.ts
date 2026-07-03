@@ -1,7 +1,7 @@
 // Integração das novas features: eventos semanais, TOTW dinâmico, copa,
 // forma, treino, SBC e Draft.
 import { eventForDate, SBC_CHALLENGES, validateSbc, type ResolvedSlot } from '@squad-dynasty/engine';
-import { getAllCards, getCatalog, getCardById } from '../src/services/catalog';
+import { getAllCards, getCatalog, getCardById, cardOverall, playerById } from '../src/services/catalog';
 import { useCareerStore } from '../src/stores/careerStore';
 import { ownedCardsMap, useCollectionStore } from '../src/stores/collectionStore';
 import { useDraftStore, DRAFT_ENTRY_COINS } from '../src/stores/draftStore';
@@ -121,6 +121,16 @@ describe('SBC', () => {
   it('validação + consumo de cartas + recompensa (fluxo do desafio BR)', () => {
     setupCollectionAndSquad();
     const challenge = SBC_CHALLENGES.find((c) => c.id === 'aco-brasileiro')!;
+    // desafio exige liga brasileirao; a coleção demo (Master Liga FC) é liga "legends" —
+    // isola aqui uma coleção só com cartas reais do Brasileirão overall ≥72.
+    useCollectionStore.getState().reset();
+    for (const card of getAllCards()) {
+      if (card.version !== 'base') continue;
+      const player = playerById.get(card.basePlayerId);
+      if (player?.leagueId === 'brasileirao' && cardOverall(card) >= 72) {
+        useCollectionStore.getState().grantCard(card.id);
+      }
+    }
     const collection = ownedCardsMap(useCollectionStore.getState());
     const draft = fillDraft(collection, challenge.formation);
     const view = resolveDraft(draft, collection, getCatalog());
@@ -131,7 +141,7 @@ describe('SBC', () => {
       player: s.player!,
     }));
     const validation = validateSbc(challenge.formation, slots, challenge.requirements);
-    expect(validation.ok).toBe(true); // demo = Flamengo+Palmeiras, todos brasileirão 72+
+    expect(validation.ok).toBe(true); // agora montado com cartas reais do Brasileirão 72+
 
     // consumo: entregar as 11 remove da coleção
     const ids = draft.slots.map((s) => s.ownedCardId!).filter(Boolean);

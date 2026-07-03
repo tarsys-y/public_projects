@@ -25,7 +25,7 @@ import { CARDS, cardOverall, getAllCards, PLAYERS, playerById } from '../service
 import { useEconomyStore } from './economyStore';
 import { useProfileStore } from './profileStore';
 
-export const DRAFT_ENTRY_COINS = 1500;
+export const DRAFT_ENTRY_COINS = 0;
 export const DRAFT_REWARDS_BY_WINS = [500, 1500, 2800, 4500, 6500];
 export const DRAFT_PERFECT_GEMS = 40;
 const DRAFT_FORMATION = '4-3-3';

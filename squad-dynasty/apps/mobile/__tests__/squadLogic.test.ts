@@ -20,8 +20,8 @@ const fillDraft = (_draft: DraftSquad, collection: Map<string, OwnedCard>) =>
 describe('montagem do 4-3-3 (aceite M3)', () => {
   const collection = demoCollection();
 
-  it('coleção demo tem cartas suficientes (2 clubes ≥ 36 cartas, com GKs)', () => {
-    expect(collection.size).toBeGreaterThanOrEqual(30);
+  it('coleção demo tem cartas suficientes (Master Liga FC: 18 cartas, com GKs)', () => {
+    expect(collection.size).toBe(18);
     const gks = [...collection.values()].filter((o) =>
       isGkAttributes(CATALOG.cards.get(o.cardDefId)!.attributes),
     );

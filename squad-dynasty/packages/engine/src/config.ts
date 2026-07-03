@@ -48,8 +48,8 @@ export const CONFIG = {
     legendaryPity: 40,
     iconPity: 400,
     types: {
-      basic: { cards: 3, costCoins: 1500, costGems: 0, guaranteedRarity: 'rare' },
-      premium: { cards: 5, costCoins: 0, costGems: 50, guaranteedRarity: 'epic' },
+      basic: { cards: 3, costCoins: 0, costGems: 0, guaranteedRarity: 'rare' },
+      premium: { cards: 5, costCoins: 0, costGems: 0, guaranteedRarity: 'epic' },
     },
   },
 
@@ -178,9 +178,9 @@ export const CONFIG = {
     leagueChampionGems: 200,
     /** Premiação de fim de temporada por colocação (M6). */
     seasonPrizeCoinsByPlacement: [5000, 3500, 2500, 2000, 1500, 1200, 1000, 900, 800, 700, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150],
-    marketFeeRate: 0.05,
+    marketFeeRate: 0,
     /** Evolução (SPEC 4.6): coins por nível, além das duplicatas. */
-    evolutionCoinsPerLevel: [400, 600, 900, 1300, 1800, 2400],
+    evolutionCoinsPerLevel: [0, 0, 0, 0, 0, 0],
     /** Delta aplicado nos atributos-chave da posição a cada nível. */
     evolutionDeltaPerLevel: 2,
   },

@@ -14,6 +14,7 @@ import iconsJson from '../../../../packages/data/players.json';
 import brJson from '../../../../packages/data/players-br.json';
 import realJson from '../../../../packages/data/players-real.json';
 import fillersJson from '../../../../packages/data/players-filler.json';
+import masterLigaJson from '../../../../packages/data/players-masterliga.json';
 import cardsJson from '../../../../packages/data/cards.json';
 
 export const CLUBS = clubsJson as Club[];
@@ -22,6 +23,7 @@ export const PLAYERS = [
   ...(brJson as BasePlayer[]),
   ...(realJson as BasePlayer[]),
   ...(fillersJson as BasePlayer[]),
+  ...(masterLigaJson as BasePlayer[]),
 ];
 export const CARDS = cardsJson as CardDefinition[];
 

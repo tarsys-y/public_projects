@@ -61,11 +61,12 @@ const icons = validateArray('players.json', readJson('players.json'), basePlayer
 const curatedBr = validateArray('players-br.json', readJson('players-br.json'), basePlayerSchema);
 const real = validateArray('players-real.json', readJson('players-real.json'), basePlayerSchema);
 const filler = validateArray('players-filler.json', readJson('players-filler.json'), basePlayerSchema);
+const masterLiga = validateArray('players-masterliga.json', readJson('players-masterliga.json'), basePlayerSchema);
 const epicMoments = validateArray('epic-moments.json', readJson('epic-moments.json'), epicMomentSchema);
 const cards = validateArray('cards.json', readJson('cards.json'), cardDefinitionSchema);
 const appearances = validateArray('appearance.json', readJson('appearance.json'), appearanceSchema);
 
-const players = [...icons, ...curatedBr, ...real, ...filler];
+const players = [...icons, ...curatedBr, ...real, ...filler, ...masterLiga];
 
 checkUnique('clubs.json', clubs.map((c) => c.id));
 checkUnique('players(4 arquivos)', players.map((p) => p.id));
@@ -107,6 +108,7 @@ if (errors.length > 0) {
 console.log(
   `✓ Base válida: ${clubs.length} clubes, ${icons.length} ícones + ${curatedBr.length} BR curados + ${real.length} reais (FC26)` +
     (filler.length ? ` + ${filler.length} fillers` : '') +
+    (masterLiga.length ? ` + ${masterLiga.length} Master Liga` : '') +
     `, ${epicMoments.length} epic moments` +
     (cards.length ? `, ${cards.length} cartas no catálogo` : '') +
     (appearances.length ? `, ${appearances.length} aparências curadas` : ''),

@@ -23,7 +23,8 @@ describe('eventos semanais (rotação determinística)', () => {
     expect(EVENTS.length).toBeGreaterThanOrEqual(5);
     for (const event of EVENTS) {
       expect(event.pack.cards).toBeGreaterThan(0);
-      expect(event.pack.costCoins + event.pack.costGems).toBeGreaterThan(0);
+      // custos zerados no período de teste (Bloco 0) — economia real será definida depois
+      expect(event.pack.costCoins + event.pack.costGems).toBeGreaterThanOrEqual(0);
       expect(event.objectives.length).toBeGreaterThanOrEqual(2);
       for (const o of event.objectives) {
         expect(o.target).toBeGreaterThan(0);

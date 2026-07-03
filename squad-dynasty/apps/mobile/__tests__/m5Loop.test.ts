@@ -88,11 +88,16 @@ describe('aceite M5: loop jogar → ganhar → abrir → evoluir → escalar', (
     expect(slot.player?.overall).toBeGreaterThan(0);
   });
 
-  it('saldo insuficiente não abre pacote nem debita', () => {
+  it('saldo insuficiente não debita (guarda de spend — pacotes estão grátis no período de teste)', () => {
     useEconomyStore.getState().reset();
-    useEconomyStore.getState().spend({ coins: 2000 }); // deixa 1000 (< 1500)
+    const { coins } = useEconomyStore.getState();
+    const paid = useEconomyStore.getState().spend({ coins: coins + 1 }); // acima do saldo
+    expect(paid).toBe(false);
+    expect(useEconomyStore.getState().coins).toBe(coins);
+    // pacote básico custa 0 no período de teste: sempre abre, mesmo com saldo zerado
+    useEconomyStore.setState({ coins: 0, gems: 0 });
     const opening = usePacksStore.getState().buyAndOpen('basic', 1);
-    expect(opening).toBeNull();
-    expect(useEconomyStore.getState().coins).toBe(1000);
+    expect(opening).not.toBeNull();
+    expect(useEconomyStore.getState().coins).toBe(0);
   });
 });

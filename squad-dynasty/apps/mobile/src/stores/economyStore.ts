@@ -14,7 +14,7 @@ interface EconomyState {
 }
 
 /** Saldo inicial: dá para abrir os primeiros pacotes e sentir o loop. */
-const INITIAL = { coins: 3000, gems: 50 };
+const INITIAL = { coins: 99999, gems: 9999 };
 
 export const useEconomyStore = create<EconomyState>()(
   persist(

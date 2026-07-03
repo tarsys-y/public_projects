@@ -34,8 +34,9 @@ const icons = readJson<BasePlayer[]>('players.json');
 const curatedBr = readJson<BasePlayer[]>('players-br.json', true);
 const real = readJson<BasePlayer[]>('players-real.json', true);
 const filler = readJson<BasePlayer[]>('players-filler.json', true);
+const masterLiga = readJson<BasePlayer[]>('players-masterliga.json', true);
 const epicMoments = readJson<EpicMoment[]>('epic-moments.json');
-const players = [...icons, ...curatedBr, ...real, ...filler];
+const players = [...icons, ...curatedBr, ...real, ...filler, ...masterLiga];
 
 const cards: CardDefinition[] = [];
 
