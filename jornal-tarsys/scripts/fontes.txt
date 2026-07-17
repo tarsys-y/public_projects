@@ -1,0 +1,22 @@
+# Fontes RSS do Jornal Semanal do Tarsys — um feed por linha.
+# Linhas iniciadas com "#" são ignoradas.
+
+# arXiv — Risk Management e Statistical Finance (URLs oficiais do arXiv RSS)
+https://rss.arxiv.org/rss/q-fin.RM
+https://rss.arxiv.org/rss/q-fin.ST
+
+# Building Nubank (blog de engenharia/dados — o blog migrou para building.nubank.com;
+# feed WordPress padrão. Se falhar na coleta, confirme em https://building.nubank.com/)
+https://building.nubank.com/feed/
+
+# Banco Central do Brasil — o site do BCB bloqueia acesso automatizado a partir de
+# alguns ambientes e as URLs de feed não puderam ser confirmadas automaticamente.
+# Confirme as URLs na página oficial de RSS do BC (https://www.bcb.gov.br/acessoinformacao/rss)
+# e descomente/ajuste as linhas abaixo:
+# https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias
+# https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notas
+
+# --- Adicione seus feeds abaixo (exemplos comentados) ---
+# https://blogs.worldbank.org/allfinance/rss.xml
+# https://www.bis.org/doclist/all_rss.rss
+# https://libertystreeteconomics.newyorkfed.org/feed/
