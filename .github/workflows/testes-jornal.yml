@@ -1,0 +1,26 @@
+name: Testes do jornal-tarsys
+
+on:
+  push:
+    paths:
+      - 'jornal-tarsys/scripts/**'
+      - '.github/workflows/testes-jornal.yml'
+  pull_request:
+    paths:
+      - 'jornal-tarsys/scripts/**'
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install -r jornal-tarsys/scripts/requirements.txt
+
+      - name: Rodar testes end-to-end (mock local)
+        run: python jornal-tarsys/scripts/tests/test_coleta.py

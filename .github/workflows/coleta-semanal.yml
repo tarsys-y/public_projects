@@ -1,0 +1,74 @@
+name: Coleta semanal do jornal
+
+on:
+  schedule:
+    # Segunda 12:30 UTC = 9h30 de Brasília, após a divulgação do Boletim Focus (~8h25).
+    - cron: '30 12 * * MON'
+  workflow_dispatch:
+    inputs:
+      semana:
+        description: 'Semana ISO (AAAA-Wnn); vazio = semana anterior'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install -r jornal-tarsys/scripts/requirements.txt
+
+      - name: Determinar semana
+        id: semana
+        env:
+          SEMANA_INPUT: ${{ inputs.semana }}
+        run: |
+          if [ -n "$SEMANA_INPUT" ]; then
+            SEMANA="$SEMANA_INPUT"
+          else
+            # A coleta de segunda consolida a semana ISO que acabou de fechar.
+            SEMANA=$(python -c "
+          import datetime as dt
+          hoje = dt.datetime.now(dt.timezone(dt.timedelta(hours=-3))).date()
+          ano, semana, _ = (hoje - dt.timedelta(days=7)).isocalendar()
+          print(f'{ano}-W{semana:02d}')
+          ")
+          fi
+          echo "semana=$SEMANA" >> "$GITHUB_OUTPUT"
+          echo "Semana da coleta: $SEMANA"
+
+      - name: Rodar coleta
+        run: python jornal-tarsys/scripts/coleta.py --semana "${{ steps.semana.outputs.semana }}"
+
+      - name: Abrir/atualizar PR com os insumos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SEMANA="${{ steps.semana.outputs.semana }}"
+          BRANCH="coleta/$SEMANA"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add jornal-tarsys/insumos/
+          if git diff --cached --quiet; then
+            echo "Nenhuma mudança nos insumos — nada a fazer."
+            exit 0
+          fi
+          git commit -m "Coleta semanal $SEMANA"
+          git push -f origin "$BRANCH"
+          gh pr create \
+            --base master \
+            --head "$BRANCH" \
+            --title "Coleta semanal $SEMANA" \
+            --body "Insumos coletados automaticamente para a semana $SEMANA (feeds RSS + SGS + Focus). Revisar e mergear antes de rodar o /fechar-edicao." \
+            || echo "PR já existente para $BRANCH — branch atualizada com força."
