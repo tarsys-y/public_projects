@@ -16,8 +16,8 @@ Feche a edição semanal do Jornal do Tarsys. Siga exatamente este fluxo:
 
 4. **Redija a edição completa** seguindo rigorosamente o template de 9 seções do editorial, na ordem, com todas as regras de redação (todo item com fonte + link + data; hierarquia de autoridade; regra do veto da fonte primária; sinalizar comparações de inadimplência que cruzam jan/2025 — Resolução CMN 4.966/21; tamanho de 2–3 páginas; rodapé obrigatório com todas as fontes e data de captura).
 
-5. **Salve** em `jornal-tarsys/jornal/AAAA-Wnn.md` (semana ISO da edição).
+5. **Salve** em `jornal-tarsys/jornal/AAAA-Wnn.md` (semana ISO da edição), com o banner `> RASCUNHO — aguardando revisão do editor` como primeira linha. Se existir `jornal-tarsys/insumos/dados/AAAA-Wnn.json` (JSON bruto do SGS/Focus coletado pela automação), use esses números como fonte primária na seção 2, citando as séries.
 
 6. **Atualize as páginas de tema** em `jornal-tarsys/temas/` tocadas pela edição (crie se não existirem): 3–6 linhas do que mudou na semana + link para a edição, no topo da linha do tempo.
 
-7. **NÃO COMMITE.** Mostre ao usuário um resumo do que foi feito (manchete escolhida, o que entrou em cada seção, quais temas foram atualizados, o que ficou sem informação confiável) e peça a revisão dele ANTES de qualquer commit. Só commite após o OK explícito do usuário.
+7. **Revisão antes de publicar.** Mostre ao usuário um resumo do que foi feito (manchete escolhida, o que entrou em cada seção, quais temas foram atualizados, o que ficou sem informação confiável) e peça a revisão dele. Se for necessário commitar antes do OK (ambiente efêmero/hook), commite COM o banner de rascunho e mensagem indicando "DRAFT". Após o OK explícito do usuário: remova o banner e commite como `Publica edição AAAA-Wnn` — a partir daí a edição é imutável (ver convenção no CLAUDE.md do projeto).

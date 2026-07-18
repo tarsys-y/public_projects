@@ -15,9 +15,14 @@ O usuário (Tarsys) é gerente sênior de crédito varejo no Brasil: estratégia
 - Português do Brasil, tom executivo direto.
 
 ## Fluxo semanal
-1. `python scripts/coleta.py` gera `insumos/AAAA-Wnn.md` (feeds + APIs do BCB + RI de bancos na temporada).
+1. Coleta automática: o GitHub Actions roda `scripts/coleta.py` toda segunda 9h30 (Brasília) e abre um PR com `insumos/AAAA-Wnn.md` + `insumos/dados/AAAA-Wnn.json` (o usuário mergeia). Rodar localmente também funciona: `python scripts/coleta.py`.
 2. Comando `/fechar-edicao` redige a edição a partir dos insumos + pesquisa web complementar.
-3. O usuário revisa e faz commit. A edição publicada é imutável.
+3. O usuário revisa e aprova. A edição publicada é imutável.
+
+## Convenção rascunho → publicação
+- Toda edição recém-redigida começa com o banner `> RASCUNHO — aguardando revisão do editor` na primeira linha e pode ser commitada assim (ambientes efêmeros exigem commit para não perder trabalho).
+- Publicar = após o OK explícito do editor, remover o banner e commitar com a mensagem `Publica edição AAAA-Wnn`.
+- A partir do commit de publicação a edição é imutável; correção posterior vira nota em edição seguinte, nunca edição do arquivo.
 
 ## Estrutura
 - `jornal/` edições publicadas (imutáveis)
