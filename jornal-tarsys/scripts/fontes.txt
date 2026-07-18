@@ -1,5 +1,7 @@
 # Fontes RSS do Jornal Semanal do Tarsys — um feed por linha.
 # Linhas iniciadas com "#" são ignoradas.
+# Para testar todos os feeds (ativos e comentados) em ambiente com internet:
+#   python scripts/coleta.py --verificar-fontes
 
 # arXiv — Risk Management e Statistical Finance (URLs oficiais do arXiv RSS)
 https://rss.arxiv.org/rss/q-fin.RM
