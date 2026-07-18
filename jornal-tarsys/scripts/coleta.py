@@ -18,10 +18,12 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import os
 import re
 import sqlite3
 import sys
+import time
 import urllib.parse
 from pathlib import Path
 
@@ -29,9 +31,14 @@ import feedparser
 import requests
 
 RAIZ = Path(__file__).resolve().parent.parent
-DIR_INSUMOS = RAIZ / "insumos"
+# COLETA_DIR_INSUMOS permite redirecionar a saída (usado pelos testes).
+DIR_INSUMOS = Path(os.environ.get("COLETA_DIR_INSUMOS", RAIZ / "insumos"))
 ARQ_FONTES_PADRAO = Path(__file__).resolve().parent / "fontes.txt"
 ARQ_DEDUP = DIR_INSUMOS / ".dedup.db"
+
+# Brasília (UTC-3, sem horário de verão desde 2019). A semana ISO é calculada
+# neste fuso para a coleta não "pular" de semana quando o runner está em UTC.
+FUSO_BRASILIA = dt.timezone(dt.timedelta(hours=-3))
 
 # Bases sobrescrevíveis por env var para testes locais (mock server).
 SGS_BASE = os.environ.get("COLETA_SGS_BASE", "https://api.bcb.gov.br")
@@ -47,13 +54,19 @@ UA = "jornal-tarsys/1.0 (coleta pessoal semanal; +https://github.com/tarsys-y)"
 #   432   Meta Selic definida pelo Copom (% a.a., diária)
 #   21082 Inadimplência da carteira de crédito - Total (%, mensal)
 #   21084 Inadimplência da carteira de crédito - Pessoas físicas - Total (%, mensal)
+#   21112 Inadimplência da carteira com recursos livres - PF - Total (%, mensal)
+#   21129 Inadimplência da carteira com recursos livres - PF - Cartão de crédito total (%, mensal)
+#   20740 Taxa média de juros das operações com recursos livres - PF - Total (% a.a., mensal)
 SERIES_SGS = [
     (432, "Meta Selic (% a.a.)", 5),
     (21082, "Inadimplência total SFN (%)", 3),
     (21084, "Inadimplência PF total (%)", 3),
+    (21112, "Inadimplência PF crédito livre (%)", 3),
+    (21129, "Inadimplência PF cartão de crédito (%)", 3),
+    (20740, "Juros médio PF crédito livre (% a.a.)", 3),
 ]
 
-INDICADORES_FOCUS = ["IPCA", "Selic", "PIB Total"]
+INDICADORES_FOCUS = ["IPCA", "Selic", "PIB Total", "Câmbio"]
 
 # Taxonomia do editorial.md; a ordem define a prioridade quando há empate.
 TAGS_KEYWORDS: dict[str, list[str]] = {
@@ -105,8 +118,24 @@ RASTREADORES = ("utm_", "fbclid", "gclid", "mc_cid", "mc_eid", "ref_src")
 
 
 def semana_iso_atual() -> str:
-    ano, semana, _ = dt.date.today().isocalendar()
+    ano, semana, _ = dt.datetime.now(FUSO_BRASILIA).date().isocalendar()
     return f"{ano}-W{semana:02d}"
+
+
+def http_get(url: str, **kwargs) -> requests.Response:
+    """GET com até 3 tentativas (backoff 2s/4s) para falhas transitórias."""
+    kwargs.setdefault("timeout", TIMEOUT)
+    kwargs.setdefault("headers", {"User-Agent": UA})
+    for tentativa in range(3):
+        try:
+            resp = requests.get(url, **kwargs)
+            resp.raise_for_status()
+            return resp
+        except Exception:
+            if tentativa == 2:
+                raise
+            time.sleep(2 * (tentativa + 1))
+    raise AssertionError("unreachable")
 
 
 def validar_semana(valor: str) -> str:
@@ -152,6 +181,39 @@ def ler_fontes(caminho: Path) -> list[str]:
     return feeds
 
 
+def ler_fontes_comentadas(caminho: Path) -> list[str]:
+    """URLs comentadas em fontes.txt (candidatas ainda não confirmadas)."""
+    candidatas = []
+    for linha in caminho.read_text(encoding="utf-8").splitlines():
+        m = re.fullmatch(r"#\s*(https?://\S+)", linha.strip())
+        if m:
+            candidatas.append(m.group(1))
+    return candidatas
+
+
+def verificar_fontes(caminho: Path) -> int:
+    """Testa cada feed (ativos e comentados) e imprime o status de cada um."""
+    falhas = 0
+    grupos = [("ATIVO", ler_fontes(caminho)), ("COMENTADO", ler_fontes_comentadas(caminho))]
+    for rotulo, urls in grupos:
+        for url in urls:
+            try:
+                resp = http_get(url)
+                parsed = feedparser.parse(resp.content)
+                if parsed.entries:
+                    titulo = parsed.feed.get("title", "(sem título)")
+                    print(f"[OK]    {rotulo:<10} {url} — \"{titulo}\", "
+                          f"{len(parsed.entries)} item(ns)")
+                else:
+                    falhas += 1
+                    print(f"[VAZIO] {rotulo:<10} {url} — respondeu mas não parece "
+                          "RSS/Atom com itens")
+            except Exception as exc:
+                falhas += 1
+                print(f"[ERRO]  {rotulo:<10} {url} — {exc}")
+    return 1 if falhas else 0
+
+
 def classificar(texto: str) -> str:
     texto = f" {texto.lower()} "
     melhor_tag, melhor_pontos = "não-classificado", 0
@@ -169,8 +231,7 @@ def coletar_feeds(
     agora = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     for url_feed in feeds:
         try:
-            resp = requests.get(url_feed, timeout=TIMEOUT, headers={"User-Agent": UA})
-            resp.raise_for_status()
+            resp = http_get(url_feed)
             parsed = feedparser.parse(resp.content)
         except Exception as exc:  # rede/HTTP/parse — loga e segue para o próximo feed
             erros.append(f"feed {url_feed}: {exc}")
@@ -221,8 +282,7 @@ def coletar_sgs(erros: list[str]) -> list[dict]:
     for codigo, nome, n in SERIES_SGS:
         url = f"{SGS_BASE}/dados/serie/bcdata.sgs.{codigo}/dados/ultimos/{n}?formato=json"
         try:
-            resp = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": UA})
-            resp.raise_for_status()
+            resp = http_get(url)
             dados = resp.json()
             series.append({"codigo": codigo, "nome": nome, "dados": dados})
         except Exception as exc:
@@ -249,10 +309,7 @@ def coletar_focus(erros: list[str]) -> list[dict]:
             }
             url = f"{FOCUS_BASE}/ExpectativasMercadoAnuais"
             try:
-                resp = requests.get(
-                    url, params=params, timeout=TIMEOUT, headers={"User-Agent": UA}
-                )
-                resp.raise_for_status()
+                resp = http_get(url, params=params)
                 valores = resp.json().get("value", [])
                 if valores:
                     resultados.append(valores[0])
@@ -349,7 +406,15 @@ def main() -> int:
         default=ARQ_FONTES_PADRAO,
         help="arquivo de feeds (default: scripts/fontes.txt)",
     )
+    parser.add_argument(
+        "--verificar-fontes",
+        action="store_true",
+        help="apenas testa os feeds de fontes.txt (ativos e comentados) e sai",
+    )
     args = parser.parse_args()
+
+    if args.verificar_fontes:
+        return verificar_fontes(args.fontes)
 
     erros: list[str] = []
     con = abrir_dedup()
@@ -361,6 +426,20 @@ def main() -> int:
         focus = coletar_focus(erros)
     finally:
         con.close()
+
+    if sgs or focus:
+        # JSON bruto das APIs do BCB: fonte primária citável na edição.
+        dir_dados = DIR_INSUMOS / "dados"
+        dir_dados.mkdir(parents=True, exist_ok=True)
+        bruto = {
+            "semana": args.semana,
+            "capturado_em": dt.datetime.now(FUSO_BRASILIA).isoformat(timespec="seconds"),
+            "sgs": sgs,
+            "focus": focus,
+        }
+        (dir_dados / f"{args.semana}.json").write_text(
+            json.dumps(bruto, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     destino = DIR_INSUMOS / f"{args.semana}.md"
     destino.write_text(
